@@ -45,20 +45,28 @@ Our project targets the **Public Services** track: grounding agentic, local-firs
 
 ## Repository contents
 
+Facility data is organised per facility, then per borough, with a merged file across all boroughs:
+
+```
+datasets/<facility>/<borough>/<facility>.geojson   raw data for one borough
+datasets/<facility>/<facility>-all-london.geojson  all boroughs merged
+```
+
 | Path | What it is |
 |---|---|
-| [`datasets/`](datasets/) | The civic facility data, one subdirectory per facility, each as `.csv` and `.geojson` |
-| [`datasets/libraries/`](datasets/libraries/) | Libraries (13, Camden) |
-| [`datasets/reception-centres/`](datasets/reception-centres/) | Council reception centres (19, Camden) |
-| [`datasets/schools/`](datasets/schools/) | Schools (658, Camden + surrounding boroughs) |
-| [`datasets/public-toilets/`](datasets/public-toilets/) | Public toilets (39, Camden) |
-| [`datasets/polling-stations/`](datasets/polling-stations/) | Polling stations (61, Camden) |
-| [`datasets/grit-bins/`](datasets/grit-bins/) | Grit bins (177, Camden) |
-| [`datasets/SOURCES.md`](datasets/SOURCES.md) | Where each dataset comes from, licences, refresh URLs, and why some facilities aren't centrally available |
+| [`datasets/libraries/`](datasets/libraries/) | Libraries (42 across 4 boroughs) |
+| [`datasets/reception-centres/`](datasets/reception-centres/) | Reception / rest centres (47 across 2 boroughs) |
+| [`datasets/cctv/`](datasets/cctv/) | CCTV cameras (549 across 2 boroughs) |
+| [`datasets/schools/`](datasets/schools/) | Schools (1000 across 4 boroughs) |
+| [`datasets/public-toilets/`](datasets/public-toilets/) | Public toilets (216 across 5 boroughs) |
+| [`datasets/polling-stations/`](datasets/polling-stations/) | Polling stations (464 across 7 boroughs) |
+| [`datasets/grit-bins/`](datasets/grit-bins/) | Grit bins (376 across 4 boroughs) |
+| [`datasets/SOURCES.md`](datasets/SOURCES.md) | Coverage matrix, sources, licences, caveats, and refresh URLs |
 | [`docs/london-structure.md`](docs/london-structure.md) | How London is organised (boroughs, wards, geographies) and why facility data is split across sources |
+| [`docs/data-scope-notes.md`](docs/data-scope-notes.md) | Team note on coverage and the scope options to decide |
 | [`LICENSE`](LICENSE) | Project licence |
 
-Current scope is a **London Borough of Camden** pilot. CCTV is not included: it is withheld from open data for security (see [`datasets/SOURCES.md`](datasets/SOURCES.md)).
+Data covers the 8 of 33 London authorities that publish these facilities as open location data; coverage per facility is partial. See [`datasets/SOURCES.md`](datasets/SOURCES.md) for the full matrix and caveats.
 
 ## Team
 
