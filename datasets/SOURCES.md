@@ -1,63 +1,84 @@
 # Datasets
 
-Each facility has its own subdirectory under `datasets/`, holding a `.csv` (full tabular export) and a `.geojson` (point geometry for location queries). All GeoJSON records include coordinates. Scope is the **London Borough of Camden** (schools also include surrounding boroughs).
+Civic facility location data for London, gathered borough by borough.
+
+## Layout
+
+Each facility has its own folder. Inside it, one subfolder per borough holds that borough's raw data, and a single `*-all-london.geojson` merges every borough we have for that facility (each feature tagged with a `_borough` property).
 
 ```
-datasets/
-├── grit-bins/          grit-bins.csv          grit-bins.geojson
-├── libraries/          libraries.csv          libraries.geojson
-├── polling-stations/   polling-stations.csv   polling-stations.geojson
-├── public-toilets/     public-toilets.csv     public-toilets.geojson
-├── reception-centres/  reception-centres.csv  reception-centres.geojson
-├── schools/            schools.csv            schools.geojson
-└── SOURCES.md
+datasets/<facility>/
+├── <borough>/<facility>.geojson      raw data for one borough (some also .csv)
+├── ...
+└── <facility>-all-london.geojson     all boroughs merged, one file
 ```
 
-## Camden Open Data
+All GeoJSON is WGS84 (longitude/latitude) point geometry, ready for "near me" queries.
 
-Source: **Camden Open Data** (https://opendata.camden.gov.uk/), London Borough of Camden.
-Licence: **UK Open Government Licence (OGL v2)** - free to use with attribution.
+## Coverage matrix
 
-| Facility | File | Socrata ID | Records |
-|---|---|---|---|
-| Polling stations | `polling-stations` | `5rhh-fxna` | 61 |
-| Schools (Camden + surrounding boroughs) | `schools` | `bgas-tixx` | 658 |
-| Public toilets (Public Conveniences) | `public-toilets` | `4b2v-65nr` | 39 |
-| Reception centres (Council Reception Points) | `reception-centres` | `afuk-bm95` | 19 |
-| Grit bins | `grit-bins` | `jcq4-7pt3` | 177 |
+Numbers are record counts. A dash means that borough does not publish that facility as open location data.
 
-Refresh:
-- CSV: `https://opendata.camden.gov.uk/api/views/<ID>/rows.csv?accessType=DOWNLOAD`
-- GeoJSON: `https://opendata.camden.gov.uk/resource/<ID>.geojson?$limit=50000`
+| Borough | Libraries | Reception | CCTV | Schools | Toilets | Polling | Grit bins |
+|---|--:|--:|--:|--:|--:|--:|--:|
+| Camden | 13 | 19 | - | 658 | 39 | 61 | 177 |
+| Lambeth | 11 | - | 470 | 100 | 32 | 101 | - |
+| Wandsworth | 11 | - | - | 81 | - | 83 | 55 |
+| Kingston | 7 | - | - | - | - | 53 | 110 |
+| Kensington & Chelsea | - | 28 | 79 | - | 48 | - | - |
+| Barnet | - | - | - | 161 | 26 | 91 | - |
+| City of London | - | - | - | - | 71 | 4 | 34 |
+| Hammersmith & Fulham | - | - | - | - | - | 71 | - |
+| **Total** | **42** | **47** | **549** | **1000** | **216** | **464** | **376** |
+| **Boroughs** | 4 | 2 | 2 | 4 | 5 | 7 | 4 |
 
-## Libraries
+We checked all 32 boroughs plus the City of London. The other 24 authorities publish none of these as open location data (statistics dashboards or no portal).
 
-Source: **Basic dataset of libraries 2023 (enhanced)**, librarydata.uk / Libraries Hacked, derived from Arts Council England's Libraries Location dataset.
-File: `https://blog.librarydata.uk/files/basic-dataset-for-libraries-2023-enhanced.csv` (England-wide, 3,547 rows).
-Licence: Open (OGL-based). Filtered here to `Upper tier local authority = Camden`.
+## Sources by borough
 
-| Facility | File | Records |
+All released under the UK Open Government Licence (OGL) unless noted. Verify the licence on each portal before publishing.
+
+| Borough | Portal / source | Platform |
 |---|---|---|
-| Libraries | `libraries` | 13 |
+| Camden | opendata.camden.gov.uk | Socrata |
+| Lambeth | gis.lambeth.gov.uk (hub: lambethopenmappingdata-lambethcouncil.opendata.arcgis.com) | ArcGIS |
+| Wandsworth | wandsworth.gov.uk "Location data" page | Static CSV |
+| Kingston | od-rbk.opendata.arcgis.com | ArcGIS Hub |
+| Kensington & Chelsea | RBKC ArcGIS services (rbkc-lbhf) | ArcGIS |
+| Barnet | open.barnet.gov.uk | DataPress |
+| City of London | mapping.cityoflondon.gov.uk (INSPIRE WFS) | ArcGIS WFS |
+| Hammersmith & Fulham | LBHF ArcGIS services (rbkc-lbhf) | ArcGIS |
 
-## CCTV - not available
+Camden libraries come from the Arts Council England libraries dataset (national, geocoded) filtered to Camden, not Camden's own portal.
 
-CCTV was listed on the **stale 2016** London Datastore Camden entry but is **not** on Camden's current open data portal. Surveillance CCTV locations are generally withheld for security reasons, so there is no equivalent open dataset.
+## Caveats (read before relying on a layer)
 
-Alternative if a "cameras" layer is wanted: **TfL JamCams** (live traffic cameras, London-wide) via the TfL Unified API / open feed - note these are traffic cameras, not council CCTV.
+- **Barnet schools and polling stations** publish only addresses, so coordinates are postcode-centroid geocodes (via postcodes.io), accurate to postcode level, not surveyed points.
+- **Lambeth CCTV** is TfL traffic cameras, not council community-safety CCTV.
+- **Kensington & Chelsea reception centres** are emergency rest centres, the nearest match to "reception centres", not routine customer-service desks.
+- **City of London polling** is 4 polling places (tiny resident population); schools there are a catchment boundary, not points, so not included.
+- Each portal uses a different platform and field names. The unified files merge geometry and tag `_borough`, but the per-borough property fields are not yet normalised to a shared schema.
 
-## Why these aren't all on the London Datastore - and where to get them
+## A simpler route for three of these
 
-Root cause: the **London Datastore (GLA) holds statistics *about* London** (borough/ward counts, rates, results), **not facility *locations***. Facility point data is *operational* and owned by each borough, so it lives on borough portals (Camden, Brent, Wandsworth…) that the Datastore only links to. Hence each facility is "missing" for a specific reason:
+For three facilities a single national dataset already covers all of London, with no borough stitching:
 
-| Facility | Why missing from the Datastore | Where to actually get it |
-|---|---|---|
-| Libraries | Only usage *statistics*; no location file | **Arts Council England** (national, geocoded) - *used here* |
-| Schools | Abundant *statistics*, no location point file | **DfE Get Information About Schools (GIAS)** (national, geocoded) |
-| Public toilets | Only a committee *report* with summary tables | **Great British Public Toilet Map** / `toilets4london` (London-wide, aggregated) |
-| Polling stations | Only a 2010 file, incomplete (24/33 authorities) | **Democracy Club** (UK-wide, CSV + API; election-time-sensitive) |
-| Grit bins | Pure operational borough data | **Borough portals only** - Camden (*used here*), +Brent/Wandsworth to widen |
-| Reception centres | "Reception" on the Datastore = school year (age 4-5), not the facility | **Borough portals only** - Camden (*used here*) |
-| CCTV | Only the stale Camden index entry | **Unavailable** - withheld for security (TfL JamCams = traffic cameras only) |
+- **Schools** - DfE Get Information About Schools (GIAS)
+- **Libraries** - Arts Council England (the source already used for Camden)
+- **Polling stations** - Democracy Club (UK-wide; changes per election)
 
-Coverage model: **schools + libraries** → full London via national datasets; **polling stations + toilets** → London-wide via aggregators (with caveats); **grit bins + reception centres** → borough-by-borough; **CCTV** → none. Other boroughs with facility location data include **Brent** and **Wandsworth** (each its own format). See [`../docs/london-structure.md`](../docs/london-structure.md) for why the data is split this way.
+The borough-by-borough approach is the only option for **public toilets, grit bins, CCTV and reception centres**, where no national source exists.
+
+## Not available
+
+- **CCTV** beyond Lambeth (traffic) and Kensington & Chelsea (community safety). Most councils withhold camera locations. Barnet lists cameras but with no coordinates, so it could not be mapped.
+- **Reception centres** beyond Camden and the K&C rest centres. Rare as open data.
+
+## Refresh
+
+- Socrata (Camden): `https://opendata.camden.gov.uk/resource/<ID>.geojson?$limit=50000`
+- ArcGIS (Lambeth, Kingston, RBKC, H&F): `<FeatureServer or MapServer>/0/query?where=1=1&outFields=*&outSR=4326&f=geojson`
+- WFS (City of London): `https://www.mapping.cityoflondon.gov.uk/arcgis/services/INSPIRE/MapServer/WFSServer?service=WFS&version=2.0.0&request=GetFeature&typeNames=<layer>&outputFormat=GEOJSON&srsName=EPSG:4326`
+- Static CSV (Wandsworth, Barnet): download the CSV and convert any British National Grid eastings/northings to WGS84.
+
+See [`../docs/london-structure.md`](../docs/london-structure.md) for why facility data is split across boroughs.
