@@ -1,0 +1,15 @@
+{
+  "id": "civic-geo",
+  "enabledByDefault": true,
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "tools": ["geocode", "find_nearest", "get_details", "safety_count", "list_coverage"]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
