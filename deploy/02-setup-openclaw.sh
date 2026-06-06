@@ -12,6 +12,7 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 export CIVIC_DATA_DIR="$REPO/datasets"
 GW_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
 export ELEVENLABS_VOICE_ID="${ELEVENLABS_VOICE_ID:-21m00Tcm4TlvDq8ikWAM}"  # default prebuilt voice
+export OLLAMA_API_KEY="${OLLAMA_API_KEY:-ollama}"  # Ollama provider needs any non-empty key
 
 command -v openclaw >/dev/null || { echo "ERROR: openclaw not on PATH."; exit 1; }
 
