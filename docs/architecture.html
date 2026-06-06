@@ -11,8 +11,8 @@
     --green:#5E9400; --greenDk:#3F6212; --greenBg:#F2F8E6; --nv:#76B900;
     --purple:#7C3AED; --purpleDk:#5B21B6; --purpleBg:#F4EFFF;
     --orange:#EA580C; --orangeDk:#9A3412; --orangeBg:#FFF9F4;
-    --emerald:#059669; --emeraldDk:#047857;
-    --grey:#94A3B8;
+    --emerald:#059669; --emeraldDk:#047857; --red:#B91C1C;
+    --slate:#334155; --grey:#94A3B8;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
@@ -22,63 +22,25 @@
     -webkit-font-smoothing:antialiased; padding:22px;
     display:flex; justify-content:center;
   }
-  .wrap{width:100%; max-width:1100px}
+  .wrap{width:100%; max-width:1140px}
   .panel{
     background:#FBFCFE; border:1.5px solid var(--line); border-radius:18px;
     box-shadow:0 12px 40px -16px rgba(15,23,42,.28); padding:22px 26px 18px;
-    position:relative;
   }
-  /* header */
-  .head{display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap}
-  .titleblock{display:flex; gap:14px}
-  .accent{width:6px; border-radius:3px; background:linear-gradient(180deg,var(--blue),var(--purple),var(--nv))}
+  .head{display:flex; align-items:flex-start; gap:14px}
+  .accent{width:6px; border-radius:3px; background:linear-gradient(180deg,var(--blue),var(--purple),var(--nv)); align-self:stretch}
   h1{font-size:25px; margin:2px 0 4px; letter-spacing:-.2px}
   h1 .sep{color:var(--grey); font-weight:600}
   h1 .sub{color:var(--ink2); font-weight:600}
-  .tag{font-size:13.5px; color:var(--ink2); margin:0; max-width:620px}
-  /* legend */
-  .legend{display:flex; flex-wrap:wrap; gap:6px 20px; margin:14px 0 4px; font-size:12px; color:#334155; align-items:center}
+  .tag{font-size:13.5px; color:var(--ink2); margin:0; max-width:760px}
+  .legend{display:flex; flex-wrap:wrap; gap:6px 18px; margin:14px 0 4px; font-size:12px; color:#334155; align-items:center}
   .legend span{display:inline-flex; align-items:center; gap:7px}
   .sw{width:14px;height:14px;border-radius:4px;border:1.5px solid}
-  .hint{margin-left:auto; font-size:11.5px; color:var(--ink3); font-style:italic}
-  hr.div{border:0; border-top:1.5px solid #E9EEF4; margin:8px 0 4px}
-  /* stage */
-  .stage{position:relative}
+  hr.div{border:0; border-top:1.5px solid #E9EEF4; margin:8px 0 6px}
+  .flowcap{font-size:12.5px; line-height:1.5; border:1px solid #BBF7D0; background:#F0FBF6; color:#14532d; border-radius:11px; padding:10px 13px; margin:2px 0 12px}
+  .flowcap b{color:#065f46}
   svg{display:block; width:100%; height:auto}
   text{ -webkit-user-select:none; user-select:none }
-  .node{cursor:pointer; transition:opacity .18s}
-  .node .card{transition:filter .18s, transform .18s; transform-box:fill-box; transform-origin:center}
-  .stage.dim .node{opacity:.26}
-  .stage.dim .node.hot{opacity:1}
-  .stage.dim .flow{opacity:.12}
-  .stage.dim .badge{opacity:.18}
-  .node.hot .card{filter:drop-shadow(0 6px 16px rgba(15,23,42,.22))}
-  .node.lit .card{stroke-width:2.6}
-  .node.lit .ring{opacity:1}
-  .ring{opacity:0; transition:opacity .2s}
-  .flow{transition:opacity .18s}
-  /* pulse */
-  #pulse{filter:drop-shadow(0 0 5px rgba(37,99,235,.9))}
-  /* flow caption */
-  .flowcap{display:flex; align-items:flex-start; gap:10px; font-size:12.5px; line-height:1.45; border:1px solid; border-radius:11px; padding:10px 13px; margin:2px 0 12px;
-    background:#EFF4FF; border-color:#D2E0FB; color:#22436b}
-  .flowcap .k{flex:none; font-size:10px; font-weight:700; letter-spacing:.4px; padding:3px 9px; border-radius:7px; color:#fff; margin-top:1px; background:#2563EB}
-  /* popover */
-  .pop{
-    position:absolute; z-index:9; width:268px; background:#fff; border:1px solid var(--line);
-    border-radius:13px; box-shadow:0 16px 44px -10px rgba(15,23,42,.34); padding:14px 15px 15px;
-    opacity:0; transform:translateY(6px) scale(.98); pointer-events:none; transition:.16s;
-  }
-  .pop.show{opacity:1; transform:none; pointer-events:auto}
-  .pop .pill{display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:.4px; color:#fff; padding:3px 9px; border-radius:8px; margin-bottom:8px}
-  .pop h3{margin:0 0 6px; font-size:15px}
-  .pop p{margin:0; font-size:12.5px; line-height:1.5; color:var(--ink2)}
-  .pop .x{position:absolute; top:9px; right:11px; cursor:pointer; color:var(--ink3); font-size:16px; line-height:1; border:0; background:0}
-  .pop:after,.pop:before{content:""; position:absolute; left:var(--ax,40px); border:9px solid transparent}
-  .pop.below:before{top:-18px; border-bottom-color:var(--line)}
-  .pop.below:after{top:-16px; border-bottom-color:#fff}
-  .pop.above:before{bottom:-18px; border-top-color:var(--line)}
-  .pop.above:after{bottom:-16px; border-top-color:#fff}
   .foot{font-size:12px; color:#334155; line-height:1.55; margin:12px 2px 2px}
   .foot .num{display:inline-block; min-width:16px; height:16px; line-height:16px; text-align:center; background:#1E293B; color:#fff; border-radius:50%; font-size:10px; font-weight:700; margin:0 2px}
   .foot .fine{color:var(--ink3); font-style:italic; margin-top:6px}
@@ -89,329 +51,160 @@
   <div class="panel">
 
     <div class="head">
-      <div class="titleblock">
-        <div class="accent"></div>
-        <div>
-          <h1>Codeborough <span class="sep">&middot;</span> <span class="sub">System Architecture</span></h1>
-          <p class="tag">A private, on-device, voice-first civic concierge for London. Your location and queries never leave the device.</p>
-        </div>
+      <div class="accent"></div>
+      <div>
+        <h1>Codeborough <span class="sep">&middot;</span> <span class="sub">System Architecture &middot; containers &amp; connections</span></h1>
+        <p class="tag">A private, on-device, voice-first civic concierge for London. Four Docker containers on one box: who runs what, on which network, and what talks to what.</p>
       </div>
     </div>
 
     <div class="legend">
-      <span><span class="sw" style="background:var(--blueBg);border-color:var(--blue)"></span>Reuse: OpenClaw runtime</span>
-      <span><span class="sw" style="background:var(--greenBg);border-color:var(--green)"></span>Nemotron: NVIDIA brain</span>
-      <span><span class="sw" style="background:var(--purpleBg);border-color:var(--purple)"></span>We write: civic-geo + data</span>
-      <span><span class="sw" style="background:var(--orangeBg);border-color:var(--orange)"></span>ElevenLabs: cloud voice</span>
-      <span><span class="sw" style="background:#F4FBF7;border-color:var(--emerald);border-style:dashed"></span>On-device boundary</span>
-      <span><span class="sw" style="background:#334155;border-color:#334155"></span>Docker container (vllm / gateway)</span>
-      <span class="hint">Hover to focus, click a box for detail</span>
+      <span><span class="sw" style="background:#FFFFFF;border-color:var(--slate);border-style:dashed"></span>Docker container</span>
+      <span><span class="sw" style="background:#FEF2F2;border-color:#FCA5A5;border-style:dashed"></span>core_net (internal, no internet)</span>
+      <span><span class="sw" style="background:#EFF4FF;border-color:#93C5FD;border-style:dashed"></span>edge_net (internet-facing)</span>
+      <span><span class="sw" style="background:#FFF9F4;border-color:var(--orange)"></span>off-device (cloud)</span>
+      <span><span class="sw" style="background:#F4FBF7;border-color:var(--emerald);border-style:dashed"></span>on-device host</span>
     </div>
     <hr class="div">
 
-    <div class="flowcap"><span class="k">Voice turn</span><span>The user speaks and hears the answer on the device. Voice in, the brain calls civic-geo to look up live London data, then speaks a grounded answer back. Everything except ElevenLabs runs in Docker on the box: the brain (<b>vllm</b>) and the gateway (OpenClaw + civic-geo + memory + data) sit on an <b>internal network with no route to the internet</b>, so only the voice can leave, through the default-deny <b>egress-proxy</b>.</span></div>
+    <div class="flowcap"><b>How it runs:</b> the user's browser hits only <b>bridge :8091</b>. The reasoning core - <b>vllm</b> (the brain) and <b>gateway</b> (OpenClaw + civic-geo + memory + data) - sits on <b>core_net</b>, which is <code>internal: true</code>, so it has <b>no route to the internet at all</b>. The only way out of the box is the default-deny <b>egress-proxy</b>, and it allows only ElevenLabs. Volumes (cb_models, cb_memory) are mounted into the containers that need them.</div>
 
-    <div class="stage" id="stage">
-      <svg viewBox="0 0 1060 530" id="svg" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+    <div class="stage">
+      <svg viewBox="0 0 1120 640" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
         <defs>
-          <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.13"/></filter>
-          <filter id="pathGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3"/></filter>
-          <marker id="aDark" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#1E293B"/></marker>
-          <marker id="aOrange" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#EA580C"/></marker>
-          <marker id="aBlue" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#2563EB"/></marker>
+          <filter id="cs" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.13"/></filter>
+          <marker id="aD" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#1E293B"/></marker>
+          <marker id="aO" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#EA580C"/></marker>
+          <marker id="aP" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#7C3AED"/></marker>
         </defs>
 
-        <!-- ON-DEVICE BOUNDARY -->
-        <rect x="340" y="34" width="688" height="396" rx="18" fill="#F4FBF7" stroke="#059669" stroke-width="2" stroke-dasharray="8 5"/>
-        <rect x="358" y="54" width="15" height="11" rx="2" fill="none" stroke="#047857" stroke-width="2"/>
-        <path d="M361 54 v-2 a4.5 4.5 0 0 1 9 0 v2" fill="none" stroke="#047857" stroke-width="2"/>
-        <text x="382" y="56" font-size="13.5" font-weight="700" fill="#047857" letter-spacing="0.3">ON-DEVICE <tspan font-weight="600">(private)</tspan> <tspan font-weight="700" fill="#B91C1C">&middot; Docker core_net: internal, NO internet route</tspan></text>
-        <text x="382" y="74" font-size="11" fill="#059669">NVIDIA DGX Spark (GB10)  &middot;  the brain + gateway are sealed off the internet; only voice can leave, via the egress-proxy</text>
+        <!-- ===================== OFF-DEVICE column ===================== -->
+        <text x="28" y="40" font-size="11.5" font-weight="700" fill="#64748B" letter-spacing="0.3">OFF-DEVICE</text>
+        <!-- Browser -->
+        <rect x="26" y="116" width="150" height="100" rx="12" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.4" filter="url(#cs)"/>
+        <circle cx="58" cy="150" r="11" fill="none" stroke="#334155" stroke-width="2"/><path d="M42 180 a16 13 0 0 1 32 0" fill="none" stroke="#334155" stroke-width="2"/>
+        <text x="82" y="148" font-size="13" font-weight="700" fill="#0F172A">Browser</text>
+        <text x="82" y="166" font-size="9.5" fill="#64748B">phone / laptop</text>
+        <text x="34" y="200" font-size="10" fill="#475569">UI + mic + speaker</text>
+        <!-- ElevenLabs -->
+        <rect x="26" y="392" width="150" height="120" rx="12" fill="#FFF9F4" stroke="#EA580C" stroke-width="1.5" filter="url(#cs)"/>
+        <g transform="translate(40,406)"><rect width="44" height="15" rx="7.5" fill="#EA580C"/><text x="22" y="11" font-size="8.5" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CLOUD</text></g>
+        <text x="40" y="446" font-size="13" font-weight="700" fill="#9A3412">ElevenLabs</text>
+        <text x="40" y="466" font-size="10" fill="#7C2D12">Scribe STT (voice in)</text>
+        <text x="40" y="482" font-size="10" fill="#7C2D12">Eleven TTS (voice out)</text>
+        <text x="40" y="500" font-size="9" fill="#C2410C">the only external service</text>
 
-        <!-- VOICE flow lines -->
-        <g class="vflow">
-          <g class="flow" fill="none" stroke="#60A5FA" stroke-width="7" stroke-linecap="round" opacity="0.30" filter="url(#pathGlow)">
-            <path d="M308 152 H364"/><path d="M548 152 H592"/><path d="M776 152 H820"/><path d="M912 222 V266"/>
-          </g>
-          <g class="flow" fill="none" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round">
-            <path d="M100 228 C120 226 124 188 128 182" marker-end="url(#aDark)"/>
-            <path d="M308 152 H364" marker-end="url(#aDark)"/>
-            <path d="M548 152 H592" marker-start="url(#aDark)" marker-end="url(#aDark)"/>
-            <path d="M776 152 H820" marker-start="url(#aDark)" marker-end="url(#aDark)"/>
-            <path d="M912 222 V266" marker-start="url(#aDark)" marker-end="url(#aDark)"/>
-          </g>
-          <g class="flow" fill="none" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 4">
-            <path d="M364 192 C332 200 330 292 312 316" marker-end="url(#aOrange)"/>
-            <path d="M120 336 C112 320 110 250 98 230" marker-end="url(#aOrange)"/>
-          </g>
-          <g class="egress">
-            <rect x="296" y="231" width="150" height="36" rx="9" fill="#FFF8EC" stroke="#EA580C" stroke-width="1.4"/>
-            <text x="371" y="246" font-size="9" font-weight="700" fill="#9A3412" text-anchor="middle">egress-proxy &middot; edge_net</text>
-            <text x="371" y="259" font-size="8.5" font-weight="600" fill="#C2410C" text-anchor="middle">default-deny: ElevenLabs only</text>
-          </g>
-          <text x="466" y="248" font-size="9" font-weight="600" fill="#2563EB">save / recall</text>
-          <path class="flow" d="M456 222 V266" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3.5" marker-start="url(#aBlue)" marker-end="url(#aBlue)"/>
-        </g>
+        <!-- ===================== HOST ===================== -->
+        <rect x="196" y="58" width="900" height="558" rx="18" fill="#F4FBF7" stroke="#059669" stroke-width="2" stroke-dasharray="8 5"/>
+        <rect x="218" y="78" width="15" height="11" rx="2" fill="none" stroke="#047857" stroke-width="2"/><path d="M221 78 v-2 a4.5 4.5 0 0 1 9 0 v2" fill="none" stroke="#047857" stroke-width="2"/>
+        <text x="242" y="88" font-size="12.5" font-weight="700" fill="#047857">ON-DEVICE &middot; NVIDIA DGX Spark (GB10) &middot; one Docker host</text>
 
-        <!-- ===== NODES ===== -->
-        <!-- ElevenLabs wrapper -->
-        <rect x="116" y="42" width="204" height="376" rx="16" fill="#FFF9F4" stroke="#EA580C" stroke-width="1.6" stroke-dasharray="7 4"/>
-        <path d="M134 68 a7 7 0 0 1 13 -2 a5.5 5.5 0 0 1 3 11 H132 a6 6 0 0 1 2 -9 z" fill="#FDE3CF" stroke="#EA580C" stroke-width="1.1"/>
-        <text x="156" y="76" font-size="13" font-weight="700" fill="#C2410C">ElevenLabs</text>
-        <text x="308" y="76" font-size="10" fill="#C2410C" text-anchor="end">off-device</text>
+        <!-- ===================== edge_net zone ===================== -->
+        <rect x="216" y="120" width="252" height="476" rx="14" fill="#EFF4FF" fill-opacity="0.45" stroke="#93C5FD" stroke-width="1.4" stroke-dasharray="6 4"/>
+        <text x="232" y="140" font-size="12" font-weight="700" fill="#1D4ED8">edge_net <tspan font-weight="500" fill="#64748B">&middot; can reach the internet</tspan></text>
 
-        <g class="node" id="scribe" data-tag="ElevenLabs &middot; Cloud" data-color="#EA580C" data-cx="216" data-cy="152">
-          <rect class="ring" x="120" y="78" width="192" height="148" rx="15" fill="none" stroke="#EA580C" stroke-width="3"/>
-          <rect class="card" x="124" y="82" width="184" height="140" rx="12" fill="#FFFFFF" stroke="#F2A06A" stroke-width="1.4" filter="url(#cardShadow)"/>
-          <g transform="translate(136,94)"><rect width="44" height="15" rx="7.5" fill="#EA580C"/><text x="22" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">CLOUD</text></g>
-          <text x="136" y="135" font-size="14" font-weight="700" fill="#9A3412">Scribe v2</text>
-          <text x="136" y="157" font-size="11.5" fill="#7C2D12">Realtime speech-to-text</text>
-          <text x="136" y="178" font-size="11.5" fill="#7C2D12">listens as you speak</text>
-          <text x="136" y="204" font-size="12" font-weight="700" fill="#EA580C">voice in</text>
-        </g>
+        <!-- bridge container -->
+        <rect x="234" y="156" width="216" height="186" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.7" filter="url(#cs)"/>
+        <g transform="translate(248,168)"><rect width="74" height="16" rx="8" fill="#334155"/><text x="37" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CONTAINER</text></g>
+        <text x="438" y="180" font-size="10" font-weight="700" fill="#1D4ED8" text-anchor="end">:8091</text>
+        <text x="248" y="208" font-size="14.5" font-weight="700" fill="#1E3A8A">bridge</text>
+        <text x="248" y="228" font-size="10.5" fill="#334155">bridge.mjs (Node, zero-dep)</text>
+        <text x="248" y="246" font-size="10.5" fill="#334155">serves the UI + map</text>
+        <text x="248" y="264" font-size="10.5" fill="#334155">relays voice + agent calls</text>
+        <text x="248" y="285" font-size="10.5" font-weight="700" fill="#1D4ED8">:8091 = the only inbound port</text>
+        <text x="248" y="305" font-size="9.5" fill="#64748B">on edge_net + core_net</text>
+        <text x="248" y="324" font-size="9.5" fill="#64748B">(the one container that bridges both)</text>
 
-        <g class="node" id="eleven" data-tag="ElevenLabs &middot; Cloud" data-color="#EA580C" data-cx="216" data-cy="336">
-          <rect class="ring" x="120" y="262" width="192" height="148" rx="15" fill="none" stroke="#EA580C" stroke-width="3"/>
-          <rect class="card" x="124" y="266" width="184" height="140" rx="12" fill="#FFFFFF" stroke="#F2A06A" stroke-width="1.4" filter="url(#cardShadow)"/>
-          <g transform="translate(136,278)"><rect width="44" height="15" rx="7.5" fill="#EA580C"/><text x="22" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">CLOUD</text></g>
-          <text x="136" y="319" font-size="14" font-weight="700" fill="#9A3412">Eleven v3</text>
-          <text x="136" y="341" font-size="11.5" fill="#7C2D12">Realtime text-to-speech</text>
-          <text x="136" y="362" font-size="11.5" fill="#7C2D12">speaks the answer aloud</text>
-          <text x="136" y="388" font-size="12" font-weight="700" fill="#EA580C">voice out</text>
-        </g>
+        <!-- egress-proxy container -->
+        <rect x="234" y="372" width="216" height="176" rx="12" fill="#F1F5F9" stroke="#475569" stroke-width="1.7" filter="url(#cs)"/>
+        <g transform="translate(248,384)"><rect width="74" height="16" rx="8" fill="#334155"/><text x="37" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CONTAINER</text></g>
+        <text x="248" y="424" font-size="14.5" font-weight="700" fill="#334155">egress-proxy</text>
+        <text x="248" y="444" font-size="10.5" fill="#475569">tinyproxy</text>
+        <text x="248" y="462" font-size="10.5" font-weight="700" fill="#B91C1C">default-deny</text>
+        <text x="248" y="480" font-size="10.5" fill="#475569">allow *.elevenlabs.io only</text>
+        <text x="248" y="500" font-size="10" fill="#64748B">the single controlled door</text>
+        <text x="248" y="516" font-size="10" fill="#64748B">out of the whole box</text>
+        <text x="248" y="534" font-size="9.5" fill="#64748B">on edge_net + core_net</text>
 
-        <g class="node" id="openclaw" data-tag="Reuse &middot; OpenClaw runtime" data-color="#2563EB" data-cx="456" data-cy="152">
-          <rect class="ring" x="360" y="78" width="192" height="148" rx="15" fill="none" stroke="#2563EB" stroke-width="3"/>
-          <rect class="card" x="364" y="82" width="184" height="140" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.6" filter="url(#cardShadow)"/>
-          <g transform="translate(376,94)"><rect width="46" height="15" rx="7.5" fill="#2563EB"/><text x="23" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">REUSE</text></g>
-          <g transform="translate(446,97)"><rect width="92" height="15" rx="7.5" fill="#334155"/><text x="46" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">gateway :18789</text></g>
-          <text x="376" y="135" font-size="14" font-weight="700" fill="#1E3A8A">OpenClaw Gateway</text>
-          <text x="376" y="156" font-size="11" fill="#334155">Agent runtime + sessions</text>
-          <text x="376" y="173" font-size="11" fill="#334155">Talk: turn-taking, barge-in</text>
-          <text x="376" y="190" font-size="11" fill="#334155">routes STT / brain / TTS</text>
-          <text x="376" y="209" font-size="11" font-weight="600" fill="#1D4ED8">WS + OpenAI HTTP API</text>
-        </g>
+        <!-- ===================== core_net zone ===================== -->
+        <rect x="490" y="120" width="588" height="476" rx="14" fill="#FEF2F2" fill-opacity="0.6" stroke="#FCA5A5" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <text x="506" y="140" font-size="12" font-weight="700" fill="#B91C1C">core_net <tspan font-weight="600">&middot; internal: true</tspan></text>
+        <g transform="translate(936,126)"><rect width="132" height="20" rx="10" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.2"/><text x="66" y="14" font-size="10" font-weight="700" fill="#B91C1C" text-anchor="middle">NO internet route</text></g>
 
-        <g class="node" id="nemotron" data-tag="NVIDIA &middot; the brain" data-color="#5E9400" data-cx="684" data-cy="152">
-          <rect class="ring" x="588" y="78" width="192" height="148" rx="15" fill="none" stroke="#5E9400" stroke-width="3"/>
-          <rect class="card" x="592" y="82" width="184" height="140" rx="12" fill="#F2F8E6" stroke="#5E9400" stroke-width="1.6" filter="url(#cardShadow)"/>
-          <g transform="translate(604,94)"><rect width="52" height="15" rx="7.5" fill="#76B900"/><text x="26" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">NVIDIA</text></g>
-          <g transform="translate(700,97)"><rect width="64" height="15" rx="7.5" fill="#334155"/><text x="32" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">vllm :8000</text></g>
-          <text x="604" y="135" font-size="14" font-weight="700" fill="#3F6212">NVIDIA Nemotron 3</text>
-          <text x="604" y="156" font-size="11" font-weight="600" fill="#4D7C0F">does the tool-calling</text>
-          <text x="604" y="173" font-size="11" fill="#334155">Nano-30B-A3B (NVFP4)</text>
-          <text x="604" y="190" font-size="11" fill="#334155">vLLM, OpenAI /v1 :8000</text>
-          <text x="604" y="209" font-size="10.5" fill="#94A3B8">future: embed / rerank / safety</text>
-        </g>
+        <!-- gateway container (holds 4 components) -->
+        <rect x="510" y="156" width="262" height="424" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.7" filter="url(#cs)"/>
+        <g transform="translate(524,168)"><rect width="74" height="16" rx="8" fill="#334155"/><text x="37" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CONTAINER</text></g>
+        <text x="760" y="180" font-size="10" font-weight="700" fill="#1D4ED8" text-anchor="end">:18789</text>
+        <text x="524" y="206" font-size="14.5" font-weight="700" fill="#1E3A8A">gateway</text>
+        <text x="524" y="223" font-size="9.5" fill="#64748B">OpenClaw runtime + civic-geo + memory + data</text>
+        <!-- 4 inner components -->
+        <rect x="524" y="234" width="234" height="74" rx="9" fill="#FFFFFF" stroke="#BFD3F6" stroke-width="1.2"/>
+        <text x="536" y="254" font-size="11.5" font-weight="700" fill="#1E3A8A">OpenClaw runtime</text>
+        <text x="536" y="271" font-size="10" fill="#475569">agent loop, Talk turn-taking,</text>
+        <text x="536" y="287" font-size="10" fill="#475569">one long session, tool dispatch</text>
+        <text x="750" y="300" font-size="9" fill="#94A3B8" text-anchor="end">:18789</text>
 
-        <g class="node" id="civicgeo" data-tag="We write &middot; our IP" data-color="#7C3AED" data-cx="912" data-cy="152">
-          <rect class="ring" x="816" y="78" width="192" height="148" rx="15" fill="none" stroke="#7C3AED" stroke-width="3"/>
-          <rect class="card" x="820" y="82" width="184" height="140" rx="12" fill="#F4EFFF" stroke="#7C3AED" stroke-width="1.6" filter="url(#cardShadow)"/>
-          <g transform="translate(832,94)"><rect width="62" height="15" rx="7.5" fill="#7C3AED"/><text x="31" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">WE WRITE</text></g>
-          <g transform="translate(924,97)"><rect width="74" height="15" rx="7.5" fill="#334155"/><text x="37" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">in gateway</text></g>
-          <text x="832" y="135" font-size="14" font-weight="700" fill="#5B21B6">civic-geo plugin</text>
-          <text x="832" y="153" font-size="10.5" fill="#334155">Our code: OpenClaw plugin</text>
-          <text x="832" y="169" font-size="10.5" fill="#334155">pure-Node, zero deps</text>
-          <text x="832" y="187" font-size="10.5" fill="#6D28D9">geocode, find_nearest,</text>
-          <text x="832" y="203" font-size="10.5" fill="#6D28D9">get_details, safety_count,</text>
-          <text x="832" y="217" font-size="10.5" fill="#6D28D9">list_coverage</text>
-        </g>
+        <rect x="524" y="316" width="234" height="60" rx="9" fill="#F8F5FF" stroke="#D9C9F7" stroke-width="1.2"/>
+        <text x="536" y="336" font-size="11.5" font-weight="700" fill="#5B21B6">civic-geo plugin</text>
+        <text x="536" y="353" font-size="10" fill="#475569">our code: geocode, find_nearest,</text>
+        <text x="536" y="369" font-size="10" fill="#475569">safety_count, route_safety...</text>
 
-        <g class="node" id="memory" data-tag="Reuse &middot; OpenClaw runtime" data-color="#2563EB" data-cx="456" data-cy="336">
-          <rect class="ring" x="360" y="262" width="192" height="148" rx="15" fill="none" stroke="#2563EB" stroke-width="3"/>
-          <rect class="card" x="364" y="266" width="184" height="140" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.6" filter="url(#cardShadow)"/>
-          <g transform="translate(376,278)"><rect width="46" height="15" rx="7.5" fill="#2563EB"/><text x="23" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">REUSE</text></g>
-          <g transform="translate(464,280)"><rect width="74" height="15" rx="7.5" fill="#334155"/><text x="37" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">in gateway</text></g>
-          <text x="376" y="319" font-size="14" font-weight="700" fill="#1E3A8A">Session memory</text>
-          <text x="376" y="340" font-size="11" fill="#334155">transcript + MEMORY.md</text>
-          <text x="376" y="357" font-size="11" fill="#334155">persists to disk</text>
-          <text x="376" y="374" font-size="11" fill="#334155">save / recall earlier turns</text>
-          <text x="376" y="393" font-size="11" font-weight="700" fill="#1D4ED8">long session, over 1 h 11 m</text>
-        </g>
+        <rect x="524" y="384" width="234" height="92" rx="9" fill="#F8F5FF" stroke="#D9C9F7" stroke-width="1.2"/>
+        <text x="536" y="404" font-size="11.5" font-weight="700" fill="#5B21B6">London GeoJSON (data)</text>
+        <text x="536" y="421" font-size="10" fill="#475569">libraries, schools, toilets, polling,</text>
+        <text x="536" y="437" font-size="10" fill="#475569">CCTV, grit bins, reception centres</text>
+        <text x="536" y="456" font-size="9.5" fill="#7C3AED">mounted read-only from ./datasets</text>
 
-        <g class="node" id="optional" data-tag="Optional &middot; extra hardening" data-color="#94A3B8" data-cx="684" data-cy="336" opacity="0.92">
-          <rect class="ring" x="588" y="262" width="192" height="148" rx="15" fill="none" stroke="#94A3B8" stroke-width="3"/>
-          <rect class="card" x="592" y="266" width="184" height="140" rx="12" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.4" stroke-dasharray="6 4" filter="url(#cardShadow)"/>
-          <g transform="translate(604,278)"><rect width="62" height="15" rx="7.5" fill="#94A3B8"/><text x="31" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">OPTIONAL</text></g>
-          <text x="764" y="289" font-size="9.5" fill="#94A3B8" text-anchor="end">hardening</text>
-          <text x="604" y="319" font-size="13" font-weight="700" fill="#475569">NemoClaw / OpenShell</text>
-          <text x="604" y="340" font-size="11" fill="#64748B">Optional extra hardening</text>
-          <text x="604" y="357" font-size="11" fill="#64748B">brokered key, OCSF audit</text>
-          <text x="604" y="374" font-size="11" fill="#64748B">on top of the on-device</text>
-          <text x="604" y="391" font-size="11" fill="#64748B">privacy boundary</text>
-        </g>
+        <rect x="524" y="484" width="234" height="84" rx="9" fill="#FFFFFF" stroke="#BFD3F6" stroke-width="1.2"/>
+        <text x="536" y="504" font-size="11.5" font-weight="700" fill="#1E3A8A">session memory</text>
+        <text x="536" y="521" font-size="10" fill="#475569">transcripts .jsonl + MEMORY.md</text>
+        <text x="536" y="537" font-size="10" fill="#475569">recall over 1 h 11 m</text>
+        <text x="536" y="556" font-size="9.5" fill="#7C3AED">persisted in cb_memory volume</text>
 
-        <g class="node" id="geojson" data-tag="We write &middot; on-device data" data-color="#7C3AED" data-cx="912" data-cy="336">
-          <rect class="ring" x="816" y="262" width="192" height="148" rx="15" fill="none" stroke="#7C3AED" stroke-width="3"/>
-          <rect class="card" x="820" y="266" width="184" height="140" rx="12" fill="#F4EFFF" stroke="#7C3AED" stroke-width="1.6" filter="url(#cardShadow)"/>
-          <g transform="translate(832,278)"><rect width="62" height="15" rx="7.5" fill="#7C3AED"/><text x="31" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">WE WRITE</text></g>
-          <g transform="translate(924,280)"><rect width="74" height="15" rx="7.5" fill="#334155"/><text x="37" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">in gateway</text></g>
-          <text x="832" y="319" font-size="14" font-weight="700" fill="#5B21B6">London GeoJSON</text>
-          <text x="832" y="340" font-size="11" fill="#334155">On-device civic datasets:</text>
-          <text x="832" y="357" font-size="11" fill="#5B21B6">libraries, schools, toilets,</text>
-          <text x="832" y="374" font-size="11" fill="#5B21B6">polling stations, CCTV,</text>
-          <text x="832" y="391" font-size="11" fill="#5B21B6">grit bins, reception centres</text>
-        </g>
+        <!-- vllm container -->
+        <rect x="794" y="156" width="262" height="208" rx="12" fill="#F2F8E6" stroke="#5E9400" stroke-width="1.7" filter="url(#cs)"/>
+        <g transform="translate(808,168)"><rect width="74" height="16" rx="8" fill="#334155"/><text x="37" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CONTAINER</text></g>
+        <text x="1044" y="180" font-size="10" font-weight="700" fill="#4D7C0F" text-anchor="end">:8000</text>
+        <text x="808" y="206" font-size="14.5" font-weight="700" fill="#3F6212">vllm <tspan font-size="10" font-weight="600" fill="#4D7C0F">(the brain)</tspan></text>
+        <rect x="808" y="220" width="234" height="60" rx="9" fill="#FFFFFF" stroke="#CBE39A" stroke-width="1.2"/>
+        <text x="820" y="240" font-size="11.5" font-weight="700" fill="#3F6212">NVIDIA Nemotron-3 Nano</text>
+        <text x="820" y="257" font-size="10" fill="#475569">30B-A3B NVFP4, tool-calling</text>
+        <text x="820" y="273" font-size="10" fill="#475569">served by vLLM, OpenAI /v1 API</text>
+        <rect x="808" y="288" width="234" height="62" rx="9" fill="#FBFEF4" stroke="#CBE39A" stroke-width="1.2"/>
+        <text x="820" y="308" font-size="11.5" font-weight="700" fill="#3F6212">cb_models volume</text>
+        <text x="820" y="325" font-size="10" fill="#475569">NVFP4 weights (HF cache)</text>
+        <text x="820" y="341" font-size="10" fill="#475569">HF_HUB_OFFLINE - read, never fetch</text>
 
-        <!-- USER -->
-        <g class="node" id="user" data-tag="Londoner" data-color="#334155" data-cx="74" data-cy="210">
-          <rect class="ring" x="34" y="150" width="80" height="130" rx="14" fill="none" stroke="#334155" stroke-width="2.5"/>
-          <circle cx="74" cy="206" r="13" fill="none" stroke="#334155" stroke-width="2.2"/>
-          <path d="M54 240 a20 17 0 0 1 40 0" fill="none" stroke="#334155" stroke-width="2.2"/>
-          <text x="74" y="260" font-size="13" font-weight="700" fill="#0F172A" text-anchor="middle">User</text>
-          <text x="74" y="277" font-size="11" fill="#64748B" text-anchor="middle">Londoner</text>
-        </g>
-
-        <!-- step badges (1-5 request = dark, 6-7 answer back = amber) -->
-        <g class="badge" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">
-          <g><circle cx="110" cy="200" r="11" fill="#1E293B"/><text x="110" y="204">1</text></g>
-          <g><circle cx="332" cy="152" r="11" fill="#1E293B"/><text x="332" y="156">2</text></g>
-          <g><circle cx="570" cy="152" r="11" fill="#1E293B"/><text x="570" y="156">3</text></g>
-          <g><circle cx="798" cy="152" r="11" fill="#1E293B"/><text x="798" y="156">4</text></g>
-          <g><circle cx="912" cy="244" r="11" fill="#1E293B"/><text x="912" y="248">5</text></g>
-          <g><circle cx="328" cy="286" r="11" fill="#B45309"/><text x="328" y="290">6</text></g>
-          <g><circle cx="110" cy="246" r="11" fill="#B45309"/><text x="110" y="250">7</text></g>
-        </g>
-
-        <!-- moving pulse -->
-        <circle id="pulse" r="6.5" fill="#2563EB" opacity="0"/>
+        <!-- ===================== CONNECTIONS ===================== -->
+        <!-- 1) browser -> bridge (only inbound) -->
+        <path d="M176 166 C205 166 208 205 232 214" fill="none" stroke="#1E293B" stroke-width="2.4" marker-end="url(#aD)"/>
+        <g><circle cx="200" cy="150" r="10" fill="#1E293B"/><text x="200" y="154" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text></g>
+        <text x="150" y="120" font-size="9.5" font-weight="700" fill="#1E293B">HTTP/WS :8091</text>
+        <!-- 2) bridge -> gateway (core_net) -->
+        <path d="M450 232 H510" fill="none" stroke="#1E293B" stroke-width="2.4" marker-end="url(#aD)"/>
+        <g><circle cx="480" cy="232" r="10" fill="#1E293B"/><text x="480" y="236" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text></g>
+        <text x="455" y="222" font-size="9" font-weight="700" fill="#1D4ED8">WS :18789 + token</text>
+        <!-- 3) gateway -> vllm -->
+        <path d="M772 250 H794" fill="none" stroke="#1E293B" stroke-width="2.4" marker-start="url(#aD)" marker-end="url(#aD)"/>
+        <g><circle cx="783" cy="250" r="10" fill="#1E293B"/><text x="783" y="254" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text></g>
+        <text x="690" y="240" font-size="9" font-weight="700" fill="#4D7C0F">OpenAI /v1 :8000</text>
+        <!-- 4) bridge -> egress-proxy -->
+        <path d="M342 342 V372" fill="none" stroke="#1E293B" stroke-width="2.2" marker-end="url(#aD)"/>
+        <g><circle cx="342" cy="357" r="10" fill="#1E293B"/><text x="342" y="361" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text></g>
+        <text x="352" y="361" font-size="9" fill="#475569">voice audio</text>
+        <!-- 5) egress-proxy -> ElevenLabs (only egress) -->
+        <path d="M234 458 C204 458 200 452 178 450" fill="none" stroke="#EA580C" stroke-width="2.2" stroke-dasharray="6 4" marker-end="url(#aO)"/>
+        <g><circle cx="206" cy="476" r="10" fill="#EA580C"/><text x="206" y="480" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">5</text></g>
+        <text x="150" y="436" font-size="9" font-weight="700" fill="#C2410C">HTTPS (allowed)</text>
       </svg>
-
-      <!-- popover -->
-      <div class="pop" id="pop">
-        <button class="x" id="popx" aria-label="close">&times;</button>
-        <span class="pill" id="popPill"></span>
-        <h3 id="popTitle"></h3>
-        <p id="popDesc"></p>
-      </div>
     </div>
 
     <div class="foot">
-      <strong>Voice turn</strong> <span class="num">1</span> you speak (Scribe STT) <span class="num">2</span> OpenClaw Gateway <span class="num">3</span> Nemotron reasons <span class="num">4</span> civic-geo tool call <span class="num">5</span> local London GeoJSON lookup <span class="num" style="background:#B45309">6</span> the grounded answer returns through OpenClaw to Eleven v3 <span class="num" style="background:#B45309">7</span> it is spoken back, you hear. <span style="color:var(--purple);font-weight:600">Session memory</span> saves and recalls every turn (over 1 h 11 m), a side loop rather than a numbered step.
-      <div class="fine">Brain, data and memory are fully on-device; only the voice in and out goes through ElevenLabs, which that bounty requires.</div>
+      <strong>Request path</strong> <span class="num">1</span> browser to <b>bridge</b> on :8091 (the only inbound) <span class="num">2</span> bridge to <b>gateway</b> over WS :18789 with a token <span class="num">3</span> gateway to <b>vllm</b> on the OpenAI /v1 API :8000 (the brain reasons + tool-calls civic-geo over the local GeoJSON) <span class="num">4</span> for speech, bridge hands voice to the <b>egress-proxy</b> <span class="num" style="background:#B45309">5</span> which is the only thing allowed off the box, and only to ElevenLabs.
+      <div class="fine">core_net is internal, so vllm and gateway have no internet route at all; cb_models is mounted into vllm and cb_memory + the GeoJSON datasets into gateway. Disable the optional walking-route and polling lookups and the box is fully air-gapped apart from voice.</div>
     </div>
 
   </div>
 </div>
-
-<script>
-(function(){
-  var stage = document.getElementById('stage');
-  var svg = document.getElementById('svg');
-  var pulse = document.getElementById('pulse');
-  var nodes = Array.prototype.slice.call(document.querySelectorAll('.node'));
-  var byId = {}; nodes.forEach(function(n){ byId[n.id] = n; });
-
-  var DETAIL = {
-    user:    {pill:'Londoner', color:'#334155', title:'User', desc:'Speaks a question out loud and hears the spoken answer back, right on the device. Nothing about them leaves the box except the voice audio itself.'},
-    scribe:  {pill:'ElevenLabs &middot; Cloud', color:'#EA580C', title:'Scribe v2 (speech to text)', desc:'ElevenLabs realtime STT. Turns the spoken question into text. This is the only off-device hop, inbound.'},
-    eleven:  {pill:'ElevenLabs &middot; Cloud', color:'#EA580C', title:'Eleven v3 (text to speech)', desc:'ElevenLabs realtime TTS. Speaks the grounded answer aloud. The only off-device hop, outbound.'},
-    openclaw:{pill:'Reuse &middot; OpenClaw runtime', color:'#2563EB', title:'OpenClaw Gateway', desc:'The agent runtime we build on (daemon :18789). Runs Talk mode with turn-taking and barge-in, keeps one long-lived session, routes STT to brain to TTS, and dispatches civic-geo tool calls. Exposes a WS + OpenAI-compatible HTTP API.'},
-    nemotron:{pill:'NVIDIA &middot; the brain', color:'#5E9400', title:'NVIDIA Nemotron 3', desc:'The brain. Nemotron-3-Nano-30B-A3B (NVFP4) served locally via vLLM on an OpenAI /v1 endpoint (:8000). It does the function/tool-calling. Grounding is exact GeoJSON lookups through civic-geo, so no retrieval/RAG is needed in this build; embed + rerank + content-safety are an optional future add-on, not shipped here.'},
-    civicgeo:{pill:'We write &middot; our IP', color:'#7C3AED', title:'civic-geo plugin', desc:'Our original code: a pure-Node, zero-dependency OpenClaw tool plugin. Five tools, geocode(), find_nearest(), get_details(), safety_count(), list_coverage().'},
-    geojson: {pill:'We write &middot; on-device data', color:'#7C3AED', title:'London civic GeoJSON', desc:'Local, on-device datasets the plugin queries: libraries, schools, public toilets, polling stations, CCTV, grit bins and reception centres.'},
-    memory:  {pill:'Reuse &middot; OpenClaw runtime', color:'#2563EB', title:'Session memory', desc:'Transcript .jsonl + MEMORY.md, persisted to disk. Saves and recalls earlier turns across a single long session (over 1 h 11 m) so the agent remembers your situation.'},
-    optional:{pill:'Optional &middot; extra hardening', color:'#94A3B8', title:'NemoClaw / OpenShell sandbox', desc:'An optional further layer on top of the on-device boundary: the ElevenLabs key brokered so the agent never sees it, plus an OCSF audit trail. The shipped privacy boundary is the Docker setup itself (core_net is internal with no internet route, and a single default-deny egress-proxy allows only ElevenLabs).'}
-  };
-
-  /* ---------- hover focus ---------- */
-  nodes.forEach(function(n){
-    n.addEventListener('mouseenter', function(){
-      if(popOpen) return;
-      stage.classList.add('dim'); n.classList.add('hot');
-    });
-    n.addEventListener('mouseleave', function(){
-      if(popOpen) return;
-      stage.classList.remove('dim'); n.classList.remove('hot');
-    });
-    n.addEventListener('click', function(e){ e.stopPropagation(); openPop(n); });
-  });
-
-  /* ---------- popover ---------- */
-  var pop = document.getElementById('pop');
-  var popOpen = false, popNode = null;
-  function openPop(n){
-    var d = DETAIL[n.id]; if(!d) return;
-    popNode = n; popOpen = true;
-    document.getElementById('popPill').innerHTML = d.pill;
-    document.getElementById('popPill').style.background = d.color;
-    document.getElementById('popTitle').textContent = d.title;
-    document.getElementById('popDesc').textContent = d.desc;
-    stage.classList.add('dim');
-    nodes.forEach(function(x){ x.classList.remove('hot'); });
-    n.classList.add('hot');
-    pop.classList.add('show');
-    positionPop(n);
-  }
-  function positionPop(n){
-    var cx = +n.getAttribute('data-cx'), cy = +n.getAttribute('data-cy');
-    var rect = svg.getBoundingClientRect();
-    var vb = svg.viewBox.baseVal;
-    var sx = rect.width / vb.width, sy = rect.height / vb.height;
-    var px = cx * sx, py = cy * sy;
-    var pw = pop.offsetWidth, ph = pop.offsetHeight;
-    var stageW = stage.clientWidth;
-    var below = py < ph + 90;
-    var left = px - pw/2;
-    left = Math.max(6, Math.min(left, stageW - pw - 6));
-    var arrow = px - left;
-    arrow = Math.max(18, Math.min(arrow, pw - 18));
-    pop.style.setProperty('--ax', (arrow - 9) + 'px');
-    pop.classList.toggle('below', below);
-    pop.classList.toggle('above', !below);
-    var nodeHalf = 78 * sy;
-    if(below){ pop.style.top = (py + nodeHalf*0.55 + 12) + 'px'; }
-    else     { pop.style.top = (py - nodeHalf*0.55 - ph - 12) + 'px'; }
-    pop.style.left = left + 'px';
-  }
-  function closePop(){
-    popOpen = false; popNode = null;
-    pop.classList.remove('show');
-    stage.classList.remove('dim');
-    nodes.forEach(function(x){ x.classList.remove('hot'); });
-  }
-  document.getElementById('popx').addEventListener('click', function(e){ e.stopPropagation(); closePop(); });
-  document.addEventListener('click', function(){ if(popOpen) closePop(); });
-  pop.addEventListener('click', function(e){ e.stopPropagation(); });
-  window.addEventListener('resize', function(){ if(popOpen && popNode) positionPop(popNode); });
-
-  /* ---------- pulse animation (single voice turn) ---------- */
-  var C = {}; nodes.forEach(function(n){ C[n.id] = {x:+n.getAttribute('data-cx'), y:+n.getAttribute('data-cy')}; });
-  var SEQ = ['user','scribe','openclaw','nemotron','civicgeo','geojson','civicgeo','nemotron','openclaw','memory','openclaw','eleven','user'];
-  var seg=0, t=0, lastLit=null, raf=null, paused=false;
-
-  function restart(){ seg=0; t=0; if(lastLit){byId[lastLit] && byId[lastLit].classList.remove('lit'); lastLit=null;} }
-  function lit(id){
-    if(lastLit && lastLit!==id){ byId[lastLit].classList.remove('lit'); }
-    if(id && !popOpen){ byId[id] && byId[id].classList.add('lit'); }
-    lastLit = id;
-  }
-  function tick(){
-    raf = requestAnimationFrame(tick);
-    if(paused || popOpen){ pulse.setAttribute('opacity','0'); return; }
-    var a = C[SEQ[seg]], b = C[SEQ[(seg+1)%SEQ.length]];
-    if(seg+1 >= SEQ.length){
-      pulse.setAttribute('opacity','0');
-      t += 0.016;
-      if(t > 0.9){ restart(); }
-      return;
-    }
-    var dx=b.x-a.x, dy=b.y-a.y, dist=Math.sqrt(dx*dx+dy*dy);
-    var speed = 360;
-    t += (speed/Math.max(dist,1)) * (1/60);
-    var e = t<1 ? t : 1;
-    var x = a.x + dx*e, y = a.y + dy*e;
-    pulse.setAttribute('cx', x); pulse.setAttribute('cy', y);
-    pulse.setAttribute('opacity', 0.95);
-    lit(SEQ[seg]);
-    if(t>=1){ t=0; seg++; lit(SEQ[Math.min(seg,SEQ.length-1)]); if(seg>=SEQ.length-1){ t=0; } }
-  }
-
-  stage.addEventListener('mouseenter', function(){ paused = true; pulse.setAttribute('opacity','0'); });
-  stage.addEventListener('mouseleave', function(){ paused = false; });
-
-  tick();
-})();
-</script>
 </body>
 </html>

@@ -84,10 +84,11 @@ How the components come together - voice via ElevenLabs, brain via Nemotron, gro
 
 ![Codeborough system architecture](docs/architecture.png)
 
-**📐 Interactive version → [`docs/architecture.html`](docs/architecture.html)** - open it in a
-browser to watch a voice turn flow end-to-end, with the on-device boundary drawn around everything
-except ElevenLabs; hover or click any box for detail. (GitHub can't render
-interactive HTML in a README, so the image above is a static preview of it; or view the HTML live via
+**📐 Full-resolution version → [`docs/architecture.html`](docs/architecture.html)** - the four
+Docker containers on one box: which container holds what, on which network, and what connects to
+what (with ports). The reasoning core (`vllm` + `gateway`) sits on an `internal` network with no
+route to the internet; the only door out is the default-deny `egress-proxy`. (GitHub can't render
+HTML in a README, so the image above is a static preview of it; or view the HTML live via
 [htmlpreview](https://htmlpreview.github.io/?https://github.com/pedroandreou/Codeborough/blob/main/docs/architecture.html)
 when the repo is public.)
 
