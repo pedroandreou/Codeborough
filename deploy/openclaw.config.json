@@ -1,0 +1,34 @@
+{
+  "agents": {
+    "defaults": {
+      "model": { "primary": "ollama/nemotron-nano:latest" }
+    }
+  },
+  "talk": {
+    "provider": "elevenlabs",
+    "providers": {
+      "elevenlabs": {
+        "apiKey": "${ELEVENLABS_API_KEY}",
+        "voiceId": "${ELEVENLABS_VOICE_ID}",
+        "modelId": "eleven_v3"
+      }
+    },
+    "interruptOnSpeech": true,
+    "silenceTimeoutMs": 1500
+  },
+  "messages": {
+    "tts": {
+      "providers": {
+        "elevenlabs": {
+          "apiKey": "${ELEVENLABS_API_KEY}",
+          "voiceId": "${ELEVENLABS_VOICE_ID}",
+          "modelId": "eleven_v3"
+        }
+      }
+    }
+  },
+  "session": {
+    "dmScope": "main",
+    "reset": { "idleMinutes": 0 }
+  }
+}
