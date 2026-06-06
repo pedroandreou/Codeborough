@@ -49,6 +49,8 @@ services:
       - CIVIC_DATA_DIR=/data/datasets
       - OPENAI_BASE_URL=http://vllm:8000/v1   # brain via vLLM's OpenAI API
       - OPENAI_API_KEY=local                  # vLLM ignores the value; provider needs non-empty
+      # openclaw refuses a non-loopback bind without auth; token auth over the internal core_net.
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-codeborough-local}
     volumes:
       - ./datasets:/data/datasets:ro          # London GeoJSON, read-only
       - cb_memory:/root/.openclaw/agents      # sessions/*.jsonl + MEMORY.md (persistence bounty artifact)
@@ -86,6 +88,7 @@ services:
       # bridge spawns `openclaw agent --agent main` -> must reach the gateway container.
       # VERIFY on box: confirm this is the env/flag OpenClaw uses for a remote gateway target.
       - OPENCLAW_GATEWAY_URL=http://gateway:18789
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-codeborough-local}  # must match the gateway's token
       # clamp bridge egress to ElevenLabs only (Tier-2 enforcement):
       - HTTPS_PROXY=http://egress-proxy:8888
       - HTTP_PROXY=http://egress-proxy:8888

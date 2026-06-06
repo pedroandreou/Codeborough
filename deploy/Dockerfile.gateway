@@ -13,10 +13,10 @@ COPY deploy/skills/ /root/.openclaw/skills/
 COPY deploy/openclaw.gateway.json /root/.openclaw/openclaw.json
 
 EXPOSE 18789
-# Install the plugin (idempotent) then run the gateway in the foreground.
-# openclaw 2026.6.1: subcommand is `gateway run`; there is no `--host` (use `--bind`).
-# `--bind lan` exposes the port on the container interface so the bridge can reach it
-# over core_net; `--auth none` is safe because core_net is internal-only.
+# Install the plugin (idempotent across restarts via --force) then run the gateway.
+# openclaw 2026.6.1: in a container it auto-binds 0.0.0.0 (no --bind needed), and it
+# REFUSES a non-loopback bind without auth — so we enable token auth via the
+# OPENCLAW_GATEWAY_TOKEN env (set in docker-compose.yml; --token defaults to it).
 CMD ["sh","-lc","\
-  (cd /opt/civic-geo && openclaw plugins install ./ || echo 'plugin install warn'); \
-  exec openclaw gateway run --port ${OPENCLAW_GATEWAY_PORT:-18789} --bind lan --auth none"]
+  (cd /opt/civic-geo && openclaw plugins install ./ --force || echo 'plugin install warn'); \
+  exec openclaw gateway run --port ${OPENCLAW_GATEWAY_PORT:-18789}"]
