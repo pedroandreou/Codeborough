@@ -85,7 +85,9 @@ How the components come together - voice via ElevenLabs, brain via Nemotron, gro
 ![Codeborough system architecture](docs/architecture.png)
 
 **📐 Interactive version → [`docs/architecture.html`](docs/architecture.html)** - open it in a
-browser to toggle the *voice-turn* / *memory-recall* views and hover each box. (GitHub can't render
+browser to toggle the *voice-turn* / *memory-recall* / *privacy-boundary* views and hover each box.
+The **privacy-boundary** view shows how it actually runs: four Docker containers across two networks,
+with the reasoning core sealed on an `internal` network and a single default-deny egress door. (GitHub can't render
 interactive HTML in a README, so the image above is a static preview of it; or view the HTML live via
 [htmlpreview](https://htmlpreview.github.io/?https://github.com/pedroandreou/Codeborough/blob/main/docs/architecture.html)
 when the repo is public.)
