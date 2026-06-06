@@ -17,9 +17,12 @@ offer one helpful next step.
    (library, school, toilet, polling station, grit bin, cctv, reception centre). Use a `radiusKm`
    when "nearby" matters.
 3. For details (opening hours, accessibility, step-free) call **`get_details`** with the id.
-4. For "is it a safe walk / well-lit / busy route", call **`safety_count`** and describe the result
-   as **busy, monitored, well-served main roads** - these are mostly **traffic/town-centre cameras,
-   NOT crime surveillance**. Never imply crime levels or surveillance.
+4. For "is the **walk there** safe / well-lit / busy" (origin → destination), call **`route_safety`**
+   with both sets of coordinates - it returns the **percentage of the journey on monitored streets**
+   ("about 80% of your walk is on busy, monitored roads"). For "what's monitored **around here**" (a
+   single spot), use **`safety_count`**. Either way describe these as **busy, monitored, well-served
+   main roads** - mostly **traffic/town-centre cameras, NOT crime surveillance**. Never imply crime
+   levels or surveillance.
 5. If unsure whether we cover a place or facility type, call **`list_coverage`** and say plainly when
    something isn't covered, rather than guessing. We only have 8 of 33 London boroughs.
 

@@ -376,6 +376,77 @@ export function getDetails(id) {
   return { ...summarise(rec, null), props: rec.props };
 }
 
+// ---------------------------------------------------------------------------
+// Offline postcode geocoding.
+//
+// We don't ship a national postcode file - we BUILD an index from the postcodes
+// already present in our own datasets (every facility record carries one). That
+// gives real, fully-offline postcode → coordinates resolution across exactly the
+// area we cover, with zero new data and zero network. A full UK postcode resolves
+// to the centroid of records sharing it; an outward code (e.g. "SW2") resolves to
+// the centroid of that district. Anything we have no postcode evidence for simply
+// falls through to the landmark/dataset matching below - honest by construction.
+// ---------------------------------------------------------------------------
+
+const FULL_PC_RE = /^[a-z]{1,2}\d[a-z\d]?\s*\d[a-z]{2}$/i; // e.g. "SW2 1JQ"
+const OUTWARD_PC_RE = /^[a-z]{1,2}\d[a-z\d]?$/i; // e.g. "SW2"
+
+/** Canonical form: uppercase, exactly one space before the 3-char inward code. */
+export function normalisePostcode(s) {
+  const c = String(s).toUpperCase().replace(/\s+/g, "");
+  if (!/^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$/.test(c)) return null; // not a full postcode
+  return `${c.slice(0, c.length - 3)} ${c.slice(c.length - 3)}`;
+}
+
+/** Outward code (district) of a postcode string, e.g. "SW2 1JQ" -> "SW2". */
+function outwardOf(pc) {
+  const full = normalisePostcode(pc);
+  if (full) return full.split(" ")[0];
+  const c = String(pc).toUpperCase().replace(/\s+/g, "");
+  return OUTWARD_PC_RE.test(c) ? c : null;
+}
+
+let _pcIndex = null;
+/** Build (once) postcode -> {sum,count} centroid maps from dataset records. */
+function postcodeIndex() {
+  if (_pcIndex) return _pcIndex;
+  const full = new Map(); // "SW2 1JQ" -> {lat,lon,n}
+  const outward = new Map(); // "SW2"    -> {lat,lon,n}
+  const add = (map, key, lat, lon) => {
+    const e = map.get(key) || { lat: 0, lon: 0, n: 0 };
+    e.lat += lat; e.lon += lon; e.n += 1;
+    map.set(key, e);
+  };
+  for (const f of facilities()) {
+    for (const rec of load(f)) {
+      const raw = pick(rec.props, POSTCODE_CANDIDATES);
+      if (!raw) continue;
+      const pc = normalisePostcode(raw);
+      if (!pc) continue;
+      add(full, pc, rec.lat, rec.lon);
+      add(outward, pc.split(" ")[0], rec.lat, rec.lon);
+    }
+  }
+  _pcIndex = { full, outward };
+  return _pcIndex;
+}
+
+/** Resolve a postcode (full or outward) to a centroid, fully offline, or null. */
+export function geocodePostcode(query) {
+  const { full, outward } = postcodeIndex();
+  const exact = normalisePostcode(query);
+  if (exact && full.has(exact)) {
+    const e = full.get(exact);
+    return { query, lat: e.lat / e.n, lon: e.lon / e.n, source: `postcode:${exact}`, approximate: false, samples: e.n };
+  }
+  const ow = outwardOf(query);
+  if (ow && outward.has(ow)) {
+    const e = outward.get(ow);
+    return { query, lat: e.lat / e.n, lon: e.lon / e.n, source: `postcode-district:${ow}`, approximate: true, samples: e.n };
+  }
+  return null;
+}
+
 /**
  * Offline geocode: resolve a place/landmark/postcode/"lat,lon" to coordinates.
  * Falls back to matching dataset names/addresses if no landmark hits.
@@ -387,6 +458,14 @@ export function geocode(query) {
   // direct "lat,lon"
   const m = q.match(/^(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)$/);
   if (m) return { query, lat: Number(m[1]), lon: Number(m[3]), source: "coords" };
+
+  // postcode (full or outward district) - resolved offline from our own data
+  if (FULL_PC_RE.test(q.replace(/\s+/g, " ").trim()) || OUTWARD_PC_RE.test(q)) {
+    const pc = geocodePostcode(query);
+    if (pc) return pc;
+    // looked like a postcode but we hold no record for it - say so, don't guess
+    return { query, error: "That postcode isn't in our covered boroughs yet. Try a nearby place name." };
+  }
 
   // landmark gazetteer (exact then contains)
   if (LANDMARKS[q])
@@ -436,6 +515,114 @@ export function safetyCount({ lat, lon, radiusM = 400 } = {}) {
     nearest_cameras: cams.slice(0, 3).map(([d, rec]) => summarise(rec, d)),
     note:
       "CCTV here is mostly traffic/town-centre cameras (busy, well-served roads), not crime surveillance.",
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Route safety (the real "monitored streets" signal, computed on-device).
+//
+// safetyCount answers "how monitored is this *spot*". routeSafety answers "how
+// monitored is the *path*" - the thing the pitch actually promises. Given an
+// origin and destination (or a full route polyline, e.g. from OSRM), it measures
+// CCTV/grit coverage in a corridor *along the route*, and what fraction of the
+// journey is covered. This stays local even when the route geometry came from a
+// network router: the user's safety scoring never leaves the device.
+// ---------------------------------------------------------------------------
+
+/** Local equirectangular projection to metres, relative to an anchor lat. */
+function toXY(lat, lon, lat0) {
+  const x = rad(lon) * Math.cos(rad(lat0)) * R;
+  const y = rad(lat) * R;
+  return [x, y];
+}
+
+/** Distance (m) from point P to segment A-B, via local planar projection. */
+function pointSegMeters(plat, plon, alat, alon, blat, blon) {
+  const lat0 = (alat + blat) / 2;
+  const [px, py] = toXY(plat, plon, lat0);
+  const [ax, ay] = toXY(alat, alon, lat0);
+  const [bx, by] = toXY(blat, blon, lat0);
+  const dx = bx - ax, dy = by - ay;
+  const len2 = dx * dx + dy * dy;
+  let t = len2 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  const cx = ax + t * dx, cy = ay + t * dy;
+  return Math.hypot(px - cx, py - cy);
+}
+
+/** Min distance (m) from a point to a polyline (array of [lat,lon]). */
+function pointPathMeters(plat, plon, path) {
+  if (path.length === 1) return haversine(plat, plon, path[0][0], path[0][1]);
+  let best = Infinity;
+  for (let i = 0; i < path.length - 1; i++) {
+    const d = pointSegMeters(plat, plon, path[i][0], path[i][1], path[i + 1][0], path[i + 1][1]);
+    if (d < best) best = d;
+  }
+  return best;
+}
+
+/** Evenly sample points along a polyline, ~one every `stepM` metres. */
+function samplePath(path, stepM = 120) {
+  if (path.length === 1) return path.slice();
+  const out = [];
+  for (let i = 0; i < path.length - 1; i++) {
+    const [alat, alon] = path[i], [blat, blon] = path[i + 1];
+    const segM = haversine(alat, alon, blat, blon);
+    const n = Math.max(1, Math.round(segM / stepM));
+    for (let k = 0; k < n; k++) {
+      const t = k / n;
+      out.push([alat + (blat - alat) * t, alon + (blon - alon) * t]);
+    }
+  }
+  out.push(path[path.length - 1]);
+  return out;
+}
+
+/**
+ * Monitored-route signal: CCTV/grit coverage in a corridor along the journey.
+ * @param {{fromLat:number, fromLon:number, toLat:number, toLon:number,
+ *          polyline?:Array<[number,number]>, corridorM?:number}} o
+ *   polyline: optional [[lat,lon],...] (e.g. decoded from OSRM). If omitted we
+ *   use the straight origin→destination line as a coarse corridor.
+ */
+export function routeSafety({ fromLat, fromLon, toLat, toLon, polyline, corridorM = 150 } = {}) {
+  const path =
+    Array.isArray(polyline) && polyline.length >= 1
+      ? polyline.map((p) => (Array.isArray(p) ? [Number(p[0]), Number(p[1])] : [Number(p.lat), Number(p.lon)]))
+      : [[fromLat, fromLon], [toLat, toLon]];
+  if (!path.every((p) => isFinite(p[0]) && isFinite(p[1])))
+    throw new Error("routeSafety needs from/to coordinates or a valid polyline");
+
+  const near = (facility) =>
+    load(facility)
+      .map((rec) => [pointPathMeters(rec.lat, rec.lon, path), rec])
+      .filter(([d]) => d <= corridorM)
+      .sort((a, b) => a[0] - b[0]);
+  const cams = near("cctv");
+  const grit = near("grit-bins");
+
+  // Fraction of the journey within corridorM of at least one camera.
+  const pts = samplePath(path);
+  let covered = 0;
+  for (const [plat, plon] of pts) {
+    const seen = cams.some(([, rec]) => haversine(plat, plon, rec.lat, rec.lon) <= corridorM);
+    if (seen) covered++;
+  }
+  const monitored_pct = pts.length ? Math.round((covered / pts.length) * 100) : 0;
+
+  const lengthM = path.length > 1
+    ? path.slice(1).reduce((s, p, i) => s + haversine(path[i][0], path[i][1], p[0], p[1]), 0)
+    : 0;
+
+  return {
+    query: { from: [path[0][0], path[0][1]], to: [path[path.length - 1][0], path[path.length - 1][1]], corridorM, fromPolyline: Array.isArray(polyline) },
+    route_length_m: Math.round(lengthM),
+    cctv_count: cams.length,
+    grit_bin_count: grit.length,
+    monitored_pct, // % of the route within the corridor of a camera
+    nearest_cameras: cams.slice(0, 3).map(([d, rec]) => summarise(rec, d)),
+    note:
+      "Coverage along the route, not crime data: these are mostly traffic/town-centre cameras on busy, well-served roads. Higher % = more of your walk is on monitored main streets.",
   };
 }
 

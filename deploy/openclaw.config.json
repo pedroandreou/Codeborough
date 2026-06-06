@@ -32,6 +32,6 @@
   },
   "session": {
     "dmScope": "main",
-    "reset": { "idleMinutes": 1440 }
+    "reset": { "idleMinutes": 0 }
   }
 }

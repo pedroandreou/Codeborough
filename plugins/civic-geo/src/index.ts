@@ -20,6 +20,7 @@ import {
   getDetails,
   geocode,
   safetyCount,
+  routeSafety,
   listCoverage,
 } from "./geo.mjs";
 
@@ -86,6 +87,25 @@ export default defineToolPlugin({
         radiusM: Type.Optional(Type.Number({ description: "Radius in metres (default 400)" })),
       }),
       execute: async (a: any) => safetyCount({ lat: a.lat, lon: a.lon, radiusM: a.radiusM ?? 400 }),
+    }),
+
+    tool({
+      name: "route_safety",
+      description:
+        "How 'monitored' a WALK is, not just a spot: counts CCTV/grit in a " +
+        "corridor ALONG the route from origin to destination and returns the " +
+        "percentage of the journey on monitored streets. Use for 'is the walk " +
+        "there safe / well-lit / on busy roads'. Computed fully on-device. Same " +
+        "honest caveat: these are mostly traffic cameras on busy roads, not crime data.",
+      parameters: Type.Object({
+        fromLat: Type.Number({ description: "Origin latitude" }),
+        fromLon: Type.Number({ description: "Origin longitude" }),
+        toLat: Type.Number({ description: "Destination latitude" }),
+        toLon: Type.Number({ description: "Destination longitude" }),
+        corridorM: Type.Optional(Type.Number({ description: "Corridor half-width in metres (default 150)" })),
+      }),
+      execute: async (a: any) =>
+        routeSafety({ fromLat: a.fromLat, fromLon: a.fromLon, toLat: a.toLat, toLon: a.toLon, corridorM: a.corridorM ?? 150 }),
     }),
 
     tool({

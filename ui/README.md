@@ -42,6 +42,18 @@ python3 -m http.server 8090   # serves the page
 Open `http://127.0.0.1:8090/ui/` (tunnel 8090 + 8091 to your laptop for the demo).
 The **sample buttons work offline** (no bridge) for rehearsal.
 
+### Bridge env knobs (all optional)
+| Var | Effect |
+|---|---|
+| `OPENCLAW_HTTP_URL` | Talk to the gateway over **HTTP** instead of scraping `openclaw agent` stdout (e.g. `http://127.0.0.1:18789/agent`). The CLI is the automatic fallback, so set this once you've confirmed the endpoint. `OPENCLAW_TOKEN` adds a bearer header. |
+| `ROUTING_DISABLE=1` | Skip the OSRM network call; walking-route **safety scoring still runs on-device** (straight-line corridor). |
+| `LOCAL_STT_CMD` | On-device whisper for voice-in (`POST /stt`), e.g. `"/opt/whisper.cpp/main -m ggml-base.en.bin -nt -otxt -f {in} -of {out}"`. Unset → UI uses browser STT. |
+| `POLLING_LOOKUP_URL` | A "where do I vote" API template with `{postcode}` for the **assigned** station (`POST /polling`). Unset → on-device **nearest** station, honestly labelled. |
+
+Endpoints added: `/route` now returns on-device `safety` (monitored-%) alongside steps; `/ask` accepts
+a `grounded` field so the spoken reply is pinned to the same facts as the answer card; `/stt` and
+`/polling` as above.
+
 ## Files
 - `index.html` - the UI (self-contained; Leaflet via CDN).
 - `bridge.mjs` - zero-dep Node bridge: `/ask` (runs the OpenClaw agent), `/geocode` `/nearest`

@@ -4,7 +4,10 @@ A **private, on-device, voice-first civic concierge** for London. Speak a questi
 *"where's the nearest accessible public toilet to Triton Square?"*, *"where do I vote and can I
 get there step-free?"* - and Codeborough finds the right civic service near you, tells you how to
 get there on **monitored, well-served streets**, and remembers your situation across the whole
-conversation. Everything runs on the edge; your location and queries never leave the device.
+conversation. The **reasoning, civic data, memory, and safety scoring run on the edge** - *who is
+asking and what they asked stays on the box*. Voice uses ElevenLabs (the bounty), and two **optional,
+off-by-default** network helpers (walking-route geometry, assigned-polling lookup) can each be
+disabled for a fully air-gapped run - see [Privacy](#privacy-what-is-and-isnt-on-device).
 
 Built for **NVIDIA Hack for Impact - London** (Public Services track), targeting the
 **Nemotron** and **ElevenLabs** bounties as well.
@@ -32,13 +35,31 @@ entirely on an NVIDIA DGX Spark / ZGX Nano (GB10):
 - **Brain:** **NVIDIA Nemotron 3** (Nano-30B-A3B) served locally via vLLM/Ollama, doing
   tool-calling - optionally with a Nemotron retriever + content-safety guard for breadth.
 - **Grounding:** our own [`plugins/civic-geo/`](plugins/civic-geo/) OpenClaw tool plugin queries
-  the London GeoJSON datasets locally (`geocode`, `find_nearest`, `get_details`, `safety_count`,
+  the London GeoJSON datasets locally (`geocode` incl. **offline postcode lookup**, `find_nearest`,
+  `get_details`, `safety_count`, **`route_safety`** = monitored-streets coverage *along the walk*,
   `list_coverage`).
 - **Memory:** one long-lived OpenClaw session + persistent memory, so it recalls earlier turns
   (the ElevenLabs ≥ 1 h 11 m context-retention bounty).
 
 Why on-device matters: **privacy** (location/queries stay on the box), **richer answers** (local
 data surfaces detail a map app can't), and **anywhere** (self-contained, no cloud dependency).
+
+### Privacy: what is (and isn't) on-device
+
+We're precise about this so the claim survives scrutiny. **On the box, always:** Nemotron reasoning,
+all civic-data lookups, postcode geocoding, **route-safety scoring**, and conversation memory. *Who is
+asking and what they asked never leaves the device.*
+
+Three things *can* use the network, each **optional and clearly labelled**:
+
+| Network call | Why | How to go fully offline |
+|---|---|---|
+| **ElevenLabs** voice in/out | Required by the bounty; best-in-class TTS | Set `LOCAL_STT_CMD` for on-device whisper STT; mute TTS |
+| **Walking-route geometry** (OSRM) | Turn-by-turn steps | `ROUTING_DISABLE=1` → straight-line corridor; **safety scoring is local either way** |
+| **Assigned polling station** (gov API) | The *correct* "where do I vote", not just nearest | Unset `POLLING_LOOKUP_URL` → on-device **nearest** station (honestly labelled) |
+
+With those three disabled the system is **air-gapped** end to end. None of them ever sends the user's
+*identity* - OSRM sees two coordinates, the polling API sees a postcode, ElevenLabs sees text/audio.
 
 ### Three things it does
 
@@ -66,7 +87,9 @@ when the repo is public.)
 calls tools → ④ `civic-geo` plugin → ⑤ queries the local GeoJSON → results return to Nemotron →
 it composes a grounded answer → back through OpenClaw → ElevenLabs Eleven v3 TTS → user hears.
 Session memory persists across turns, so it recalls earlier context (the ≥ 1 h 11 m ElevenLabs
-bounty). Everything except the ElevenLabs voice calls runs on-device.
+bounty). Reasoning, data, memory and safety scoring run on-device; only the optional voice / route /
+assigned-polling calls touch the network, and each can be disabled (see
+[Privacy](#privacy-what-is-and-isnt-on-device)).
 
 ## Hackathon
 

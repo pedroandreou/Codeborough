@@ -300,10 +300,14 @@ async function directions(){
   if(!lastResult||!lastOrigin)return;
   const st=$("#steps");if(st)st.innerHTML="…";
   let r;try{r=await api("/route",{fromLat:lastOrigin.lat,fromLon:lastOrigin.lon,toLat:lastResult.lat,toLon:lastResult.lon});}catch(e){r={steps:[]};}
+  // On-device "monitored streets" score along the actual route (computed locally, never sent to cloud).
+  const sf=r&&r.safety;
+  const monLine=sf?`<div style="margin:8px 0;padding:8px 10px;border-radius:10px;background:var(--chip);border:1px solid var(--line)">🛡️ <b>${sf.monitored_pct}%</b> of this walk is on monitored, busy streets <span style="color:var(--muted)">(${sf.cctv_count} cameras along the way - traffic/town cameras, not crime data)</span></div>`:"";
+  const monSpoken=sf?` About ${sf.monitored_pct}% of the way is on busy, monitored streets.`:"";
   if(r&&r.steps&&r.steps.length){
-    if(st)st.innerHTML="<b>Walking directions</b><ol class='steps'>"+r.steps.map(s=>`<li>${s.instruction}${s.distanceM?` (${s.distanceM} m)`:""}</li>`).join("")+"</ol>";
+    if(st)st.innerHTML="<b>Walking directions</b>"+monLine+"<ol class='steps'>"+r.steps.map(s=>`<li>${s.instruction}${s.distanceM?` (${s.distanceM} m)`:""}</li>`).join("")+"</ol>";
     const mins=r.durationS?Math.round(r.durationS/60):walkMin(lastResult.distance_m);
-    speak(`About ${mins} minutes on foot. ${r.steps.slice(0,3).map(s=>s.instruction).join(", then ")}.`);
+    speak(`About ${mins} minutes on foot.${monSpoken} ${r.steps.slice(0,3).map(s=>s.instruction).join(", then ")}.`);
   }else{ // fallback: bearing + distance (fully on-device)
     const brg=bearing(lastOrigin,lastResult);const mins=walkMin(lastResult.distance_m);
     if(st)st.innerHTML=`<b>Roughly ${brg}, about ${mins} min walk.</b>`;
@@ -333,11 +337,16 @@ async function run(message,category){
       showOnMap(origin,results,safety);
     }else{announce("I couldn't find that place. Try a London area or postcode, or tap the location button.");}
   }catch(e){}
-  let reply="";try{const a=await api("/ask",{message,session:"codeborough-ui",lang:LANG.en});reply=a.reply||a.error||"";}
+  // Pin the agent to the SAME facts that drive the card, so voice and card can't diverge.
+  const top=results[0];
+  const grounded=top
+    ? `origin=${origin?`${origin.lat.toFixed(4)},${origin.lon.toFixed(4)}`:"unknown"}; nearest ${top.facility}: ${top.name}${top.address?", "+top.address:""}; ~${walkMin(top.distance_m)} min walk${top.extra&&Object.keys(top.extra).length?"; "+Object.entries(top.extra).map(([k,v])=>`${k}: ${v}`).join("; "):""}`
+    : (safety?`safety near ${$("#place").value.trim()}: ${safety.cctv_count} cameras within ${safety.query?.radiusM||500} m (traffic/town cameras, not crime data)`:"");
+  let reply="";try{const a=await api("/ask",{message,session:"codeborough-ui",lang:LANG.en,grounded});reply=a.reply||a.error||"";}
   catch(e){reply="(bridge offline - start ui/bridge.mjs on :8091)";}
   trans("Codeborough",reply);
-  showAnswer(results[0]||null, reply || (results[0]?`${results[0].name}, ${walkMin(results[0].distance_m)} min walk.`:""), origin);
-  speak(reply || (results[0]?`The nearest is ${results[0].name}.`:""));
+  showAnswer(top||null, reply || (top?`${top.name}, ${walkMin(top.distance_m)} min walk.`:""), origin);
+  speak(reply || (top?`The nearest is ${top.name}.`:""));
 }
 function ask(){const m=$("#q").value.trim();if(!m)return;$("#q").value="";run(m,null);}
 $("#send").onclick=ask;$("#q").addEventListener("keydown",e=>{if(e.key==="Enter")ask();});
