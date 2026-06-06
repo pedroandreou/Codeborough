@@ -4,18 +4,14 @@
   "private": true,
   "type": "module",
   "description": "OpenClaw tool plugin: on-device lookups over London civic-facility GeoJSON datasets.",
-  "main": "dist/index.js",
-  "scripts": {
-    "smoke": "node scripts/smoke.mjs",
-    "build": "tsc"
+  "main": "index.js",
+  "openclaw": {
+    "extensions": ["./index.js"]
   },
-  "dependencies": {
-    "typebox": "^0.34.0"
+  "scripts": {
+    "smoke": "node scripts/smoke.mjs"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.5.17"
-  },
-  "devDependencies": {
-    "typescript": "^5.6.0"
+    "openclaw": ">=2026.5"
   }
 }

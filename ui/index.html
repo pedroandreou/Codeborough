@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Codeborough — civic concierge</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root{ --bg:#0f1720; --panel:#16212e; --ink:#e7eef5; --muted:#9fb2c4; --accent:#76b900; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  #app{display:flex;height:100vh}
+  #side{width:380px;min-width:340px;background:var(--panel);display:flex;flex-direction:column;border-right:1px solid #0a1118}
+  #map{flex:1}
+  header{padding:14px 16px;border-bottom:1px solid #0a1118}
+  header h1{margin:0;font-size:18px}
+  header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
+  .badge{display:inline-block;background:#23313f;color:var(--accent);border-radius:10px;padding:1px 8px;font-size:11px;margin-top:6px}
+  .scn{padding:12px 16px;border-bottom:1px solid #0a1118}
+  .scn h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 8px}
+  button{cursor:pointer;border:1px solid #2c3c4d;background:#1d2937;color:var(--ink);border-radius:8px;padding:8px 10px;font-size:13px;margin:0 6px 6px 0}
+  button:hover{border-color:var(--accent)}
+  #transcript{flex:1;overflow:auto;padding:12px 16px}
+  .msg{margin:0 0 10px;font-size:13px;line-height:1.4}
+  .msg .who{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .msg.user .bubble{background:#22303f}
+  .msg.bot .bubble{background:#1c2a1c;border:1px solid #2c3f2c}
+  .bubble{display:block;padding:8px 10px;border-radius:8px;margin-top:3px}
+  .feed{padding:10px 16px;border-top:1px solid #0a1118}
+  textarea{width:100%;height:64px;background:#0f1720;color:var(--ink);border:1px solid #2c3c4d;border-radius:8px;padding:8px;font-family:ui-monospace,monospace;font-size:12px}
+  .legend{position:absolute;z-index:500;bottom:14px;right:14px;background:rgba(22,33,46,.92);padding:8px 10px;border-radius:8px;font-size:12px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .note{font-size:11px;color:var(--muted);margin-top:6px}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <header>
+      <h1>Codeborough</h1>
+      <p>Voice-first civic concierge for London</p>
+      <span class="badge">on-device · private</span>
+    </header>
+
+    <div class="scn">
+      <h2>Demo scenarios</h2>
+      <button onclick="runFamily()">👨‍👧 Family → school</button>
+      <button onclick="runToilets()">🚻 Toilets near Brixton</button>
+      <button onclick="runSafety()">🛡 Safe streets (CCTV)</button>
+      <button onclick="runPolling()">🗳 Elderly → polling</button>
+      <button onclick="runCoverage()">📊 Coverage</button>
+      <button onclick="clearAll()">✦ Clear</button>
+    </div>
+
+    <div id="transcript"></div>
+
+    <div class="feed">
+      <h2 style="font-size:12px;color:var(--muted);margin:0 0 6px">Feed live tool JSON</h2>
+      <textarea id="json" placeholder='Paste civic-geo output, e.g. {"results":[{"name":"...","lat":51.5,"lon":-0.1,...}]}'></textarea>
+      <button onclick="renderPasted()">Render JSON</button>
+      <div class="note">Renders <code>geocode</code> / <code>find_nearest</code> / <code>safety_count</code> / <code>list_coverage</code> output. Wire to the OpenClaw gateway to feed it live.</div>
+    </div>
+  </div>
+  <div id="map"></div>
+</div>
+<div class="legend" id="legend"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const COLORS = {
+  libraries:"#4aa3ff", schools:"#ffd24a", "public-toilets":"#41d6c3",
+  "polling-stations":"#c08cff", "grit-bins":"#9aa7b2", cctv:"#ff6b6b",
+  "reception-centres":"#ff9f43", origin:"#76b900"
+};
+const LABEL = {
+  libraries:"Library", schools:"School", "public-toilets":"Public toilet",
+  "polling-stations":"Polling station", "grit-bins":"Grit bin", cctv:"Camera",
+  "reception-centres":"Reception centre"
+};
+
+const map = L.map("map",{zoomControl:true}).setView([51.5074,-0.1278],12);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {maxZoom:19, attribution:"&copy; OpenStreetMap"}).addTo(map);
+let layer = L.layerGroup().addTo(map);
+
+function clearAll(){ layer.clearLayers(); document.getElementById("transcript").innerHTML=""; document.getElementById("legend").innerHTML=""; }
+function say(who,text){
+  const t=document.getElementById("transcript");
+  t.innerHTML += `<div class="msg ${who}"><span class="who">${who==="user"?"You":"Codeborough"}</span><span class="bubble">${text}</span></div>`;
+  t.scrollTop=t.scrollHeight;
+}
+function legend(types){
+  document.getElementById("legend").innerHTML = types.map(t=>`<div><i style="background:${COLORS[t]||'#888'}"></i>${LABEL[t]||t}</div>`).join("");
+}
+function dot(lat,lon,color,radius){ return L.circleMarker([lat,lon],{radius:radius||7,color:"#0a1118",weight:1,fillColor:color,fillOpacity:.95}); }
+
+function showOrigin(g,label){
+  const m = dot(g.lat,g.lon,COLORS.origin,9).addTo(layer);
+  m.bindPopup(`<b>${label||g.query||"You are here"}</b>${g.approximate?"<br><small>approx.</small>":""}`);
+  return m;
+}
+function showResults(res){
+  const types=new Set(); const pts=[];
+  res.forEach(r=>{
+    if(typeof r.lat!=="number"||typeof r.lon!=="number") return;
+    types.add(r.facility); pts.push([r.lat,r.lon]);
+    const d = r.distance_m!=null ? `<br>${r.distance_m} m away` : "";
+    const a = r.address ? `<br>${r.address}` : "";
+    dot(r.lat,r.lon,COLORS[r.facility]||"#888").addTo(layer)
+      .bindPopup(`<b>${r.name}</b> <small>(${LABEL[r.facility]||r.facility})</small>${a}${d}<br><small>${r.borough||""}</small>`);
+  });
+  legend([...types]);
+  return pts;
+}
+function fit(pts){ if(pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.3)); }
+
+// ---- renderers for each tool shape ----
+function renderNearest(o,origin){
+  const pts = showResults(o.results||[]);
+  if(origin){ showOrigin(origin); pts.push([origin.lat,origin.lon]);
+    if(o.results&&o.results[0]) L.polyline([[origin.lat,origin.lon],[o.results[0].lat,o.results[0].lon]],{color:COLORS.origin,weight:3,dashArray:"6 6"}).addTo(layer);
+  }
+  fit(pts);
+}
+function renderSafety(o,origin){
+  const c = origin||{lat:o.query?.lat,lon:o.query?.lon};
+  if(c.lat){ L.circle([c.lat,c.lon],{radius:o.query?.radiusM||400,color:COLORS.cctv,weight:1,fillColor:COLORS.cctv,fillOpacity:.08}).addTo(layer); showOrigin(c,"Here"); }
+  const pts = showResults((o.nearest_cameras||[]).map(x=>({...x,facility:"cctv"})));
+  if(c.lat) pts.push([c.lat,c.lon]);
+  fit(pts);
+  say("bot",`${o.cctv_count} monitored cameras on busy streets nearby. ${o.note||""}`);
+}
+function renderCoverage(rows){
+  const t=document.getElementById("transcript");
+  t.innerHTML += `<div class="msg bot"><span class="who">Coverage</span><span class="bubble">`+
+    rows.map(r=>`${LABEL[r.facility]||r.facility}: <b>${r.total}</b> (${Object.keys(r.boroughs||{}).length} boroughs)`).join("<br>")+`</span></div>`;
+}
+function dispatch(o,origin){
+  if(Array.isArray(o)) return renderCoverage(o);
+  if(o.cctv_count!=null) return renderSafety(o,origin);
+  if(o.results) return renderNearest(o,origin);
+  if(typeof o.lat==="number") return showOrigin(o), map.setView([o.lat,o.lon],14);
+  alert("Unrecognised JSON shape");
+}
+function renderPasted(){ try{ dispatch(JSON.parse(document.getElementById("json").value)); }catch(e){ alert("Invalid JSON: "+e.message); } }
+
+// ---- bundled SAMPLE data (real points from our datasets; school/polling approximate, clearly demo) ----
+const S = {
+  triton:{query:"1 Triton Square",lat:51.5247,lon:-0.1417,source:"landmark",approximate:true},
+  brixton:{query:"Brixton",lat:51.4626,lon:-0.1145,source:"landmark",approximate:true},
+  library:{name:"Regent's Park",facility:"libraries",borough:"camden",address:"Robert Street, London, NW1 3QT",lat:51.52839,lon:-0.142635,distance_m:415},
+  school:{name:"Sample Lambeth Primary (demo)",facility:"schools",borough:"lambeth",address:"Brixton, London",lat:51.4585,lon:-0.1165,distance_m:520},
+  toilets:[
+    {name:"Electric Avenue",facility:"public-toilets",borough:"lambeth",lat:51.46221,lon:-0.115,distance_m:56},
+    {name:"Windrush Square",facility:"public-toilets",borough:"lambeth",lat:51.4632,lon:-0.1107,distance_m:430},
+  ],
+  polling:{name:"Brixton Library, Brixton Oval, SW2 1JQ",facility:"polling-stations",borough:"lambeth",lat:51.4611,lon:-0.1147,distance_m:118},
+  cams:[
+    {name:"Electric Avenue / Electric Lane",facility:"cctv",borough:"lambeth",lat:51.462164,lon:-0.114104,distance_m:56},
+    {name:"Atlantic Road / Electric Lane",facility:"cctv",borough:"lambeth",lat:51.462952,lon:-0.113913,distance_m:56},
+    {name:"Atlantic Road opp Electric Lane",facility:"cctv",borough:"lambeth",lat:51.462995,lon:-0.113796,distance_m:66},
+  ],
+  coverage:[
+    {facility:"libraries",total:42,boroughs:{camden:1,kingston:1,lambeth:1,wandsworth:1}},
+    {facility:"schools",total:1000,boroughs:{barnet:1,camden:1,lambeth:1,wandsworth:1}},
+    {facility:"public-toilets",total:216,boroughs:{barnet:1,camden:1,"city-of-london":1,"kensington-and-chelsea":1,lambeth:1}},
+    {facility:"polling-stations",total:464,boroughs:{barnet:1,camden:1,"city-of-london":1,"hammersmith-and-fulham":1,kingston:1,lambeth:1,wandsworth:1}},
+    {facility:"cctv",total:549,boroughs:{"kensington-and-chelsea":1,lambeth:1}},
+    {facility:"grit-bins",total:376,boroughs:{camden:1,"city-of-london":1,kingston:1,wandsworth:1}},
+    {facility:"reception-centres",total:47,boroughs:{camden:1,"kensington-and-chelsea":1}},
+  ],
+};
+
+// ---- demo scenario scripts ----
+function runFamily(){
+  clearAll();
+  say("user","We just moved to Brixton — my daughter starts school Monday. How do we get there?");
+  renderNearest({results:[S.school]}, S.brixton);
+  say("bot",`Her school is ${S.school.name}, about ${S.school.distance_m} m from Brixton — head south down Brixton Hill.`);
+}
+function runToilets(){
+  clearAll();
+  say("user","Where's the nearest public toilet to Brixton, and is it accessible?");
+  renderNearest({results:S.toilets}, S.brixton);
+  say("bot",`Closest is ${S.toilets[0].name}, ${S.toilets[0].distance_m} m away (open night-time).`);
+}
+function runSafety(){
+  clearAll();
+  say("user","Is there a safe walking route? It'll be dark.");
+  renderSafety({query:{lat:S.brixton.lat,lon:S.brixton.lon,radiusM:500},cctv_count:41,nearest_cameras:S.cams,note:"These are busy, monitored main roads (traffic/town cameras), not crime surveillance."}, S.brixton);
+}
+function runPolling(){
+  clearAll();
+  say("user","I'm 78 — where do I vote, and can I get there step-free?");
+  renderNearest({results:[S.polling]}, S.brixton);
+  say("bot",`Your polling station is ${S.polling.name}, ${S.polling.distance_m} m away — step-free entrance.`);
+}
+function runCoverage(){ clearAll(); say("user","What do you cover?"); renderCoverage(S.coverage); }
+
+// start on a scenario so the screen isn't empty
+runFamily();
+</script>
+</body>
+</html>

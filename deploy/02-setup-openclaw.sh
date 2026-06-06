@@ -21,17 +21,11 @@ if [ -z "${ELEVENLABS_API_KEY:-}" ]; then
   echo "      until you 'export ELEVENLABS_API_KEY=sk_...' and re-run this script."
 fi
 
-echo "== 1/4 build + install civic-geo plugin =="
-if ( cd "$REPO/plugins/civic-geo" \
-      && npm install --no-audit --no-fund \
-      && npm run build \
-      && openclaw plugins build  --entry ./dist/index.js \
-      && openclaw plugins validate --entry ./dist/index.js \
-      && openclaw plugins install ./ ); then
+echo "== 1/4 install civic-geo plugin (plain JS, no build) =="
+if ( cd "$REPO/plugins/civic-geo" && openclaw plugins install ./ ); then
   echo "   plugin installed."
 else
-  echo "   WARN: plugin step failed — check OpenClaw SDK version vs plugins/civic-geo/README.md."
-  echo "   (Engine works standalone; only src/index.ts needs adjusting if the SDK differs.)"
+  echo "   WARN: plugin install failed — see plugins/civic-geo/README.md."
 fi
 
 echo "== 2/4 install civic-assistant skill =="
