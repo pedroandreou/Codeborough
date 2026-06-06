@@ -1,5 +1,9 @@
 # Data scope: where we are and what to decide
 
+> **Historical note (pre-hackathon prep).** This scope question is now **settled** — see
+> [`build-plan.md`](build-plan.md). We use the data we already have, with the live demo focused on
+> **Lambeth**. Kept below for context on how we got here.
+
 A short note for our prep meeting today (Monday 1 June), ahead of the hackathon (5 to 7 June, 1 Triton Square, London). Please read it and bring your view so we can settle how wide to go and how to design it.
 
 ## What the repository contains right now
