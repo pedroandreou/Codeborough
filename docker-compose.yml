@@ -117,4 +117,8 @@ networks:
 
 volumes:
   cb_models:              # vLLM NVFP4 weights (HF cache) — provisioned by `make pull-model`
+    name: cb_models       # pin the EXACT name (no `codeborough_` project prefix). `make pull-model`
+                          # stages ~18GB into a bare `cb_models` volume; without this pin, compose
+                          # mounted an empty `codeborough_cb_models` instead -> vLLM LocalEntryNotFound.
   cb_memory:              # OpenClaw sessions + MEMORY.md
+    name: cb_memory       # pin for consistency so make targets and compose share one volume
