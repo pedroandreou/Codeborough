@@ -325,28 +325,62 @@ function unsave(i){const s=getSaved();s.splice(i,1);localStorage.cb_saved=JSON.s
 renderSaved();
 
 /* ---------- core flow ---------- */
+/* Infer which civic service a free-text question is about, so a typed/spoken
+   question maps to the right lookup instead of a generic "nearest anything"
+   (which was always surfacing a polling station). Mirrors the geo plugin's
+   CATEGORY_ALIASES. Returns a UI cat code (vote/toilet/rest/library/grit/safe) or null. */
+function inferCat(s){
+  const m=(s||"").toLowerCase();
+  if(/safe|well.?lit|safety|lit route|dark/.test(m))return "safe";
+  if(/vot|polling|ballot|election|elect\b/.test(m))return "vote";
+  if(/toilet|loo|restroom|\bwc\b|bathroom|public convenience/.test(m))return "toilet";
+  if(/rest cent|reception cent|shelter|evacuat|emergency cent/.test(m))return "rest";
+  if(/librar/.test(m))return "library";
+  if(/grit|salt bin|grit bin/.test(m))return "grit";
+  return null;
+}
 async function run(message,category){
-  trans("You",message);announce("One moment - finding the nearest…");
+  trans("You",message);
+  const cat=category||inferCat(message);   // bug 1: derive the service from the question, never a blind "nearest anything"
+  announce(cat?"One moment - finding the nearest…":"One moment…");
   let origin=null,results=[],safety=null,located=false;
   try{
     if(fixedOrigin){origin=fixedOrigin;located=true;}
-    else{const place=$("#place").value.trim();const g=await api("/geocode",{query:place||message});if(typeof g.lat==="number"){origin=g;located=true;}}
-    if(located){
-      if(category==="safe"){safety=await api("/safety",{lat:origin.lat,lon:origin.lon,radiusM:500});}
-      else{const near=await api("/nearest",{lat:origin.lat,lon:origin.lon,category:CATMAP[category]||category||undefined,limit:5});results=near.results||[];}
+    else{const place=$("#place").value.trim();
+      if(place){const g=await api("/geocode",{query:place});if(typeof g.lat==="number"){origin=g;located=true;}}}
+    if(cat&&located){
+      if(cat==="safe"){safety=await api("/safety",{lat:origin.lat,lon:origin.lon,radiusM:500});}
+      else{const near=await api("/nearest",{lat:origin.lat,lon:origin.lon,category:CATMAP[cat]||cat,limit:5});results=near.results||[];}
       showOnMap(origin,results,safety);
-    }else{announce("I couldn't find that place. Try a London area or postcode, or tap the location button.");}
+    }else if(cat&&!located){
+      announce("Tell me where you are first - type a place or postcode, or tap the location button.");
+    }
   }catch(e){}
-  // Pin the agent to the SAME facts that drive the card, so voice and card can't diverge.
+
   const top=results[0];
+  // bug 2: show the locally-known answer immediately - don't gate it on the (slow) agent call
+  if(top||safety){
+    showAnswer(top||null, top?"":(`${safety.cctv_count} cameras on busy, monitored streets nearby - keep to the main, well-lit roads.`), origin);
+    speak(top?`The nearest is ${top.name}.`:`There are ${safety.cctv_count} cameras on the busy, monitored roads nearby.`);
+  }else if(cat&&!located){
+    showAnswer(null,"Please tell me where you are first - type a place or postcode above, or tap 📍 to use your location.",origin);
+  }
+
+  // Pin the agent to the SAME facts that drive the card, so voice and card can't diverge.
   const grounded=top
     ? `origin=${origin?`${origin.lat.toFixed(4)},${origin.lon.toFixed(4)}`:"unknown"}; nearest ${top.facility}: ${top.name}${top.address?", "+top.address:""}; ~${walkMin(top.distance_m)} min walk${top.extra&&Object.keys(top.extra).length?"; "+Object.entries(top.extra).map(([k,v])=>`${k}: ${v}`).join("; "):""}`
     : (safety?`safety near ${$("#place").value.trim()}: ${safety.cctv_count} cameras within ${safety.query?.radiusM||500} m (traffic/town cameras, not crime data)`:"");
+  // then ask the agent for a richer reply and fold it into the card when it arrives
   let reply="";try{const a=await api("/ask",{message,session:"codeborough-ui",lang:LANG.en,grounded});reply=a.reply||a.error||"";}
-  catch(e){reply="(bridge offline - start ui/bridge.mjs on :8091)";}
-  trans("Codeborough",reply);
-  showAnswer(top||null, reply || (top?`${top.name}, ${walkMin(top.distance_m)} min walk.`:""), origin);
-  speak(reply || (top?`The nearest is ${top.name}.`:""));
+  catch(e){reply="";}
+  if(reply){
+    trans("Codeborough",reply);
+    showAnswer(top||null,reply,origin);            // refresh the card's prose with the agent's text
+    if(!top&&!safety)speak(reply);                  // avoid speaking over the local answer we already voiced
+  }else if(!top&&!safety&&!cat){
+    const msg="(bridge offline - start ui/bridge.mjs on :8091)";
+    trans("Codeborough",msg);showAnswer(null,msg,origin);
+  }
 }
 function ask(){const m=$("#q").value.trim();if(!m)return;$("#q").value="";run(m,null);}
 $("#send").onclick=ask;$("#q").addEventListener("keydown",e=>{if(e.key==="Enter")ask();});
@@ -364,7 +398,7 @@ $("#gps").onclick=()=>{
 };
 $("#place").addEventListener("input",()=>{fixedOrigin=null;});  /* typing a place overrides GPS */
 document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{const cat=b.dataset.cat;const place=fixedOrigin?"my location":$("#place").value.trim();
-  if(!place){$("#place").focus();return;}
+  if(!place){$("#place").focus();announce("Tell me where you are first - type a place or postcode, or tap the location button.");showAnswer(null,"Please tell me where you are first - type a place or postcode above, or tap 📍 to use your location.",null);return;}
   const human={vote:"polling station",toilet:"public toilet",rest:"emergency rest centre",library:"library",grit:"grit bin"}[cat]||cat;
   run(cat==="safe"?`Is it a safe, well-lit route around ${place}?`:`Where is the nearest ${human} to ${place}?`,cat);});
 
