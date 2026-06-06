@@ -51,9 +51,11 @@ data surfaces detail a map app can't), and **anywhere** (self-contained, no clou
 How the components come together - voice via ElevenLabs, brain via Nemotron, grounded by our
 `civic-geo` plugin over local data, all orchestrated by OpenClaw on the device.
 
-**📐 Interactive diagram → [`docs/architecture.html`](docs/architecture.html)** - open it in a
-browser for the full interactive view. (GitHub shows committed HTML as source, so either download +
-open it, or view it live via
+![Codeborough system architecture](docs/architecture.png)
+
+**📐 Interactive version → [`docs/architecture.html`](docs/architecture.html)** - open it in a
+browser to toggle the *voice-turn* / *memory-recall* views and hover each box. (GitHub can't render
+interactive HTML in a README, so the image above is a static preview of it; or view the HTML live via
 [htmlpreview](https://htmlpreview.github.io/?https://github.com/pedroandreou/Codeborough/blob/main/docs/architecture.html)
 when the repo is public.)
 
