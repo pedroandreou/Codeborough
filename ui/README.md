@@ -9,8 +9,15 @@ all-London map. Built for accessibility and one-tap use.
   badges, plus a **🔊 Hear again** button. Announced to screen readers (`aria-live`).
 - **"Where are you?" + big icon buttons** (🗳️ vote · 🚻 toilet · 🆘 rest centre · 📚 library · ❄️ grit · 🛡️ safe route)
   - one tap, no typing.
+- **📍 Use my location**: one tap uses GPS (`navigator.geolocation`) instead of typing a postcode -
+  the biggest barrier removed for elderly / visually-impaired / new-arrival users. Typing a place
+  overrides it.
 - **Voice-first**: large mic (browser STT in), answers spoken back via **ElevenLabs** (server-side).
 - **Accessibility controls** (persisted): text size **A-/A+**, **dark** + **high-contrast** themes, **mute**.
+- **Screen-reader & keyboard polish**: result uses a polite, atomic live region and **focus moves to
+  the answer** when it arrives; a dedicated announcer speaks transient status ("finding the nearest…",
+  geocode/mic errors, "Listening…", "Heard: …"); `prefers-reduced-motion` disables the mic pulse; one
+  spoken reply at a time (new answers cancel in-flight audio).
 - **Clean, focused map** (light CARTO tiles) that zooms to your result with a clear "you → there" line -
   plus a **List view** so you never *need* the map.
 - **Multilingual** (13 languages incl. **English, Ελληνικά, 中文**, Español, Français, Português,

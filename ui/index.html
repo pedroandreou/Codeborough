@@ -32,7 +32,10 @@
   .a11y button:focus-visible,.cat:focus-visible,.mic:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .sec{padding:6px 18px}
   .lbl{font-size:calc(12px*var(--fs));text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:10px 0 6px;font-weight:700}
-  .place input{width:100%;min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);padding:0 14px;font-size:calc(17px*var(--fs))}
+  .place{display:flex;gap:8px}
+  .place input{flex:1;min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);padding:0 14px;font-size:calc(17px*var(--fs))}
+  .gpsbtn{flex:none;min-width:56px;min-height:52px;border:2px solid var(--accent);background:var(--chip);color:var(--accent);border-radius:12px;font-size:calc(22px*var(--fs));cursor:pointer}
+  .gpsbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .cats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .cat{display:flex;align-items:center;gap:10px;min-height:60px;border:2px solid var(--line);background:var(--chip);color:var(--ink);border-radius:14px;padding:0 14px;font-size:calc(17px*var(--fs));font-weight:700;cursor:pointer;text-align:left}
   .cat .ico{font-size:calc(26px*var(--fs))}.cat:hover{border-color:var(--accent)}
@@ -84,6 +87,7 @@
   #simple .ans{font-size:calc(28px*var(--fs));font-weight:700;max-width:760px;min-height:1.4em}
   #simple .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
   #simple .row button{min-height:60px;border-radius:14px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-weight:800;font-size:calc(18px*var(--fs));cursor:pointer;padding:0 20px}
+  @media(prefers-reduced-motion:reduce){.mic.on,#simple .bigmic.on{animation:none}}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
@@ -107,7 +111,7 @@
     </div>
 
     <div class="sec"><div class="lbl" id="lblWhere">📍 Where are you?</div>
-      <div class="place"><input id="place" placeholder="Type a place or postcode - e.g. Brixton" autocomplete="off" aria-label="Your location" /></div>
+      <div class="place"><input id="place" placeholder="Type a place or postcode - e.g. Brixton" autocomplete="off" aria-label="Your location" /><button id="gps" class="gpsbtn" aria-label="Use my current location" title="Use my current location">📍</button></div>
     </div>
 
     <div class="sec"><div class="lbl" id="lblNeed">What do you need?</div>
@@ -131,7 +135,8 @@
       </div>
     </div>
 
-    <div class="answer" id="answer" role="status" aria-live="assertive" dir="auto"></div>
+    <div class="answer" id="answer" role="group" aria-label="Answer" tabindex="-1" dir="auto"></div>
+    <div id="sr" class="sr" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <details><summary id="sumSaved">Saved places</summary><div id="savedlist"></div></details>
     <details><summary>Conversation</summary><div id="transcript"></div></details>
@@ -160,7 +165,7 @@
 <div id="simple" aria-label="Big simple mode">
   <div class="tap" id="simpleTap">Tap the button and speak</div>
   <button class="bigmic" id="simpleMic" aria-label="Tap and speak">🎙️</button>
-  <div class="ans" id="simpleAns" aria-live="assertive" dir="auto"></div>
+  <div class="ans" id="simpleAns" aria-live="polite" aria-atomic="true" dir="auto"></div>
   <div class="row">
     <button id="simpleAgain">🔊 Hear again</button>
     <button id="simpleExit">✕ Exit big mode</button>
@@ -280,11 +285,15 @@ function showAnswer(result,prose,origin){
   if($("#dirBtn"))$("#dirBtn").onclick=directions;
   if($("#saveBtn"))$("#saveBtn").onclick=()=>savePlace(result);
   if(simpleMode){$("#simpleAns").textContent=prose||(result?result.name:"");}
+  else if(a.classList.contains("show")){try{a.focus({preventScroll:false});}catch(e){}}  /* move focus to the result so screen readers read it and the actions are reachable */
 }
 
 /* ---------- bridge ---------- */
 async function api(path,b){const r=await fetch(bridgeUrl()+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});return r.json();}
-async function speak(text){if(muted||!text)return;try{const r=await fetch(bridgeUrl()+"/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:text.slice(0,700)})});if(r.ok)new Audio(URL.createObjectURL(await r.blob())).play();}catch(e){}}
+let currentAudio=null;
+async function speak(text){if(muted||!text)return;try{const r=await fetch(bridgeUrl()+"/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:text.slice(0,700)})});if(r.ok){if(currentAudio){try{currentAudio.pause();}catch(e){}}currentAudio=new Audio(URL.createObjectURL(await r.blob()));currentAudio.play();}}catch(e){}}
+/* screen-reader announcer for transient status (working / errors / mic) - clear+set so identical messages re-announce */
+function announce(msg){const s=$("#sr");if(!s||!msg)return;s.textContent="";setTimeout(()=>{s.textContent=msg;},40);}
 function trans(who,tx){const el=$("#transcript");el.innerHTML+=`<div class="msg"><span class="who">${who}</span><span class="b" dir="auto">${(tx||"").replace(/</g,"&lt;")}</span></div>`;el.scrollTop=el.scrollHeight;}
 
 async function directions(){
@@ -313,12 +322,16 @@ renderSaved();
 
 /* ---------- core flow ---------- */
 async function run(message,category){
-  trans("You",message);let origin=null,results=[],safety=null;
-  try{const place=$("#place").value.trim();const g=await api("/geocode",{query:place||message});
-    if(typeof g.lat==="number"){origin=g;
-      if(category==="safe"){safety=await api("/safety",{lat:g.lat,lon:g.lon,radiusM:500});}
-      else{const near=await api("/nearest",{lat:g.lat,lon:g.lon,category:CATMAP[category]||category||undefined,limit:5});results=near.results||[];}
-      showOnMap(origin,results,safety);}
+  trans("You",message);announce("One moment - finding the nearest…");
+  let origin=null,results=[],safety=null,located=false;
+  try{
+    if(fixedOrigin){origin=fixedOrigin;located=true;}
+    else{const place=$("#place").value.trim();const g=await api("/geocode",{query:place||message});if(typeof g.lat==="number"){origin=g;located=true;}}
+    if(located){
+      if(category==="safe"){safety=await api("/safety",{lat:origin.lat,lon:origin.lon,radiusM:500});}
+      else{const near=await api("/nearest",{lat:origin.lat,lon:origin.lon,category:CATMAP[category]||category||undefined,limit:5});results=near.results||[];}
+      showOnMap(origin,results,safety);
+    }else{announce("I couldn't find that place. Try a London area or postcode, or tap the location button.");}
   }catch(e){}
   let reply="";try{const a=await api("/ask",{message,session:"codeborough-ui",lang:LANG.en});reply=a.reply||a.error||"";}
   catch(e){reply="(bridge offline - start ui/bridge.mjs on :8091)";}
@@ -329,7 +342,19 @@ async function run(message,category){
 function ask(){const m=$("#q").value.trim();if(!m)return;$("#q").value="";run(m,null);}
 $("#send").onclick=ask;$("#q").addEventListener("keydown",e=>{if(e.key==="Enter")ask();});
 $("#place").addEventListener("keydown",e=>{if(e.key==="Enter")$("#q").focus();});
-document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{const cat=b.dataset.cat;const place=$("#place").value.trim();
+
+/* ---------- GPS: use my location (no typing) ---------- */
+let fixedOrigin=null;
+$("#gps").onclick=()=>{
+  if(!navigator.geolocation){announce("Location isn't available on this device - please type a place.");return;}
+  $("#gps").textContent="…";announce("Finding your location…");
+  navigator.geolocation.getCurrentPosition(
+    p=>{fixedOrigin={lat:p.coords.latitude,lon:p.coords.longitude,query:"your location"};$("#place").value="📍 My location";$("#gps").textContent="📍";announce("Got your location. Now tap what you need.");},
+    err=>{$("#gps").textContent="📍";announce(err&&err.code===1?"Location permission was denied - please type a place instead.":"Couldn't get your location - please type a place.");},
+    {enableHighAccuracy:true,timeout:8000,maximumAge:60000});
+};
+$("#place").addEventListener("input",()=>{fixedOrigin=null;});  /* typing a place overrides GPS */
+document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{const cat=b.dataset.cat;const place=fixedOrigin?"my location":$("#place").value.trim();
   if(!place){$("#place").focus();return;}
   const human={vote:"polling station",toilet:"public toilet",rest:"emergency rest centre",library:"library",grit:"grit bin"}[cat]||cat;
   run(cat==="safe"?`Is it a safe, well-lit route around ${place}?`:`Where is the nearest ${human} to ${place}?`,cat);});
@@ -337,9 +362,9 @@ document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{const cat=b.dataset.
 /* ---------- mic (STT in chosen language) ---------- */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null;
 if(SR){rec=new SR();rec.interimResults=false;
-  rec.onresult=e=>{const tx=e.results[0][0].transcript;$("#q").value=tx;micOff();ask();};
-  rec.onend=micOff;rec.onerror=micOff;}
-function micOn(){$("#mic").classList.add("on");$("#simpleMic").classList.add("on");if(rec){rec.lang=LANG.code;try{rec.start();}catch(e){}}else trans("System","Mic needs Chrome - please type.");}
+  rec.onresult=e=>{const tx=e.results[0][0].transcript;$("#q").value=tx;micOff();announce("Heard: "+tx);ask();};
+  rec.onend=micOff;rec.onerror=e=>{micOff();announce("Sorry, I didn't catch that. Please try again, or type your question.");};}
+function micOn(){$("#mic").classList.add("on");$("#simpleMic").classList.add("on");if(rec){rec.lang=LANG.code;try{rec.start();announce("Listening… please speak now.");}catch(e){micOff();}}else{micOff();announce("Voice input needs Chrome on this device - please type your question.");trans("System","Mic needs Chrome - please type.");}}
 function micOff(){$("#mic").classList.remove("on");$("#simpleMic").classList.remove("on");}
 $("#mic").onclick=micOn;$("#simpleMic").onclick=micOn;
 
