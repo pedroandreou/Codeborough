@@ -9,9 +9,9 @@
 ## Hook (~15s)
 > "Google already finds you a café or a library. What it *can't* tell you: where **you** vote, the nearest emergency rest centre, an accessible public toilet with the council's own detail, or a gritted route in winter - that civic data lives across 33 council portals. Codeborough answers it, by voice, on-device, private."
 
-## Act 1 - Voting + accessibility (lead, ~60s) — the moment commercial maps fail
+## Act 1 - Voting + accessibility (lead, ~60s) - the moment commercial maps fail
 1. 🎙 *"I've just moved to Brixton - where's my nearest polling station, and is it step-free?"*
-   → `geocode` Brixton → `find_nearest` polling → **"Brixton Library, Brixton Oval SW2 1JQ - step-free entrance."** *(map: pin + route)* — *Google has no polling-station layer at all.*
+   → `geocode` Brixton → `find_nearest` polling → **"Brixton Library, Brixton Oval SW2 1JQ - step-free entrance."** *(map: pin + route)* - *Google has no polling-station layer at all.*
 2. 🎙 *"Is it a safe walk? it'll be getting dark."*
    → `safety_count` → **"Keep to the main monitored roads - cameras cover the junctions on the way."** *(say "busy/monitored roads", not "surveillance")*
 3. 🎙 *"Any accessible public toilet on the way?"*

@@ -72,7 +72,7 @@ With those three disabled the system is **air-gapped** end to end. None of them 
 
 1. **Find the civic thing maps miss** - the nearest polling station, rest centre, library or
    accessible public toilet, and how to get to it. *(polling stations, reception centres, libraries,
-   schools, public toilets)* — we return the **nearest** facility (not your *assigned* station/catchment yet; that's a postcode-lookup next step).
+   schools, public toilets)* - we return the **nearest** facility (not your *assigned* station/catchment yet; that's a postcode-lookup next step).
 2. **Get me there safely** - prefers monitored, busy, well-served streets. *(CCTV, grit bins)*
    Honest framing: CCTV here is mostly traffic/town cameras = busy roads, **not** crime surveillance.
 3. **Tell me about it** - hours, accessibility, what's there. *(all datasets)*
@@ -85,9 +85,8 @@ How the components come together - voice via ElevenLabs, brain via Nemotron, gro
 ![Codeborough system architecture](docs/architecture.png)
 
 **📐 Interactive version → [`docs/architecture.html`](docs/architecture.html)** - open it in a
-browser to toggle the *voice-turn* / *memory-recall* / *privacy-boundary* views and hover each box.
-The **privacy-boundary** view shows how it actually runs: four Docker containers across two networks,
-with the reasoning core sealed on an `internal` network and a single default-deny egress door. (GitHub can't render
+browser to watch a voice turn flow end-to-end, with the on-device boundary drawn around everything
+except ElevenLabs; hover or click any box for detail. (GitHub can't render
 interactive HTML in a README, so the image above is a static preview of it; or view the HTML live via
 [htmlpreview](https://htmlpreview.github.io/?https://github.com/pedroandreou/Codeborough/blob/main/docs/architecture.html)
 when the repo is public.)

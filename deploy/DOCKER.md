@@ -1,7 +1,7 @@
-# Codeborough — containerized stack (DGX Spark / GB10, arm64)
+# Codeborough - containerized stack (DGX Spark / GB10, arm64)
 
 One-command, single-box deployment. Brain = **Nemotron NVFP4 via vLLM**, grounded by the
-`civic-geo` plugin over local GeoJSON, voiced by ElevenLabs — with a **provable** privacy
+`civic-geo` plugin over local GeoJSON, voiced by ElevenLabs - with a **provable** privacy
 boundary: the reasoning core has no internet route; only the voice bridge egresses.
 
 ## Topology
@@ -9,7 +9,7 @@ boundary: the reasoning core has no internet route; only the voice bridge egress
 ```
             host browser ──▶ :8091 (published)
                                 │
-   ┌─────────── core_net (internal: true — NO internet) ───────────┐
+   ┌─────────── core_net (internal: true - NO internet) ───────────┐
    │   vllm (GPU)  ◀── OpenAI /v1 ──  gateway (OpenClaw+civic-geo)  │
    │   Nemotron NVFP4 :8000          + memory volume :18789         │
    └────────────────────────────────────────┬──────────────────────┘
@@ -22,7 +22,7 @@ boundary: the reasoning core has no internet route; only the voice bridge egress
   *cannot* reach the internet. That's the privacy claim, enforced by Docker, not asserted.
 - **bridge** is the only reasoning-adjacent service on `edge_net`, and its egress is clamped
   to ElevenLabs by `egress-proxy` (default-deny allowlist).
-- GPU via **`gpus: all`** (CDI) — matches what's verified working on scan-05.
+- GPU via **`gpus: all`** (CDI) - matches what's verified working on scan-05.
 
 ## Run order
 
@@ -33,11 +33,11 @@ cp .env.example .env && $EDITOR .env          # set ELEVENLABS_API_KEY
 # 0) FREE THE UNIFIED MEMORY POOL (GB10 shares one 128GB pool between CPU and GPU).
 #    Stop any other resident GPU/model processes, then drop reclaimable page cache so
 #    vLLM can claim its budget. `nvidia-smi` shows "Not Supported" for memory on GB10;
-#    use `free -h` — the `available` column is the real GPU budget.
+#    use `free -h` - the `available` column is the real GPU budget.
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 free -h                                       # want `available` comfortably above ~45 GiB
 
-# 1) GATE TEST — confirm the brain serves Nemotron NVFP4 on the GB10 (downloads ~16GB once).
+# 1) GATE TEST - confirm the brain serves Nemotron NVFP4 on the GB10 (downloads ~16GB once).
 make gate-test
 #    ✅ "Application startup complete" + a tool_calls reply  -> proceed.
 
@@ -62,10 +62,10 @@ These are the only spots I couldn't confirm without the box; the Docker layer is
    names with `openclaw models list` inside the gateway container; adjust if the schema differs.
 2. **Bridge → gateway target.** `ui/bridge.mjs` spawns `openclaw agent --agent main`, which must
    reach the **gateway container** (not localhost). `deploy/openclaw.client.json` +
-   `OPENCLAW_GATEWAY_URL` set a remote target — verify against `openclaw agent --help` /
+   `OPENCLAW_GATEWAY_URL` set a remote target - verify against `openclaw agent --help` /
    `openclaw gateway --help`. If OpenClaw can't do a remote gateway cleanly, the fallback is to
    run the gateway daemon *inside* the bridge container (localhost:18789) and drop the separate
-   gateway service — at the cost of moving the egress boundary to the bridge (still provable, just
+   gateway service - at the cost of moving the egress boundary to the bridge (still provable, just
    a coarser line).
 
 ## Hackathon-vs-production notes / what we skipped (<24h)

@@ -26,9 +26,9 @@ UI: `http://<box>:8091`.
 | Service | Role | GPU |
 |---|---|---|
 | `vllm` | Nemotron-3-Nano-30B-A3B **NVFP4** brain, OpenAI `/v1` | ✅ |
-| `gateway` | OpenClaw + `civic-geo` plugin + session memory | — |
-| `bridge` | `ui/bridge.mjs` - browser-facing voice + map | — |
-| `egress-proxy` | the single allowlisted crossing point (`*.elevenlabs.io`) | — |
+| `gateway` | OpenClaw + `civic-geo` plugin + session memory | - |
+| `bridge` | `ui/bridge.mjs` - browser-facing voice + map | - |
+| `egress-proxy` | the single allowlisted crossing point (`*.elevenlabs.io`) | - |
 
 | File | Purpose |
 |---|---|
