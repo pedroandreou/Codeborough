@@ -39,6 +39,28 @@ const body = (req) =>
     req.on("end", () => { try { resolve(d ? JSON.parse(d) : {}); } catch { resolve({}); } });
   });
 
+function collapseRepeatedText(text) {
+  let t = String(text || "").trim();
+  t = t.replace(/(.{20,240}?[.!?])(?:\s*\1){1,}/gs, "$1");
+  for (let i = 0; i < 8; i++) {
+    const next = t.replace(/([^.!?]{18,220}?[.!?])\s*\1/gs, "$1");
+    if (next === t) break;
+    t = next;
+  }
+  t = t.split("\n").map((line) => {
+    const matches = Array.from(line.matchAll(/[^.!?]{18,220}?[.!?]/g));
+    for (const m of matches) {
+      const sentence = m[0].trim();
+      const end = m.index + m[0].length;
+      const rest = line.slice(end).trim();
+      if (rest.length >= 18 && sentence.startsWith(rest.slice(0, Math.min(28, rest.length)))) {
+        return line.slice(0, end).trim();
+      }
+    }
+    return line;
+  }).join("\n");
+  return t.trim();
+}
 // Strip OpenClaw's banners/warnings/box-drawing from `openclaw agent` stdout,
 // leaving just the assistant's reply text.
 function cleanReply(out) {
@@ -46,7 +68,7 @@ function cleanReply(out) {
   const noise =
     /^(\[plugins\]|plugins\.allow|Config \(|\[gateway\]|EMBEDDED FALLBACK|Gateway target:|Source:|Config:|Bind:|gateway connect failed|Possible causes:|- |Run `openclaw|Stopped systemd|Restarted systemd|Usage:|Updating|nohup:)/;
   const boxy = /[│◇├╮╯╰┌┐└┘▄▀█░▕▏▁]/;
-  return out
+  return collapseRepeatedText(out
     .replace(ansi, "")
     .replace(/\uFFFD\[[0-9;?]*[ -\/]*[@-~]/g, "")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
@@ -58,7 +80,7 @@ function cleanReply(out) {
       return t && t !== "NO_REPLY" && !noise.test(t) && !boxy.test(t) && !t.startsWith("![") && !t.includes("(embed ref=") && !t.startsWith("<function=") && !t.startsWith("</function>") && !t.startsWith("<parameter=") && !t.startsWith("</parameter>") && !t.startsWith("title=\"") && !t.startsWith("height=\"");
     })
     .join("\n")
-    .trim();
+    .trim());
 }
 
 function runAgent(message, session = "codeborough-ui") {
