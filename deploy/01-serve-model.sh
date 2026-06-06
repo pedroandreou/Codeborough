@@ -11,7 +11,7 @@ command -v ollama >/dev/null || { echo "ERROR: ollama not on PATH ($HOME/.local/
 # start the server if it isn't up
 if ! curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
   echo "Starting ollama serve (background)..."
-  OLLAMA_KEEP_ALIVE=24h nohup ollama serve > "$HOME/ollama.log" 2>&1 &
+  OLLAMA_KEEP_ALIVE=24h OLLAMA_CONTEXT_LENGTH=32768 nohup ollama serve > "$HOME/ollama.log" 2>&1 &
   sleep 4
 fi
 

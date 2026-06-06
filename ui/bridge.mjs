@@ -1,0 +1,103 @@
+// Codeborough UI bridge — tiny zero-dependency Node HTTP server that connects
+// our web UI to the live agent + data + ElevenLabs voice. Run it ON the DGX.
+//
+//   ELEVENLABS_API_KEY=sk_... ELEVENLABS_VOICE_ID=... \
+//   CIVIC_DATA_DIR=$HOME/Desktop/Codeborough/datasets \
+//   node ui/bridge.mjs            # serves on :8091
+//
+// Endpoints (all CORS-open for the tunneled browser):
+//   POST /ask     {message, session?}  -> {reply}           (runs the OpenClaw agent: Nemotron + civic-geo + memory)
+//   POST /geocode {query}              -> geocode(...)        (for the map)
+//   POST /nearest {lat,lon,category?,limit?,radiusKm?} -> findNearest(...)
+//   POST /safety  {lat,lon,radiusM?}   -> safetyCount(...)
+//   POST /tts     {text}               -> audio/mpeg          (ElevenLabs, key stays server-side)
+//   GET  /health                       -> {ok:true}
+
+import { createServer } from "node:http";
+import { spawn } from "node:child_process";
+import { geocode, findNearest, safetyCount, getDetails, listCoverage } from "../plugins/civic-geo/src/geo.mjs";
+
+const PORT = Number(process.env.BRIDGE_PORT || 8091);
+const EL_KEY = process.env.ELEVENLABS_API_KEY || "";
+const EL_VOICE = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
+const EL_MODEL = process.env.ELEVENLABS_MODEL || "eleven_multilingual_v2";
+const OC = process.env.OPENCLAW_BIN || "openclaw";
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+const json = (res, obj, code = 200) => {
+  res.writeHead(code, { "Content-Type": "application/json", ...CORS });
+  res.end(JSON.stringify(obj));
+};
+const body = (req) =>
+  new Promise((resolve) => {
+    let d = "";
+    req.on("data", (c) => (d += c));
+    req.on("end", () => { try { resolve(d ? JSON.parse(d) : {}); } catch { resolve({}); } });
+  });
+
+// Strip OpenClaw's banners/warnings/box-drawing from `openclaw agent` stdout,
+// leaving just the assistant's reply text.
+function cleanReply(out) {
+  const noise =
+    /^(Config \(|\[plugins\]|\[gateway\]|EMBEDDED FALLBACK|Gateway target:|Source:|Config:|Bind:|gateway connect failed|Possible causes:|- |Run `openclaw|Stopped systemd|Restarted systemd|🦞|Usage:|Updating|nohup:)/;
+  const boxy = /[│◇├╮╯╰┌┐└┘▄▀█░▕▏▁]/;
+  return out
+    .split("\n")
+    .filter((l) => l.trim() && !noise.test(l.trim()) && !boxy.test(l))
+    .join("\n")
+    .trim();
+}
+
+function runAgent(message, session = "codeborough-ui") {
+  return new Promise((resolve) => {
+    const args = ["agent", "--agent", "main", "--session-id", session, "--message", message];
+    const p = spawn(OC, args, { env: process.env });
+    let out = "";
+    p.stdout.on("data", (c) => (out += c));
+    p.stderr.on("data", (c) => (out += c));
+    p.on("close", () => resolve(cleanReply(out) || "(no reply)"));
+    p.on("error", (e) => resolve("agent error: " + e.message));
+  });
+}
+
+async function tts(text) {
+  if (!EL_KEY) throw new Error("ELEVENLABS_API_KEY not set");
+  const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}`, {
+    method: "POST",
+    headers: { "xi-api-key": EL_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ text, model_id: EL_MODEL }),
+  });
+  if (!r.ok) throw new Error(`ElevenLabs ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  return Buffer.from(await r.arrayBuffer());
+}
+
+createServer(async (req, res) => {
+  if (req.method === "OPTIONS") { res.writeHead(204, CORS); return res.end(); }
+  const url = req.url || "/";
+  try {
+    if (req.method === "GET" && url === "/health") return json(res, { ok: true, voice: !!EL_KEY });
+    if (req.method !== "POST") return json(res, { error: "POST only" }, 405);
+    const b = await body(req);
+    if (url === "/ask") return json(res, { reply: await runAgent(b.message, b.session) });
+    if (url === "/geocode") return json(res, geocode(b.query));
+    if (url === "/nearest")
+      return json(res, findNearest({ lat: b.lat, lon: b.lon, category: b.category, limit: b.limit ?? 3, radiusKm: b.radiusKm }));
+    if (url === "/safety") return json(res, safetyCount({ lat: b.lat, lon: b.lon, radiusM: b.radiusM ?? 400 }));
+    if (url === "/details") return json(res, getDetails(b.id));
+    if (url === "/coverage") return json(res, listCoverage());
+    if (url === "/tts") {
+      const audio = await tts(b.text || "");
+      res.writeHead(200, { "Content-Type": "audio/mpeg", ...CORS });
+      return res.end(audio);
+    }
+    return json(res, { error: "unknown endpoint" }, 404);
+  } catch (e) {
+    return json(res, { error: String(e.message || e) }, 500);
+  }
+}).listen(PORT, "127.0.0.1", () =>
+  console.log(`Codeborough bridge on http://127.0.0.1:${PORT}  (voice: ${EL_KEY ? "on" : "off"})`),
+);

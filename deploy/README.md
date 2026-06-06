@@ -39,8 +39,10 @@ bash deploy/02-setup-openclaw.sh          # re-run to enable Talk mode
 ## Try it
 
 ```bash
-openclaw agent --message "nearest library to 1 Triton Square"
-openclaw agent --message "where's the nearest public toilet to Brixton, and is it accessible?"
+openclaw agent --agent main --message "nearest library to 1 Triton Square"
+openclaw agent --agent main --message "where's the nearest public toilet to Brixton, and is it accessible?"
+# NOTE: use --agent main (routes to the gateway → civic-geo tools + memory).
+# Do NOT use --local: it runs the embedded agent with NO plugins (ungrounded answers).
 openclaw tui          # interactive; or the dashboard at http://127.0.0.1:18789 (token in gateway log)
 ```
 

@@ -117,7 +117,7 @@ openclaw plugins validate --entry ./dist/index.js
 openclaw plugins install ./
 openclaw gateway stop && openclaw gateway --port 18789 --verbose
 openclaw plugins inspect civic-geo --runtime --json  # expect 5 tools
-openclaw agent --message "nearest library to 1 Triton Square"   # tool fires
+openclaw agent --agent main --message "nearest library to 1 Triton Square"   # tool fires (--agent = gateway/tools; never --local)
 ```
 See [`../plugins/civic-geo/README.md`](../plugins/civic-geo/README.md) for caveats (SDK version, TypeBox import).
 

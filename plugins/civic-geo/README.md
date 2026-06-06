@@ -61,7 +61,7 @@ openclaw plugins install ./                      # install this plugin dir
 openclaw gateway stop && openclaw gateway --port 18789 --verbose
 openclaw plugins inspect civic-geo --runtime --json   # confirm 5 tools registered
 
-openclaw agent --message "nearest library to 1 Triton Square"   # tool should fire
+openclaw agent --agent main --message "nearest library to 1 Triton Square"   # tool should fire (--agent = gateway, has tools)
 ```
 
 ## Notes / caveats (read before debugging)
