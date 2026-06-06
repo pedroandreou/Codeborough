@@ -1,15 +1,33 @@
 {
-  "_comment": "Container gateway config. Brain = Nemotron NVFP4 served by vLLM over its OpenAI API (http://vllm:8000/v1). NOTE: voice (talk/tts) is handled by ui/bridge.mjs, NOT by the gateway, so the gateway needs no ElevenLabs key and stays internal-only. VERIFY the provider key names against `openclaw models list` on the box.",
+  "_comment": "Container gateway config (OpenClaw 2026.6.x). Registers our LOCAL brain as an OpenAI-COMPATIBLE provider: NVIDIA Nemotron NVFP4 (nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4) served by vLLM under the alias 'nemotron-nano' at http://vllm:8000/v1. Provider name 'vllm' is free-form; 'openai' is RESERVED for real OpenAI, so the model id is 'vllm/nemotron-nano' (api:'openai-completions' = use the OpenAI wire format). apiKey 'local' is accepted because baseUrl is a bare hostname on the internal core_net -- nothing leaves the box. NOTE: voice (talk/tts) is handled by ui/bridge.mjs, NOT the gateway, so the gateway needs no ElevenLabs key and stays internal-only.",
   "gateway": { "mode": "local" },
-  "agents": {
-    "defaults": {
-      "model": { "primary": "openai/nemotron-nano" }
+  "models": {
+    "providers": {
+      "vllm": {
+        "baseUrl": "http://vllm:8000/v1",
+        "apiKey": "local",
+        "api": "openai-completions",
+        "timeoutSeconds": 300,
+        "models": [
+          {
+            "id": "nemotron-nano",
+            "name": "NVIDIA Nemotron-3 Nano NVFP4 (local)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 32768,
+            "maxTokens": 8192
+          }
+        ]
+      }
     }
   },
-  "providers": {
-    "openai": {
-      "baseUrl": "http://vllm:8000/v1",
-      "apiKey": "${OPENAI_API_KEY}"
+  "agents": {
+    "defaults": {
+      "model": { "primary": "vllm/nemotron-nano" },
+      "models": {
+        "vllm/nemotron-nano": { "alias": "nemotron" }
+      }
     }
   },
   "session": {

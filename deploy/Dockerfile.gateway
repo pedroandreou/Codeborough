@@ -4,17 +4,19 @@ ENV NODE_ENV=production
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
-# OpenClaw runtime — pin to the version civic-geo's src/index.ts targets (>=2026.5).
-RUN npm install -g openclaw@2026.5.17 || npm install -g openclaw
+# OpenClaw runtime — pin to the version actually running on scan-05 (the old `|| latest`
+# fallback silently pulled 2026.6.1, which reorganized the CLI; pin so builds are reproducible).
+RUN npm install -g openclaw@2026.6.1 || npm install -g openclaw
 
 # civic-geo plugin (pure JS, zero deps) + the agent skill + container gateway config
 COPY plugins/civic-geo/ /opt/civic-geo/
 COPY deploy/skills/ /root/.openclaw/skills/
 COPY deploy/openclaw.gateway.json /root/.openclaw/openclaw.json
+COPY deploy/gateway-entrypoint.sh /usr/local/bin/gateway-entrypoint.sh
+RUN chmod +x /usr/local/bin/gateway-entrypoint.sh
 
 EXPOSE 18789
-# Install the plugin (idempotent) then start the gateway bound to 0.0.0.0 so the
-# bridge container can reach it over core_net.
-CMD ["sh","-lc","\
-  (cd /opt/civic-geo && openclaw plugins install ./ || echo 'plugin install warn'); \
-  exec openclaw gateway --port ${OPENCLAW_GATEWAY_PORT:-18789} --host 0.0.0.0"]
+# Provision the `main` agent to the local NVFP4 brain (the persistent agent volume otherwise
+# shadows the baked config and falls back to gpt-5.5), install the plugin, then start the
+# gateway bound to 0.0.0.0 so the bridge container can reach it over core_net.
+CMD ["/usr/local/bin/gateway-entrypoint.sh"]
