@@ -1,155 +1,140 @@
-# Codeborough — Build Plan (one-day hackathon)
+# Codeborough — Build Plan v3 (one-day hackathon)
 
 **One-liner:** A private, on-device, **voice-first civic wayfinding concierge** for London. Tell it
-who you are and where you need to go; it finds the *right* civic place, tells you how to get there
-on **monitored, well-served streets**, tells you about it, and remembers your situation the whole
-way — all on the edge, nothing to the cloud.
+who you are and where you need to go; it finds the *right* civic place, tells you how to get there on
+**monitored, well-served streets**, tells you about it, and remembers your situation the whole way —
+all on the edge, nothing to the cloud.
 
 **Targets (stacked):** Public Services track · Best use of NVIDIA Nemotron (RTX 5080) ·
-ElevenLabs persistence bounty.
+ElevenLabs persistence bounty (≥ 1 h 11 m + live context retention).
 
-We have **one build day** (3 people) and present tomorrow. Everything below bends to that.
-
----
-
-## The Minimum Viable Demo (build ONLY this first)
-
-> Speak a civic question → **Nemotron** picks the right Lambeth dataset, queries it **locally** →
-> speaks back a **grounded** answer naming the source → **remembers earlier turns** → and has run
-> **continuously for 71+ minutes** with a saved session log.
-
-That alone contends for all three prizes:
-- voice in/out → **ElevenLabs**
-- Nemotron as the brain → **Nemotron bounty**
-- on-device City-of-London open data → **Public Services track**
-- 71 min + live recall → **ElevenLabs persistence bounty**
-
-Everything else is polish layered on top **only if the spine is solid.**
+> **v3 change:** we **build ON OpenClaw**, we don't hand-roll an agent. OpenClaw already ships the
+> gateway, sessions, persistent memory, Talk voice loop, a native ElevenLabs provider, and a vLLM
+> provider. Our only new code is **one tool plugin** (`plugins/civic-geo/`) + config + skills.
 
 ---
 
-## Three pillars (every original idea lands in one)
+## The 5-layer stack (what we reuse vs write)
 
-| Pillar | What it does | Datasets | Absorbs |
-|---|---|---|---|
-| **1. Get me there** | Finds the *right* destination for *you* (your child's school, your assigned polling station) and guides you | schools, polling, libraries, reception centres | family→school, elderly→polling |
-| **2. Get me there safely** *(signature)* | Mentions monitored, busy, well-served streets near the route; winter footing | **CCTV**, grit bins | travellers→CCTV, reframed crime→safety |
-| **3. Tell me about it** | Hours, accessibility, what's there, a bit of character — the "good story" | all + answer composition | library visitors |
+| Layer | What it is | Our move |
+|---|---|---|
+| **Nemotron 3** (open models) | The brains, on-device via vLLM | **config** — multi-model lineup → "Best use of Nemotron" |
+| **OpenClaw** (`openclaw/openclaw`, MIT) | Agent runtime: gateway, sessions, memory, Talk voice, plugin SDK, WS/HTTP API | **build on** — add 1 plugin + skills |
+| **ElevenLabs** | Voice in/out — a *native* OpenClaw provider | **config** — wins ElevenLabs bounty |
+| **NemoClaw** | NVIDIA's secure wrapper (OpenShell + onboard CLI) around OpenClaw; official DGX Spark path | **optional** — NVIDIA narrative / security demo |
+| **OpenShell** (`NVIDIA/OpenShell`, alpha) | Sandbox under NemoClaw: default-deny egress, credential brokering | **side-demo only** (don't sandbox the live voice loop) |
 
-**Pillar 2 ships as a spoken line, not a map:** *"...it's along the main monitored roads — there
-are 6 traffic cameras near that route."* That's a CCTV-near-corridor count over the data — **no
-routing engine, no map required.**
+## Nemotron lineup (fits 128 GB; wins the bounty by breadth)
 
-**Safety wording (locked):** "monitored / busy / well-served streets," **never** "crime /
-surveillance." Lambeth CCTV = TfL *traffic* cameras (see `datasets/SOURCES.md`); the honest claim is
-*busy main roads*, not crime watch.
+| Role | Model | Mem |
+|---|---|---|
+| Agent brain | `NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4` (57–75 tok/s; **tool-calling**) | ~21 GB |
+| RAG embed | `llama-nemotron-embed-1b-v2` | ~2 GB |
+| RAG rerank | `llama-nemotron-rerank-1b-v2` | ~2 GB |
+| Safety guard | `Nemotron-3-Content-Safety` (pre + post-TTS hook) | ~6 GB |
+
+~31 GB total → all four co-resident with ~90 GB to spare. Serve with **vLLM** (NVFP4; GB10/sm_121
+NIM support lags for the small models). **Avoid Super 120B for voice** (~87 GB, ~23 tok/s).
 
 ---
 
 ## Architecture
 
 ```
- mic ─► [Scribe STT] ─►  ┌──────────────┐  tool calls  ┌────────────────────┐
-                         │  NEMOTRON     │ ───────────► │  Data/Tool layer    │
- spk ◄─ [Eleven v3 TTS]◄─│  route +      │ ◄─────────── │  (Lambeth GeoJSON)  │
-                         │  compose      │  results     └────────────────────┘
-                         └──────┬───────┘ ◄─┐ retrieve/inject
-                                │            │
-                     ┌──────────┴────────────┴───────┐
-                     │ Session memory (turns + entity │ ← the 1h11m crux
-                     │ memory + summary + session log)│
-                     └────────────────────────────────┘
-   Everything except ElevenLabs voice runs on the DGX/ZGX. Demo borough: Lambeth.
+DGX Spark / ZGX Nano (GB10, 128GB) — all on-device:
+
+  vLLM ── Nemotron Nano-30B-NVFP4 (brain) + embed-1b + rerank-1b + Content-Safety-4B
+    │  OpenAI /v1 @ :8000
+    ▼
+  OpenClaw Gateway (daemon :18789)            [REUSE]
+   ├─ provider: vllm            (config)      [REUSE]
+   ├─ Talk provider: elevenlabs (STT+TTS)     [REUSE]
+   ├─ plugin: civic-geo  ← geocode / find_nearest / get_details / safety_count / list_coverage  [WE WRITE]
+   ├─ skills: civic-assistant playbook (*.md) [WE WRITE]
+   ├─ sessions + memory (1 long session, idle reset off, MEMORY.md)  [REUSE]
+   └─ WS + OpenAI-compat HTTP API             [REUSE]
+        ▲ ws:// + token
+  optional: mic+map web UI (chat.send / sessions.messages.subscribe / tools.invoke / talk.session.*)  [WE WRITE if time]
+
+  side-demo: OpenShell sandbox running a non-voice slice → security/credential story for judges
 ```
 
----
-
-## Team split — 3 devs
-
-- **Dev 1 — Brain:** data tools first (`find_nearest` / `get_details` / `geocode` / `safety_count`
-  over Lambeth GeoJSON — fast, standalone, unblocks all), then Nemotron via NIM + tool-calling +
-  accessible answer composition (incl. the spoken safety line) + grounding/refusal.
-- **Dev 2 — Conversation & the bounty:** the voice loop (Scribe in + Eleven v3 out + turn-taking —
-  prototype today via the ElevenLabs MCP, pre-hardware) **and** the long-running process: memory
-  store, summary rollup, session log, 1h11m heartbeat, recall path. Voice + memory in one process,
-  one owner, no seam. Strongest generalist goes here.
-- **Dev 3 — Safety, surface & pitch:** CCTV-near-corridor count, the demo script + impact narrative
-  + slides, integration testing, and capturing the session log for submission. Map UI only if the
-  spine is done by mid-afternoon.
-
-**Convergence points (where 3-person teams lose time):**
-- Dev 1 ↔ Dev 2 meet at the **tool-calling contract** — freeze it in the first hour so they build to
-  the same shape in parallel.
-- Dev 3 consumes both outputs, so integrates last — keep them productive early on slides + safety fn
-  against mock answers.
+Honest framing: brain + data + memory are fully on-device; voice goes through ElevenLabs because the
+bounty requires it.
 
 ---
 
-## Explicitly OUT today
-- ❌ Real routing engine (OSRM/Valhalla) — zero prize value, big time sink.
-- ❌ Live GPS / turn-by-turn navigation.
-- ❌ Multi-borough — **Lambeth only.** One borough fully working beats five half-working.
-- ❌ Persona-specific code — family & elderly are the *same* code path; they differ only in what you
-  *say* in the demo.
-- ⚠️ Map UI — only if the spine is done early. Voice is the interface; the map is a bonus.
+## Key facts that de-risk the day
+
+- **The ElevenLabs persistence/recall bounty is ~free.** OpenClaw sessions persist to disk and only
+  reset at 4 AM or on idle (set `session.reset.idleMinutes: 0`). Memory-flush-before-compaction is on
+  by default, so earlier turns survive a full context window → the judge's "what did I ask 40 min
+  ago?" works. Keep one long session alive; capture its log for submission.
+- **Voice = config only.** Talk mode `provider: "elevenlabs"` → Scribe v2 realtime STT + Eleven v3
+  TTS, barge-in. No audio plumbing.
+- **Model = OpenAI-compatible config.** Point `agents.defaults.model.primary` at `vllm/<nemotron-id>`
+  (`http://127.0.0.1:8000/v1`). Must be a tool-calling model — Nano 30B is (Qwen3 parser).
+- **OpenShell verdict:** do NOT put the live voice loop in it (alpha; container/GPU/audio friction;
+  SSRF blocks the local tool service). Use 1–2 hrs to run a *non-realtime slice* in a sandbox to show
+  default-deny egress + an API key the agent never sees + an OCSF audit trail — a strong judge asset.
 
 ---
 
-## The de-risk: the 71-minute run
+## Our code: `plugins/civic-geo/` (done — engine validated)
 
-The continuous run must literally happen, but **not under deadline pressure.** Get the agent
-*stable* by late afternoon, then **launch the long session in the evening and let it run overnight /
-through dinner** while you write the pitch — you present tomorrow, so the 71-min clock can run
-tonight. Save the session log = your ElevenLabs submission artifact. **Stability by late afternoon is
-the real internal deadline**, not "finish everything."
+The one thing we write. Pure-Node engine (`src/geo.mjs`, zero deps) + thin OpenClaw adapter
+(`src/index.ts`). Five tools over the London datasets:
 
----
+| Tool | Purpose |
+|---|---|
+| `geocode(query)` | place/landmark/postcode/`"lat,lon"` → coords, offline |
+| `find_nearest(lat, lon, category?, limit?, radiusKm?)` | nearest facilities by type/radius |
+| `get_details(id)` | full record (hours, accessibility) |
+| `safety_count(lat, lon, radiusM?)` | CCTV/grit density = "monitored streets" signal |
+| `list_coverage()` | what we actually cover (anti-over-promise) |
 
-## One-day timeline
-
-| Phase | Dev 1 — Brain | Dev 2 — Voice + Memory | Dev 3 — Safety + Pitch |
-|---|---|---|---|
-| **First hour (together)** | Lock hardware · **request Nemotron NIM now** · **freeze tool contract** · agree demo script | | |
-| **Morning** | Data tools over Lambeth (no LLM — fast win) | Voice loop via ElevenLabs MCP/SDK (works pre-hardware) | CCTV-near-corridor fn + start slides against mock answers |
-| **Midday** | Nemotron + tool-calling: typed Q → grounded A | Memory store + recall path (typed first) | Wire safety line into answer; draft impact narrative |
-| **Afternoon** | Answer composition + safety line; harden "we don't cover that" | **Integrate voice + brain + memory into one long-running process** | End-to-end testing; (map only if ahead) |
-| **Late afternoon** | Bug-fix the spine with Dev 2 | **Spine stable** ← internal deadline | Rehearse demo v1; finalize slides |
-| **Evening** | — | **Launch the 71-min session, save the log** | Write ElevenLabs submission + rehearse the recall moment |
+Validate now, zero install: `node plugins/civic-geo/scripts/smoke.mjs` (proven against real
+`datasets/` — Triton Square → Regent's Park library @ 415 m; 41 cameras within 500 m of Brixton).
+On the box: `openclaw plugins build/validate/install` (see `plugins/civic-geo/README.md`). Set
+`CIVIC_DATA_DIR` to the deployed datasets path.
 
 ---
 
-## First-hour checklist (before any code)
-1. **Ask organizers to install Nemotron-Nano-9B-V2 NIM** — longest lead time.
-2. **Freeze the tool-calling contract** so Dev 1 and Dev 2 build in parallel without integration
-   surprises this evening.
-3. **Agree the exact demo script** so you build only what you'll show.
+## Team split — 3 devs (tracked as tasks #1–#4)
+
+- **Dev 1 — Brains & data:** `#1 nemotron-serve` (vLLM Nemotron on :8000, verify tool-calling) +
+  `#2 civic-geo-plugin` (engine done; wrap as OpenClaw plugin + install).
+- **Dev 2 — OpenClaw, voice & the bounty:** `#3 openclaw-voice` (onboard OpenClaw; config vLLM +
+  ElevenLabs Talk + long-session/memory; run the 71-min session). *Blocked by #1.*
+- **Dev 3 — Surface & pitch:** `#4 demo-ui-pitch` (map from tool JSON / thin WS UI; slides; demo
+  script; optional OpenShell security side-demo).
+
+**MVD:** Nano-30B brain + civic-geo plugin + ElevenLabs Talk + one long session.
+**Bounty-breadth adds:** embed/rerank + Content-Safety (cheap; "responsible AI" + Nemotron breadth).
+**Stretch:** custom map UI + OpenShell sandbox demo.
 
 ---
+
+## Critical path
+1. **NOW:** ask organizers to install/serve **Nemotron-3-Nano-30B-A3B-NVFP4** (or pull weights) — long lead.
+2. `node plugins/civic-geo/scripts/smoke.mjs` — engine already passes (no hardware needed). **(Dev 1)**
+3. vLLM Nemotron answering on :8000 with tool-calling. **(Dev 1)**
+4. `openclaw onboard` → vLLM provider + ElevenLabs Talk; one typed grounded answer. **(Dev 2)**
+5. `openclaw plugins install ./plugins/civic-geo`; agent fires the tools. **(Dev 1+2)**
+6. Voice end-to-end; then memory/long-session config. **(Dev 2)**
+7. **Launch the 71-min session early**, let it run while UI/pitch come together. **(Dev 2)**
+8. Map UI + rehearse, incl. the 40-min recall moment. **(Dev 3)**
 
 ## Demo script (~3 min)
-
-**Family (lead):**
-1. *"We just moved to Brixton, my daughter starts at [Lambeth school] Monday — how do we get there?"*
-   → finds school, describes the way. **(P1)**
-2. *"A safe walking route? It'll be early and dark."* → monitored-street mention + camera count.
-   **(P2)**
-3. *"Any toilets near the school?"* → en-route facility. **(P3)**
-
-**Elderly → polling (30s, shows the same engine):**
-4. *"I'm 78, where do I vote and can I get there step-free?"* → assigned station + accessible
-   guidance.
-
-**Bounty moment (judge, ~40 min in):**
-5. *"Remind me which school it was, and what time we said to leave?"* → memory recall.
-   **(ElevenLabs)**
-
-Close on impact: *equitable, private access to civic services for the people who struggle most —
-new arrivals, the elderly, the visually impaired — built on public open data, running on the edge.*
-
----
+**Family (lead):** "We just moved to Brixton, my daughter starts at [Lambeth school] Monday — how do
+we get there?" → school + route · "A safe walking route? It'll be dark." → monitored-street mention
++ camera count · "Toilets near the school?" → en-route facility.
+**Elderly → polling (30s):** "I'm 78, where do I vote, step-free?" → assigned station.
+**Bounty moment (judge, ~40 min in):** "Remind me which school, and when we said to leave?" → recall.
+Close on impact: *equitable, private access to civic services for the people who struggle most.*
 
 ## Submission checklist
-- [ ] **Track (Public Services):** working demo + impact narrative + uses City of London open data.
-- [ ] **Nemotron bounty:** Nemotron is visibly the agent brain; NIM running locally.
-- [ ] **ElevenLabs bounty:** ran ≥ 1 h 11 m (heartbeat log proves it); ElevenLabs voice in + out;
-      session log ready to submit; survives the live context-retention question.
+- [ ] **Public Services:** working demo + impact narrative + City of London open data.
+- [ ] **Nemotron:** Nemotron is visibly the agent brain (+ retriever/safety for breadth); vLLM local.
+- [ ] **ElevenLabs:** ran ≥ 1 h 11 m (log proves it); voice in + out; session log ready; survives the
+      live context-retention question.

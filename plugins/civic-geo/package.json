@@ -1,0 +1,21 @@
+{
+  "name": "civic-geo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OpenClaw tool plugin: on-device lookups over London civic-facility GeoJSON datasets.",
+  "main": "dist/index.js",
+  "scripts": {
+    "smoke": "node scripts/smoke.mjs",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "typebox": "^0.34.0"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.5.17"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
