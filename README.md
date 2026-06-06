@@ -46,6 +46,19 @@ data surfaces detail a map app can't), and **anywhere** (self-contained, no clou
    Honest framing: CCTV here is mostly traffic/town cameras = busy roads, **not** crime surveillance.
 3. **Tell me about it** — hours, accessibility, what's there. *(all datasets)*
 
+## Architecture
+
+How the components come together — voice via ElevenLabs, brain via Nemotron, grounded by our
+`civic-geo` plugin over local data, all orchestrated by OpenClaw on the device:
+
+![Codeborough system architecture](docs/architecture.svg)
+
+**Flow:** user speaks → ① ElevenLabs Scribe STT → ② OpenClaw Gateway → ③ Nemotron reasons and
+calls tools → ④ `civic-geo` plugin → ⑤ queries the local GeoJSON → results return to Nemotron →
+it composes a grounded answer → back through OpenClaw → ElevenLabs Eleven v3 TTS → user hears.
+Session memory persists across turns, so it recalls earlier context (the ≥ 1 h 11 m ElevenLabs
+bounty). Everything except the ElevenLabs voice calls runs on-device.
+
 ## Hackathon
 
 | | |
