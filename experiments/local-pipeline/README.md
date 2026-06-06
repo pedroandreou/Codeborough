@@ -36,6 +36,11 @@ Stack that actually ran:
 
 **Hardware target:** RTX 2080 Super (8 GB VRAM), 32 GB RAM, Linux (no sudo).
 
+> **Synced with `main`.** This branch now uses main's **plain-JS** `civic-geo`
+> plugin (no TypeScript/typebox/build) and main's `civic-assistant` skill. The
+> only laptop-specific extras are the small stand-in brain, the 8GB memory
+> tuning, and the reasoning-hiding config below.
+
 ## Files
 
 | File | Purpose |
@@ -44,8 +49,27 @@ Stack that actually ran:
 | `start-ollama.sh` | Start Ollama with the 8GB-friendly flags (flash-attn + q8 KV cache) |
 | `Modelfile` | Builds `codeborough-brain` from qwen3:4b (reasoning ON, GPU-fitting context) |
 | `test-toolcall.sh` | Raw tool-calling gate — **must pass before wiring OpenClaw** |
-| `run-query.sh` | Fire one grounded question end-to-end (text) |
-| `openclaw.local.json` | Reference config (model + session keys) |
+| `run-query.sh` | Fire one grounded question end-to-end (text). Add `--trace` to see the full flow |
+| `trace.py` | Pretty-prints the block-by-block pipeline: USER → BRAIN → civic-geo → … → ANSWER |
+| `openclaw.local.json` | Reference config (model + reasoning-hide + session keys) |
+
+## See the whole pipeline (input → each block → output)
+
+```bash
+./run-query.sh --trace "nearest library to 1 Triton Square"
+```
+
+Example (validated):
+
+```
+STEP 1. USER        → "What is the nearest library to 1 Triton Square?"
+STEP 2. BRAIN       → calls geocode({"query":"1 Triton Square"})
+STEP 3. civic-geo   → {lat:51.5247, lon:-0.1417, source:"landmark"}
+STEP 4. BRAIN       → calls find_nearest({lat,lon, category:"library", radiusKm:1})
+STEP 5. civic-geo   → Regent's Park Library, Robert St NW1 3QT, Camden, 415 m
+STEP 6. BRAIN       → "The nearest library to 1 Triton Square is Regent's Park
+                      Library, Robert Street NW1 3QT — about 415 m away."
+```
 
 ## Reproduce from scratch
 
@@ -82,10 +106,11 @@ openclaw models set ollama/codeborough-brain
 
 ## Hard-won gotchas (these cost us time — read before debugging)
 
-1. **`typebox` version.** The plugin pinned `^0.34.0` (old `@sinclair/typebox`
-   numbering) which doesn't exist on npm. OpenClaw 2026.6.1 bundles
-   **`typebox@1.1.39`**; the plugin now pins `^1.1.39`. (Fixed in
-   `plugins/civic-geo/package.json`.)
+1. **Plugin = plain JS now (no typebox/build).** We adopted main's plain-JS
+   `civic-geo` plugin (`index.js`, `definePluginEntry` + `api.registerTool`).
+   Install with `openclaw plugins install ./ --force`. (The earlier TypeScript +
+   `typebox` approach hit a version trap — `typebox@^0.34.0` doesn't exist on
+   npm; OpenClaw bundles `1.1.39`. The plain-JS plugin sidesteps all of that.)
 2. **Context window vs OpenClaw prompt.** OpenClaw injects a big system prompt +
    every tool schema (~16k tokens). If `num_ctx` is too small the prompt fills
    the window and the model emits ~1 token ("Okay"). Use `num_ctx 20480`.
@@ -96,10 +121,18 @@ openclaw models set ollama/codeborough-brain
 4. **Keep thinking ON.** Disabling qwen3's reasoning is tempting for speed, but
    Nemotron is a reasoning model — we keep thinking on so the dry-run is honest.
    The earlier HTTP 500 was context overflow, NOT thinking.
-5. **`openclaw agent` needs a session.** Pass `--local --session-key <key>`.
+5. **Reasoning leaked into the answer (the "Okay, let me think…" ramble).**
+   Root cause: OpenClaw's reasoning auto-detect does NOT fire for a custom
+   `ollama create` tag, so it never sent the reasoning directive → Ollama dumped
+   the raw `<think>` into `content`. Fix (in `openclaw.local.json`): declare the
+   model `reasoning: true` under `models.providers.ollama` AND set
+   `agents.defaults.reasoningDefault: "off"`. Then the model still thinks (to
+   pick tools) but the thinking is hidden from the reply. On the DGX with
+   vLLM/Nemotron this is handled natively, so it's a laptop-only fix.
+6. **`openclaw agent` needs a session.** Pass `--local --session-key <key>`.
    `--local` runs embedded so it inherits `CIVIC_DATA_DIR` / `OLLAMA_API_KEY`.
-6. **Trust the plugin** to silence the warning: `export OPENCLAW_PLUGINS_ALLOW=civic-geo`.
-7. **No sudo on this laptop.** Ollama installed via tarball to `~/.local`; Node
+7. **Trust the plugin** to silence the warning: `export OPENCLAW_PLUGINS_ALLOW=civic-geo`.
+8. **No sudo on this laptop.** Ollama installed via tarball to `~/.local`; Node
    via conda env `codeborough-node`; OpenClaw via `npm -g` into that env.
 
 ## Speed note (laptop only)

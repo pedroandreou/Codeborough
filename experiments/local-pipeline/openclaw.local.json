@@ -5,9 +5,32 @@
     "defaults": {
       "model": {
         "primary": "ollama/codeborough-brain"
+      },
+      "thinkingDefault": "medium",
+      "reasoningDefault": "off"
+    }
+  },
+
+  "_thinking_about": "thinkingDefault keeps the model REASONING (it needs to, to pick tools); reasoningDefault:off HIDES that reasoning from the spoken/written answer. Without this the laptop stand-in (qwen3) dumps its raw <think> into the reply.",
+
+  "models": {
+    "providers": {
+      "ollama": {
+        "apiKey": "ollama-local",
+        "models": [
+          {
+            "id": "codeborough-brain",
+            "name": "codeborough-brain",
+            "reasoning": true,
+            "input": ["text"],
+            "params": { "num_ctx": 20480 }
+          }
+        ]
       }
     }
   },
+
+  "_reasoning_true_about": "Declaring the custom Ollama tag as reasoning:true is REQUIRED — OpenClaw's auto-detect doesn't fire for custom `ollama create` tags, so without this it never sends the reasoning directive and the <think> text leaks into the answer. On the DGX with vLLM/Nemotron this is handled natively (OpenClaw auto-sends enable_thinking:false for vllm/nemotron-3-*), so this block is laptop-only.",
 
   "session": {
     "reset": {
