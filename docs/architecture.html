@@ -104,11 +104,12 @@
       <span><span class="sw" style="background:var(--purpleBg);border-color:var(--purple)"></span>We write: civic-geo + data</span>
       <span><span class="sw" style="background:var(--orangeBg);border-color:var(--orange)"></span>ElevenLabs: cloud voice</span>
       <span><span class="sw" style="background:#F4FBF7;border-color:var(--emerald);border-style:dashed"></span>On-device boundary</span>
+      <span><span class="sw" style="background:#334155;border-color:#334155"></span>Docker container (vllm / gateway)</span>
       <span class="hint">Hover to focus, click a box for detail</span>
     </div>
     <hr class="div">
 
-    <div class="flowcap"><span class="k">Voice turn</span><span>The user speaks and hears the answer on the device. Voice in, the brain calls civic-geo to look up live London data, then speaks a grounded answer back. The numbered pulse runs all the way out to the datasets and back. Only the voice in and out goes through ElevenLabs; everything else stays on the box.</span></div>
+    <div class="flowcap"><span class="k">Voice turn</span><span>The user speaks and hears the answer on the device. Voice in, the brain calls civic-geo to look up live London data, then speaks a grounded answer back. Everything except ElevenLabs runs in Docker on the box: the brain (<b>vllm</b>) and the gateway (OpenClaw + civic-geo + memory + data) sit on an <b>internal network with no route to the internet</b>, so only the voice can leave, through the default-deny <b>egress-proxy</b>.</span></div>
 
     <div class="stage" id="stage">
       <svg viewBox="0 0 1060 530" id="svg" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
@@ -124,8 +125,8 @@
         <rect x="340" y="34" width="688" height="396" rx="18" fill="#F4FBF7" stroke="#059669" stroke-width="2" stroke-dasharray="8 5"/>
         <rect x="358" y="54" width="15" height="11" rx="2" fill="none" stroke="#047857" stroke-width="2"/>
         <path d="M361 54 v-2 a4.5 4.5 0 0 1 9 0 v2" fill="none" stroke="#047857" stroke-width="2"/>
-        <text x="382" y="56" font-size="13.5" font-weight="700" fill="#047857" letter-spacing="0.3">ON-DEVICE <tspan font-weight="600">(private)</tspan></text>
-        <text x="382" y="74" font-size="11" fill="#059669">NVIDIA DGX Spark / ZGX Nano  &middot;  GB10 Grace Blackwell  &middot;  128 GB unified memory</text>
+        <text x="382" y="56" font-size="13.5" font-weight="700" fill="#047857" letter-spacing="0.3">ON-DEVICE <tspan font-weight="600">(private)</tspan> <tspan font-weight="700" fill="#B91C1C">&middot; Docker core_net: internal, NO internet route</tspan></text>
+        <text x="382" y="74" font-size="11" fill="#059669">NVIDIA DGX Spark (GB10)  &middot;  the brain + gateway are sealed off the internet; only voice can leave, via the egress-proxy</text>
 
         <!-- VOICE flow lines -->
         <g class="vflow">
@@ -143,7 +144,11 @@
             <path d="M364 192 C332 200 330 292 312 316" marker-end="url(#aOrange)"/>
             <path d="M120 336 C112 320 110 250 98 230" marker-end="url(#aOrange)"/>
           </g>
-          <text transform="rotate(-90 352 244)" x="352" y="244" font-size="9.5" font-weight="600" fill="#C2410C" text-anchor="middle">answer</text>
+          <g class="egress">
+            <rect x="296" y="231" width="150" height="36" rx="9" fill="#FFF8EC" stroke="#EA580C" stroke-width="1.4"/>
+            <text x="371" y="246" font-size="9" font-weight="700" fill="#9A3412" text-anchor="middle">egress-proxy &middot; edge_net</text>
+            <text x="371" y="259" font-size="8.5" font-weight="600" fill="#C2410C" text-anchor="middle">default-deny: ElevenLabs only</text>
+          </g>
           <text x="466" y="248" font-size="9" font-weight="600" fill="#2563EB">save / recall</text>
           <path class="flow" d="M456 222 V266" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3.5" marker-start="url(#aBlue)" marker-end="url(#aBlue)"/>
         </g>
@@ -179,7 +184,7 @@
           <rect class="ring" x="360" y="78" width="192" height="148" rx="15" fill="none" stroke="#2563EB" stroke-width="3"/>
           <rect class="card" x="364" y="82" width="184" height="140" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.6" filter="url(#cardShadow)"/>
           <g transform="translate(376,94)"><rect width="46" height="15" rx="7.5" fill="#2563EB"/><text x="23" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">REUSE</text></g>
-          <text x="536" y="105" font-size="10" fill="#1D4ED8" text-anchor="end">:18789</text>
+          <g transform="translate(446,97)"><rect width="92" height="15" rx="7.5" fill="#334155"/><text x="46" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">gateway :18789</text></g>
           <text x="376" y="135" font-size="14" font-weight="700" fill="#1E3A8A">OpenClaw Gateway</text>
           <text x="376" y="156" font-size="11" fill="#334155">Agent runtime + sessions</text>
           <text x="376" y="173" font-size="11" fill="#334155">Talk: turn-taking, barge-in</text>
@@ -191,7 +196,7 @@
           <rect class="ring" x="588" y="78" width="192" height="148" rx="15" fill="none" stroke="#5E9400" stroke-width="3"/>
           <rect class="card" x="592" y="82" width="184" height="140" rx="12" fill="#F2F8E6" stroke="#5E9400" stroke-width="1.6" filter="url(#cardShadow)"/>
           <g transform="translate(604,94)"><rect width="52" height="15" rx="7.5" fill="#76B900"/><text x="26" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">NVIDIA</text></g>
-          <text x="764" y="105" font-size="10" fill="#4D7C0F" text-anchor="end">the brain</text>
+          <g transform="translate(700,97)"><rect width="64" height="15" rx="7.5" fill="#334155"/><text x="32" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">vllm :8000</text></g>
           <text x="604" y="135" font-size="14" font-weight="700" fill="#3F6212">NVIDIA Nemotron 3</text>
           <text x="604" y="156" font-size="11" font-weight="600" fill="#4D7C0F">does the tool-calling</text>
           <text x="604" y="173" font-size="11" fill="#334155">Nano-30B-A3B (NVFP4)</text>
@@ -203,7 +208,7 @@
           <rect class="ring" x="816" y="78" width="192" height="148" rx="15" fill="none" stroke="#7C3AED" stroke-width="3"/>
           <rect class="card" x="820" y="82" width="184" height="140" rx="12" fill="#F4EFFF" stroke="#7C3AED" stroke-width="1.6" filter="url(#cardShadow)"/>
           <g transform="translate(832,94)"><rect width="62" height="15" rx="7.5" fill="#7C3AED"/><text x="31" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">WE WRITE</text></g>
-          <text x="992" y="105" font-size="10" fill="#6D28D9" text-anchor="end">our IP</text>
+          <g transform="translate(924,97)"><rect width="74" height="15" rx="7.5" fill="#334155"/><text x="37" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">in gateway</text></g>
           <text x="832" y="135" font-size="14" font-weight="700" fill="#5B21B6">civic-geo plugin</text>
           <text x="832" y="153" font-size="10.5" fill="#334155">Our code: OpenClaw plugin</text>
           <text x="832" y="169" font-size="10.5" fill="#334155">pure-Node, zero deps</text>
@@ -216,6 +221,7 @@
           <rect class="ring" x="360" y="262" width="192" height="148" rx="15" fill="none" stroke="#2563EB" stroke-width="3"/>
           <rect class="card" x="364" y="266" width="184" height="140" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.6" filter="url(#cardShadow)"/>
           <g transform="translate(376,278)"><rect width="46" height="15" rx="7.5" fill="#2563EB"/><text x="23" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">REUSE</text></g>
+          <g transform="translate(464,280)"><rect width="74" height="15" rx="7.5" fill="#334155"/><text x="37" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">in gateway</text></g>
           <text x="376" y="319" font-size="14" font-weight="700" fill="#1E3A8A">Session memory</text>
           <text x="376" y="340" font-size="11" fill="#334155">transcript + MEMORY.md</text>
           <text x="376" y="357" font-size="11" fill="#334155">persists to disk</text>
@@ -239,7 +245,7 @@
           <rect class="ring" x="816" y="262" width="192" height="148" rx="15" fill="none" stroke="#7C3AED" stroke-width="3"/>
           <rect class="card" x="820" y="266" width="184" height="140" rx="12" fill="#F4EFFF" stroke="#7C3AED" stroke-width="1.6" filter="url(#cardShadow)"/>
           <g transform="translate(832,278)"><rect width="62" height="15" rx="7.5" fill="#7C3AED"/><text x="31" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">WE WRITE</text></g>
-          <text x="992" y="289" font-size="10" fill="#6D28D9" text-anchor="end">on-device data</text>
+          <g transform="translate(924,280)"><rect width="74" height="15" rx="7.5" fill="#334155"/><text x="37" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">in gateway</text></g>
           <text x="832" y="319" font-size="14" font-weight="700" fill="#5B21B6">London GeoJSON</text>
           <text x="832" y="340" font-size="11" fill="#334155">On-device civic datasets:</text>
           <text x="832" y="357" font-size="11" fill="#5B21B6">libraries, schools, toilets,</text>
