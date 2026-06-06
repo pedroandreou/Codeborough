@@ -1,7 +1,6 @@
 {
-  "_comment": "Bridge-side OpenClaw client config. `openclaw agent --agent main` (spawned by ui/bridge.mjs) must route to the gateway CONTAINER, not localhost. VERIFY the exact remote-gateway key/flag against `openclaw gateway --help` / `openclaw agent --help` on the box; adjust if needed.",
+  "_comment": "Bridge-side OpenClaw client config (2026.6.x). `openclaw agent --agent main` (spawned by ui/bridge.mjs) routes to the gateway CONTAINER via OPENCLAW_GATEWAY_URL + OPENCLAW_GATEWAY_TOKEN (set in docker-compose.yml). We only declare the remote MODE here; putting an http:// url in this file made openclaw derive a plaintext ws:// target and reject it -- the env var drives the target instead.",
   "gateway": {
-    "mode": "remote",
-    "url": "http://gateway:18789"
+    "mode": "remote"
   }
 }

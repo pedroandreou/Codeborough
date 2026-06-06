@@ -12,8 +12,8 @@ MODEL="vllm/${SERVED}"
 
 echo "[entrypoint] default brain model = $MODEL (NVIDIA Nemotron NVFP4 via local vLLM)"
 
-# 1) Install the civic-geo plugin (idempotent; verified working on this image).
-( cd /opt/civic-geo && openclaw plugins install ./ ) || echo "[entrypoint] WARN: plugin install"
+# 1) Install the civic-geo plugin (idempotent across restarts via --force).
+( cd /opt/civic-geo && openclaw plugins install ./ --force ) || echo "[entrypoint] WARN: plugin install"
 
 # 2) Belt-and-suspenders: ensure the gateway default model is our local brain. The config above
 #    already sets agents.defaults.model.primary, so this just re-asserts it. `openclaw models set
@@ -21,5 +21,7 @@ echo "[entrypoint] default brain model = $MODEL (NVIDIA Nemotron NVFP4 via local
 openclaw models set "$MODEL" >/dev/null 2>&1 \
   || echo "[entrypoint] note: 'openclaw models set $MODEL' skipped (config default applies)"
 
-# 3) Start the gateway, bound to 0.0.0.0 so the bridge container can reach it over core_net.
-exec openclaw gateway --port "${OPENCLAW_GATEWAY_PORT:-18789}" --host 0.0.0.0
+# 3) Start the gateway. OpenClaw 2026.6.1: use the `run` subcommand; in a container it auto-binds
+#    0.0.0.0 (no --host/--bind) and REFUSES a non-loopback bind without auth, so token auth is
+#    supplied via OPENCLAW_GATEWAY_TOKEN (set in docker-compose.yml; --token defaults to it).
+exec openclaw gateway run --port "${OPENCLAW_GATEWAY_PORT:-18789}"

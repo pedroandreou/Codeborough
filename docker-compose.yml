@@ -51,14 +51,19 @@ services:
       # deploy/openclaw.gateway.json -> models.providers.vllm. BRAIN_SERVED_NAME must match
       # vLLM's --served-model-name so the entrypoint asserts the right default: vllm/<this>.
       - BRAIN_SERVED_NAME=${BRAIN_SERVED_NAME}
+      # openclaw 2026.6.1 REFUSES a non-loopback bind without auth; supply a token (safe on the
+      # isolated internal core_net). The bridge must present the SAME token.
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-codeborough-local}
     volumes:
       - ./datasets:/data/datasets:ro          # London GeoJSON, read-only
       - cb_memory:/root/.openclaw/agents      # sessions/*.jsonl + MEMORY.md (persistence bounty artifact)
     networks: [core_net]                       # NO edge_net -> no internet route. This is the privacy claim.
     depends_on:
       vllm: { condition: service_healthy }
+    # The gateway is a WebSocket server, so an HTTP GET is the wrong probe (and would 401 under
+    # token auth). Just check the port accepts TCP connections (Node is already in the image).
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:18789/ >/dev/null || exit 1"]
+      test: ["CMD", "node", "-e", "require('net').connect(18789,require('os').hostname()).on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -86,6 +91,7 @@ services:
       # bridge spawns `openclaw agent --agent main` -> must reach the gateway container.
       # VERIFY on box: confirm this is the env/flag OpenClaw uses for a remote gateway target.
       - OPENCLAW_GATEWAY_URL=http://gateway:18789
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-codeborough-local}  # must match the gateway's token
       # gateway is reached over plaintext ws:// on the ISOLATED internal core_net (no untrusted
       # hop to intercept). OpenClaw blocks plaintext ws:// to non-loopback by default; this is the
       # documented break-glass for trusted private networks. Without it /ask fails with a SECURITY ERROR.
@@ -100,7 +106,7 @@ services:
       - "${UI_PORT}:8091"                       # browser reaches the UI here (publishing != container egress)
     networks: [core_net, edge_net]              # core_net to reach gateway; edge_net for ElevenLabs
     depends_on:
-      gateway: { condition: service_healthy }
+      gateway: { condition: service_started }   # bridge serves the page + map even before the gateway's first reply
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8091/health >/dev/null || exit 1"]
       interval: 10s
