@@ -7,7 +7,8 @@ help:            ## show targets
 gate-test:       ## does vLLM 0.11 serve Nemotron NVFP4 on the GB10? (run this FIRST)
 	docker volume create cb_models >/dev/null
 	@echo "Bringing vLLM up — first run downloads ~16GB. Ctrl-C after you've confirmed it serves."
-	docker run --rm --gpus all -p 8000:8000 -v cb_models:/models -e HF_HOME=/models \
+	@echo "(host port 8001 -> container 8000, since host :8000 is taken by the org RAG stack)"
+	docker run --rm --gpus all -p 8001:8000 -v cb_models:/models -e HF_HOME=/models \
 	  vllm/vllm-openai:v0.11.0 \
 	  --model nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4 \
 	  --served-model-name nemotron-nano --max-model-len 8192 \
