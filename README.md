@@ -33,7 +33,8 @@ entirely on an NVIDIA DGX Spark / ZGX Nano (GB10):
 
 - **Voice in/out** via **ElevenLabs** (Talk mode: Scribe STT + Eleven v3 TTS).
 - **Brain:** **NVIDIA Nemotron 3** (Nano-30B-A3B, **NVFP4**) served locally via vLLM, doing
-  tool-calling - optionally with a Nemotron retriever + content-safety guard for breadth.
+  tool-calling. Grounding is exact GeoJSON lookups via civic-geo, so this build needs no
+  retrieval/RAG; a Nemotron retriever + content-safety guard are a possible future add-on, not shipped here.
 - **Grounding:** our own [`plugins/civic-geo/`](plugins/civic-geo/) OpenClaw tool plugin queries
   the London GeoJSON datasets locally (`geocode` incl. **offline postcode lookup**, `find_nearest`,
   `get_details`, `safety_count`, **`route_safety`** = monitored-streets coverage *along the walk*,
@@ -100,11 +101,12 @@ bounty). Reasoning, data, memory and safety scoring run on-device; only the opti
 assigned-polling calls touch the network, and each can be disabled (see
 [Privacy](#privacy-what-is-and-isnt-on-device)).
 
-> The diagram above is the **conceptual voice turn** (brain · voice · data). In the running system
-> the browser talks to the **web UI** ([`ui/`](ui/)) → a **bridge** (`ui/bridge.mjs`) → the gateway,
-> and the whole stack is containerized. For the **deployment topology** - which containers run on
-> which Docker network and exactly where the privacy boundary is enforced - see the topology diagram
-> in [`deploy/DOCKER.md`](deploy/DOCKER.md).
+> The **diagram above** is the deployment topology - which container holds what, on which Docker
+> network, what connects to what (with ports), and where the privacy boundary is enforced. The
+> **Flow** above is the same system told as a single voice turn; in the running system the browser
+> hits the **bridge** ([`ui/bridge.mjs`](ui/bridge.mjs)) first, then the gateway - exactly as the
+> diagram shows. GB10 memory gotchas, the OpenClaw integration points to verify on the box, and what
+> we deliberately skipped under 24 h are in [`deploy/DOCKER.md`](deploy/DOCKER.md).
 
 ## Hackathon
 
