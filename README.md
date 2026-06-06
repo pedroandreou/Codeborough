@@ -92,6 +92,8 @@ datasets/<facility>/        ← London civic GeoJSON, per borough + a merged all
 |---|---|
 | [`docs/build-plan.md`](docs/build-plan.md) | **Build plan v3** - architecture, 3-dev task split, demo script, submission checklist |
 | [`docs/setup-runbook.md`](docs/setup-runbook.md) | **Setup runbook** - exact on-the-box commands (Ollama/Nemotron, OpenClaw + ElevenLabs voice, plugin install, 71-min session) + current status |
+| [`docs/Codeborough-Pitch-Deck.pptx`](docs/Codeborough-Pitch-Deck.pptx) | **Pitch deck** (PowerPoint - GitHub won't preview it; download to view) |
+| [`docs/pitch.md`](docs/pitch.md) · [`docs/demo-script.md`](docs/demo-script.md) | Written pitch + 3-min demo script |
 | [`plugins/civic-geo/`](plugins/civic-geo/) | OpenClaw tool plugin: on-device GeoJSON lookups (see its [README](plugins/civic-geo/README.md)) |
 | [`datasets/libraries/`](datasets/libraries/) | Libraries (42 across 4 boroughs) |
 | [`datasets/reception-centres/`](datasets/reception-centres/) | Reception / rest centres (47 across 2 boroughs) |
