@@ -8,62 +8,42 @@
 <style>
   :root{
     --bg:#EEF3F9; --panel:#FFFFFF; --ink:#11213A; --muted:#5A6B82; --line:#DCE5F0;
-    --accent:#1E5BFF; --accent-ink:#fff; --good:#0E8F5E; --nv:#5E9400; --warn:#C24A00;
-    --chip:#F3F7FD; --shadow:0 10px 30px -16px rgba(16,32,64,.30);
-    --fs:1;            /* font scale multiplier */
-    --radius:16px;
+    --accent:#1E5BFF; --good:#0E8F5E; --nv:#5E9400; --chip:#F3F7FD; --shadow:0 10px 30px -16px rgba(16,32,64,.30);
+    --fs:1; --radius:16px;
   }
-  body.dark{ --bg:#0F1720; --panel:#16212E; --ink:#E7EEF5; --muted:#9FB2C4; --line:#24323F;
-    --accent:#4f8cff; --chip:#1B2733; --shadow:0 10px 30px -16px rgba(0,0,0,.6);}
-  body.hc{ --bg:#FFFFFF; --panel:#FFFFFF; --ink:#000000; --muted:#1a1a1a; --line:#000000;
-    --accent:#0033CC; --chip:#FFFFFF; --shadow:none;}
+  body.dark{ --bg:#0F1720; --panel:#16212E; --ink:#E7EEF5; --muted:#9FB2C4; --line:#24323F; --accent:#4f8cff; --chip:#1B2733; --shadow:0 10px 30px -16px rgba(0,0,0,.6);}
+  body.hc{ --bg:#FFFFFF; --panel:#FFFFFF; --ink:#000; --muted:#1a1a1a; --line:#000; --accent:#0033CC; --chip:#FFF; --shadow:none;}
   body.hc *{border-color:#000 !important}
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);color:var(--ink);font-size:calc(17px*var(--fs));line-height:1.5;
-    -webkit-font-smoothing:antialiased}
-  .app{display:grid;grid-template-columns:minmax(420px,40%) 1fr;height:100vh}
-  @media(max-width:820px){.app{grid-template-columns:1fr;grid-template-rows:1fr auto}}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:calc(17px*var(--fs));line-height:1.5;-webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:minmax(430px,42%) 1fr;height:100vh}
+  @media(max-width:860px){.app{grid-template-columns:1fr;grid-template-rows:1fr auto}}
   .left{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:auto}
   .right{position:relative;background:var(--bg)}
   #map{position:absolute;inset:0}
-  /* header */
-  .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:16px 18px 10px}
-  .brand h1{margin:0;font-size:calc(22px*var(--fs));letter-spacing:-.2px}
+  .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:16px 18px 8px;flex-wrap:wrap}
+  .brand h1{margin:0;font-size:calc(22px*var(--fs))}
   .brand p{margin:3px 0 0;color:var(--muted);font-size:calc(13px*var(--fs))}
-  .pill{display:inline-block;background:var(--chip);border:1px solid var(--line);border-radius:999px;
-    padding:1px 9px;color:var(--nv);font-weight:700;font-size:calc(11px*var(--fs))}
-  .a11y{display:flex;gap:6px;flex-wrap:wrap}
-  .a11y button{min-width:40px;min-height:40px;border:1px solid var(--line);background:var(--chip);
-    color:var(--ink);border-radius:10px;font-size:calc(14px*var(--fs));cursor:pointer;font-weight:700}
-  .a11y button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-  /* where + categories */
+  .pill{display:inline-block;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--nv);font-weight:700;font-size:calc(11px*var(--fs))}
+  .a11y{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .a11y button,.a11y select{min-height:40px;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:10px;font-size:calc(14px*var(--fs));cursor:pointer;font-weight:700;padding:0 8px}
+  .a11y button{min-width:40px}
+  .a11y button:focus-visible,.cat:focus-visible,.mic:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   .sec{padding:6px 18px}
   .lbl{font-size:calc(12px*var(--fs));text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:10px 0 6px;font-weight:700}
-  .place{display:flex;gap:8px}
-  .place input{flex:1;min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--bg);
-    color:var(--ink);padding:0 14px;font-size:calc(17px*var(--fs))}
+  .place input{width:100%;min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);padding:0 14px;font-size:calc(17px*var(--fs))}
   .cats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .cat{display:flex;align-items:center;gap:10px;min-height:60px;border:2px solid var(--line);background:var(--chip);
-    color:var(--ink);border-radius:14px;padding:0 14px;font-size:calc(17px*var(--fs));font-weight:700;cursor:pointer;text-align:left}
-  .cat .ico{font-size:calc(26px*var(--fs));line-height:1}
-  .cat:hover{border-color:var(--accent)}
-  .cat:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-  /* big mic + ask */
-  .ask{display:flex;gap:10px;align-items:stretch;margin-top:6px}
-  .mic{flex:none;width:76px;height:76px;border-radius:50%;border:none;background:var(--accent);color:#fff;
-    font-size:30px;cursor:pointer;box-shadow:var(--shadow)}
+  .cat{display:flex;align-items:center;gap:10px;min-height:60px;border:2px solid var(--line);background:var(--chip);color:var(--ink);border-radius:14px;padding:0 14px;font-size:calc(17px*var(--fs));font-weight:700;cursor:pointer;text-align:left}
+  .cat .ico{font-size:calc(26px*var(--fs))}.cat:hover{border-color:var(--accent)}
+  .ask{display:flex;gap:10px;margin-top:6px}
+  .mic{flex:none;width:76px;height:76px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:30px;cursor:pointer;box-shadow:var(--shadow)}
   .mic.on{background:#E0245E;animation:pulse 1.1s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,36,94,.5)}70%{box-shadow:0 0 0 16px rgba(224,36,94,0)}100%{box-shadow:0 0 0 0 rgba(224,36,94,0)}}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,36,94,.5)}70%{box-shadow:0 0 0 18px rgba(224,36,94,0)}100%{box-shadow:0 0 0 0 rgba(224,36,94,0)}}
   .ask .col{flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center}
-  .ask input{min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);
-    padding:0 14px;font-size:calc(17px*var(--fs))}
-  .send{min-height:46px;border:none;border-radius:12px;background:var(--good);color:#fff;font-weight:800;
-    font-size:calc(16px*var(--fs));cursor:pointer}
-  /* answer card */
-  .answer{margin:12px 18px;border:2px solid var(--accent);border-radius:var(--radius);background:var(--panel);
-    box-shadow:var(--shadow);padding:16px 18px;display:none}
+  .ask input{min-height:52px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);padding:0 14px;font-size:calc(17px*var(--fs))}
+  .send{min-height:46px;border:none;border-radius:12px;background:var(--good);color:#fff;font-weight:800;font-size:calc(16px*var(--fs));cursor:pointer}
+  .answer{margin:12px 18px;border:2px solid var(--accent);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow);padding:16px 18px;display:none}
   .answer.show{display:block}
   .answer .top{display:flex;align-items:center;gap:12px}
   .answer .big{font-size:calc(26px*var(--fs));font-weight:800;line-height:1.15}
@@ -73,75 +53,75 @@
   .badge{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:calc(14px*var(--fs));font-weight:700}
   .badge.ok{color:var(--good);border-color:var(--good)}
   .answer .say{margin-top:12px;font-size:calc(16px*var(--fs))}
-  .answer .acts{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
-  .answer .acts button{min-height:50px;border-radius:12px;border:2px solid var(--accent);background:var(--accent);
-    color:#fff;font-weight:800;font-size:calc(16px*var(--fs));cursor:pointer;padding:0 16px}
-  .answer .acts button.ghost{background:transparent;color:var(--accent)}
-  /* transcript + samples */
+  .acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .acts a,.acts button{min-height:48px;border-radius:12px;border:2px solid var(--accent);background:var(--accent);color:#fff;font-weight:800;font-size:calc(15px*var(--fs));cursor:pointer;padding:0 14px;display:inline-flex;align-items:center;text-decoration:none}
+  .acts .ghost{background:transparent;color:var(--accent)}
+  .steps{margin:12px 0 0;padding-left:20px;font-size:calc(15px*var(--fs))}.steps li{margin:4px 0}
   details{margin:8px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
   summary{cursor:pointer;padding:10px 14px;font-weight:700;font-size:calc(14px*var(--fs))}
-  #transcript{padding:0 14px 12px;max-height:180px;overflow:auto;font-size:calc(14px*var(--fs))}
+  #transcript,#savedlist{padding:0 14px 12px;max-height:180px;overflow:auto;font-size:calc(14px*var(--fs))}
   .msg{margin:6px 0}.msg .who{color:var(--muted);font-size:calc(11px*var(--fs));text-transform:uppercase}
   .msg .b{display:block;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:7px 10px;margin-top:2px;white-space:pre-wrap}
+  .saved{display:flex;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;align-items:center}
+  .saved button{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:8px;cursor:pointer;min-height:34px;padding:0 10px}
   .samples{display:flex;gap:8px;flex-wrap:wrap;padding:6px 18px 16px}
-  .samples button{min-height:42px;border:1px dashed var(--line);background:transparent;color:var(--muted);
-    border-radius:10px;font-size:calc(13px*var(--fs));cursor:pointer;padding:0 12px}
+  .samples button{min-height:42px;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:10px;font-size:calc(13px*var(--fs));cursor:pointer;padding:0 12px}
   .set{padding:8px 18px 18px;color:var(--muted);font-size:calc(12px*var(--fs))}
-  .set input{border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);padding:3px 8px;font-size:calc(12px*var(--fs))}
-  /* map view toggle + list */
+  .set input{border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);padding:3px 8px}
   .mapbtns{position:absolute;z-index:600;top:12px;right:12px;display:flex;gap:6px}
-  .mapbtns button{min-height:40px;border:1px solid var(--line);background:var(--panel);color:var(--ink);
-    border-radius:10px;padding:0 12px;font-weight:700;cursor:pointer;font-size:calc(14px*var(--fs));box-shadow:var(--shadow)}
-  #listview{position:absolute;inset:0;background:var(--bg);overflow:auto;padding:18px;display:none}
-  #listview.show{display:block}
-  .lcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
-  .lcard .big{font-size:calc(20px*var(--fs));font-weight:800}
+  .mapbtns button{min-height:40px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:0 12px;font-weight:700;cursor:pointer;font-size:calc(14px*var(--fs));box-shadow:var(--shadow)}
+  #listview{position:absolute;inset:0;background:var(--bg);overflow:auto;padding:18px;display:none}#listview.show{display:block}
+  .lcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}.lcard .big{font-size:calc(20px*var(--fs));font-weight:800}
   .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px;font-size:calc(18px*var(--fs))}
-  .legend{position:absolute;z-index:600;bottom:12px;right:12px;background:var(--panel);border:1px solid var(--line);
-    border-radius:10px;padding:8px 10px;font-size:calc(12px*var(--fs));box-shadow:var(--shadow)}
-  .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .legend{position:absolute;z-index:600;bottom:12px;right:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:calc(12px*var(--fs));box-shadow:var(--shadow)}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}
+  /* Big Simple mode */
+  #simple{position:fixed;inset:0;z-index:2000;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:22px}
+  #simple.show{display:flex}
+  #simple .bigmic{width:min(46vw,260px);height:min(46vw,260px);border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:min(20vw,110px);cursor:pointer;box-shadow:var(--shadow)}
+  #simple .bigmic.on{background:#E0245E;animation:pulse 1.1s infinite}
+  #simple .tap{font-size:calc(26px*var(--fs));font-weight:800}
+  #simple .ans{font-size:calc(28px*var(--fs));font-weight:700;max-width:760px;min-height:1.4em}
+  #simple .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  #simple .row button{min-height:60px;border-radius:14px;border:2px solid var(--accent);background:transparent;color:var(--accent);font-weight:800;font-size:calc(18px*var(--fs));cursor:pointer;padding:0 20px}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- LEFT: answer-first, voice-first, accessible -->
   <section class="left" aria-label="Codeborough assistant">
     <div class="hd">
       <div class="brand">
         <h1>Codeborough</h1>
         <p>Your civic helper for London · <span class="pill">on-device · private</span></p>
       </div>
-      <div class="a11y" role="group" aria-label="Accessibility controls">
-        <button id="fsdown" title="Smaller text" aria-label="Smaller text">A-</button>
-        <button id="fsup" title="Bigger text" aria-label="Bigger text">A+</button>
-        <button id="theme" title="Light or dark" aria-label="Toggle dark mode">🌙</button>
-        <button id="hc" title="High contrast" aria-label="High contrast">◐</button>
-        <button id="mute" title="Voice on/off" aria-label="Toggle voice" aria-pressed="false">🔊</button>
+      <div class="a11y" role="group" aria-label="Settings">
+        <select id="lang" aria-label="Language" title="Language"></select>
+        <button id="fsdown" aria-label="Smaller text" title="Smaller text">A-</button>
+        <button id="fsup" aria-label="Bigger text" title="Bigger text">A+</button>
+        <button id="theme" aria-label="Dark mode" title="Dark mode">🌙</button>
+        <button id="hc" aria-label="High contrast" title="High contrast">◐</button>
+        <button id="mute" aria-label="Voice on or off" title="Voice on/off" aria-pressed="false">🔊</button>
+        <button id="simpleOn" aria-label="Big simple mode" title="Big simple mode">🔆 Big mode</button>
       </div>
     </div>
 
-    <div class="sec">
-      <div class="lbl">📍 Where are you?</div>
-      <div class="place">
-        <input id="place" placeholder="Type a place or postcode - e.g. Brixton" autocomplete="off" aria-label="Your location" />
-      </div>
+    <div class="sec"><div class="lbl" id="lblWhere">📍 Where are you?</div>
+      <div class="place"><input id="place" placeholder="Type a place or postcode - e.g. Brixton" autocomplete="off" aria-label="Your location" /></div>
     </div>
 
-    <div class="sec">
-      <div class="lbl">What do you need?</div>
+    <div class="sec"><div class="lbl" id="lblNeed">What do you need?</div>
       <div class="cats" role="group" aria-label="Civic services">
-        <button class="cat" data-cat="polling station"><span class="ico">🗳️</span> Where I vote</button>
-        <button class="cat" data-cat="public toilet"><span class="ico">🚻</span> Public toilet</button>
-        <button class="cat" data-cat="reception centre"><span class="ico">🆘</span> Rest centre</button>
-        <button class="cat" data-cat="library"><span class="ico">📚</span> Library</button>
-        <button class="cat" data-cat="grit bin"><span class="ico">❄️</span> Grit bin</button>
-        <button class="cat" data-cat="safe"><span class="ico">🛡️</span> Safe route</button>
+        <button class="cat" data-cat="vote"><span class="ico">🗳️</span> <span class="t">Where I vote</span></button>
+        <button class="cat" data-cat="toilet"><span class="ico">🚻</span> <span class="t">Public toilet</span></button>
+        <button class="cat" data-cat="rest"><span class="ico">🆘</span> <span class="t">Rest centre</span></button>
+        <button class="cat" data-cat="library"><span class="ico">📚</span> <span class="t">Library</span></button>
+        <button class="cat" data-cat="grit"><span class="ico">❄️</span> <span class="t">Grit bin</span></button>
+        <button class="cat" data-cat="safe"><span class="ico">🛡️</span> <span class="t">Safe route</span></button>
       </div>
     </div>
 
-    <div class="sec">
-      <div class="lbl">Or just ask</div>
+    <div class="sec"><div class="lbl" id="lblAsk">Or just ask</div>
       <div class="ask">
         <button class="mic" id="mic" title="Tap and speak" aria-label="Tap and speak">🎙️</button>
         <div class="col">
@@ -151,13 +131,10 @@
       </div>
     </div>
 
-    <!-- HERO: the answer, announced to screen readers -->
-    <div class="answer" id="answer" role="status" aria-live="assertive"></div>
+    <div class="answer" id="answer" role="status" aria-live="assertive" dir="auto"></div>
 
-    <details>
-      <summary>Conversation</summary>
-      <div id="transcript"></div>
-    </details>
+    <details><summary id="sumSaved">Saved places</summary><div id="savedlist"></div></details>
+    <details><summary>Conversation</summary><div id="transcript"></div></details>
 
     <div class="lbl" style="padding:0 18px">Try a sample (works offline)</div>
     <div class="samples">
@@ -167,25 +144,27 @@
       <button onclick="sample('safety')">🛡️ Safe route</button>
       <button onclick="clearAll()">Clear</button>
     </div>
-
-    <div class="set">
-      <details><summary>Settings</summary>
-        <div style="margin-top:6px">bridge <input id="bridge" value="http://127.0.0.1:8091" size="22"></div>
-      </details>
-    </div>
+    <div class="set"><details><summary>Settings</summary><div style="margin-top:6px">bridge <input id="bridge" value="http://127.0.0.1:8091" size="22"></div></details></div>
   </section>
 
-  <!-- RIGHT: map is supporting, simplified, revealed on result -->
   <section class="right" aria-label="Map">
-    <div class="mapbtns">
-      <button id="viewMap" aria-pressed="true">🗺️ Map</button>
-      <button id="viewList" aria-pressed="false">📋 List</button>
-    </div>
+    <div class="mapbtns"><button id="viewMap" aria-pressed="true">🗺️ Map</button><button id="viewList" aria-pressed="false">📋 List</button></div>
     <div id="map"></div>
     <div class="placeholder" id="ph">Set where you are, then tap what you need - the map fills in here.</div>
     <div id="listview" aria-live="polite"></div>
     <div class="legend" id="legend" hidden></div>
   </section>
+</div>
+
+<!-- Big Simple mode: one giant button + spoken answer, nothing else -->
+<div id="simple" aria-label="Big simple mode">
+  <div class="tap" id="simpleTap">Tap the button and speak</div>
+  <button class="bigmic" id="simpleMic" aria-label="Tap and speak">🎙️</button>
+  <div class="ans" id="simpleAns" aria-live="assertive" dir="auto"></div>
+  <div class="row">
+    <button id="simpleAgain">🔊 Hear again</button>
+    <button id="simpleExit">✕ Exit big mode</button>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -195,8 +174,45 @@ const bridgeUrl=()=>$("#bridge").value.replace(/\/$/,"");
 const COLORS={libraries:"#2b7cff",schools:"#d99800","public-toilets":"#0e9f7e","polling-stations":"#7c3aed","grit-bins":"#64748b",cctv:"#e0245e","reception-centres":"#ea580c",origin:"#0e8f5e"};
 const LABEL={libraries:"Library",schools:"School","public-toilets":"Public toilet","polling-stations":"Polling station","grit-bins":"Grit bin",cctv:"Camera","reception-centres":"Rest centre"};
 const ICON={"polling-stations":"🗳️","public-toilets":"🚻","reception-centres":"🆘",libraries:"📚","grit-bins":"❄️",schools:"🏫",cctv:"🎥"};
+const CATMAP={vote:"polling station",toilet:"toilet",rest:"reception centre",library:"library",grit:"grit bin",safe:"safe"};
 
-/* ---------- accessibility prefs (persisted) ---------- */
+/* ---------- languages + i18n ---------- */
+const LANGS=[
+  {code:"en-GB",en:"English",native:"English"},{code:"el-GR",en:"Greek",native:"Ελληνικά"},
+  {code:"zh-CN",en:"Chinese",native:"中文"},{code:"es-ES",en:"Spanish",native:"Español"},
+  {code:"fr-FR",en:"French",native:"Français"},{code:"pt-PT",en:"Portuguese",native:"Português"},
+  {code:"it-IT",en:"Italian",native:"Italiano"},{code:"pl-PL",en:"Polish",native:"Polski"},
+  {code:"ro-RO",en:"Romanian",native:"Română"},{code:"ar-SA",en:"Arabic",native:"العربية"},
+  {code:"ur-PK",en:"Urdu",native:"اردو"},{code:"bn-BD",en:"Bengali",native:"বাংলা"},{code:"tr-TR",en:"Turkish",native:"Türkçe"}
+];
+const I18N={
+  en:{where:"📍 Where are you?",place:"Type a place or postcode - e.g. Brixton",need:"What do you need?",ask:"Or just ask",askph:"Ask anything - or tap the mic and speak",send:"Ask",hear:"🔊 Hear again",dir:"🧭 Directions",call:"📞 Call",save:"⭐ Save",map:"🗺️ Show on map",tap:"Tap the button and speak",saved:"Saved places",cats:{vote:"Where I vote",toilet:"Public toilet",rest:"Rest centre",library:"Library",grit:"Grit bin",safe:"Safe route"}},
+  el:{where:"📍 Πού βρίσκεστε;",place:"Γράψτε τοποθεσία ή ταχ. κώδικα - π.χ. Brixton",need:"Τι χρειάζεστε;",ask:"Ή απλώς ρωτήστε",askph:"Ρωτήστε - ή πατήστε το μικρόφωνο",send:"Ρώτα",hear:"🔊 Επανάληψη",dir:"🧭 Οδηγίες",call:"📞 Κλήση",save:"⭐ Αποθήκευση",map:"🗺️ Στον χάρτη",tap:"Πατήστε το κουμπί και μιλήστε",saved:"Αποθηκευμένα",cats:{vote:"Πού ψηφίζω",toilet:"Δημόσια τουαλέτα",rest:"Κέντρο φιλοξενίας",library:"Βιβλιοθήκη",grit:"Αλάτι για πάγο",safe:"Ασφαλής διαδρομή"}},
+  zh:{where:"📍 您在哪里？",place:"输入地点或邮编 - 例如 Brixton",need:"您需要什么？",ask:"或直接提问",askph:"提问 - 或点击麦克风说话",send:"提问",hear:"🔊 再听一次",dir:"🧭 路线",call:"📞 拨打",save:"⭐ 收藏",map:"🗺️ 在地图上",tap:"点击按钮并说话",saved:"已收藏",cats:{vote:"我在哪投票",toilet:"公共厕所",rest:"临时安置点",library:"图书馆",grit:"融雪盐箱",safe:"安全路线"}},
+  es:{where:"📍 ¿Dónde estás?",place:"Escribe un lugar o código postal",need:"¿Qué necesitas?",ask:"O pregunta",askph:"Pregunta - o usa el micrófono",send:"Preguntar",hear:"🔊 Escuchar otra vez",dir:"🧭 Indicaciones",call:"📞 Llamar",save:"⭐ Guardar",map:"🗺️ En el mapa",tap:"Pulsa el botón y habla",saved:"Guardados",cats:{vote:"Dónde voto",toilet:"Aseo público",rest:"Centro de acogida",library:"Biblioteca",grit:"Sal para hielo",safe:"Ruta segura"}},
+  fr:{where:"📍 Où êtes-vous ?",place:"Saisissez un lieu ou code postal",need:"De quoi avez-vous besoin ?",ask:"Ou demandez",askph:"Demandez - ou utilisez le micro",send:"Demander",hear:"🔊 Réécouter",dir:"🧭 Itinéraire",call:"📞 Appeler",save:"⭐ Enregistrer",map:"🗺️ Sur la carte",tap:"Appuyez et parlez",saved:"Enregistrés",cats:{vote:"Où je vote",toilet:"Toilettes publiques",rest:"Centre d'accueil",library:"Bibliothèque",grit:"Bac à sel",safe:"Itinéraire sûr"}},
+  pt:{where:"📍 Onde está?",place:"Escreva um local ou código postal",need:"Do que precisa?",ask:"Ou pergunte",askph:"Pergunte - ou use o micro",send:"Perguntar",hear:"🔊 Ouvir de novo",dir:"🧭 Indicações",call:"📞 Ligar",save:"⭐ Guardar",map:"🗺️ No mapa",tap:"Toque no botão e fale",saved:"Guardados",cats:{vote:"Onde voto",toilet:"Casa de banho",rest:"Centro de acolhimento",library:"Biblioteca",grit:"Caixa de sal",safe:"Rota segura"}},
+  it:{where:"📍 Dove sei?",place:"Inserisci un luogo o CAP",need:"Di cosa hai bisogno?",ask:"Oppure chiedi",askph:"Chiedi - o usa il microfono",send:"Chiedi",hear:"🔊 Riascolta",dir:"🧭 Indicazioni",call:"📞 Chiama",save:"⭐ Salva",map:"🗺️ Sulla mappa",tap:"Tocca il pulsante e parla",saved:"Salvati",cats:{vote:"Dove voto",toilet:"Bagno pubblico",rest:"Centro di accoglienza",library:"Biblioteca",grit:"Sale antighiaccio",safe:"Percorso sicuro"}},
+  pl:{where:"📍 Gdzie jesteś?",place:"Wpisz miejsce lub kod pocztowy",need:"Czego potrzebujesz?",ask:"Albo zapytaj",askph:"Zapytaj - lub użyj mikrofonu",send:"Zapytaj",hear:"🔊 Odtwórz ponownie",dir:"🧭 Trasa",call:"📞 Zadzwoń",save:"⭐ Zapisz",map:"🗺️ Na mapie",tap:"Naciśnij przycisk i mów",saved:"Zapisane",cats:{vote:"Gdzie głosuję",toilet:"Toaleta publiczna",rest:"Punkt pomocy",library:"Biblioteka",grit:"Pojemnik z solą",safe:"Bezpieczna trasa"}}
+};
+let LANG=LANGS[0];
+function t(){return I18N[LANG.code.split("-")[0]]||I18N.en;}
+function applyI18n(){
+  const x=t();
+  $("#lblWhere").textContent=x.where;$("#lblNeed").textContent=x.need;$("#lblAsk").textContent=x.ask;
+  $("#place").placeholder=x.place;$("#q").placeholder=x.askph;$("#send").textContent=x.send;
+  $("#sumSaved").textContent=x.saved;$("#simpleTap").textContent=x.tap;
+  document.querySelectorAll(".cat").forEach(b=>b.querySelector(".t").textContent=x.cats[b.dataset.cat]);
+  document.documentElement.lang=LANG.code.split("-")[0];
+}
+(function initLang(){
+  const sel=$("#lang");sel.innerHTML=LANGS.map(l=>`<option value="${l.code}">${l.native}</option>`).join("");
+  const saved=localStorage.cb_lang;if(saved){const f=LANGS.find(l=>l.code===saved);if(f)LANG=f;}
+  sel.value=LANG.code;applyI18n();
+  sel.onchange=()=>{LANG=LANGS.find(l=>l.code===sel.value)||LANGS[0];localStorage.cb_lang=LANG.code;applyI18n();};
+})();
+
+/* ---------- accessibility prefs ---------- */
 let fs=parseFloat(localStorage.cb_fs||"1");
 function applyFs(){document.documentElement.style.setProperty("--fs",fs);localStorage.cb_fs=fs;}
 applyFs();
@@ -206,119 +222,132 @@ if(localStorage.cb_theme==="dark")document.body.classList.add("dark");
 $("#theme").onclick=()=>{document.body.classList.toggle("dark");localStorage.cb_theme=document.body.classList.contains("dark")?"dark":"";};
 if(localStorage.cb_hc==="1")document.body.classList.add("hc");
 $("#hc").onclick=()=>{document.body.classList.toggle("hc");localStorage.cb_hc=document.body.classList.contains("hc")?"1":"";};
-let muted=localStorage.cb_mute==="1";
-function syncMute(){$("#mute").textContent=muted?"🔇":"🔊";$("#mute").setAttribute("aria-pressed",String(muted));}
+let muted=localStorage.cb_mute==="1";function syncMute(){$("#mute").textContent=muted?"🔇":"🔊";$("#mute").setAttribute("aria-pressed",String(muted));}
 $("#mute").onclick=()=>{muted=!muted;localStorage.cb_mute=muted?"1":"";syncMute();};syncMute();
 
-/* ---------- map (light, decluttered) ---------- */
+/* ---------- map ---------- */
 const map=L.map("map",{zoomControl:true}).setView([51.5074,-0.1278],11);
-L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-  {maxZoom:19,subdomains:"abcd",attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{maxZoom:19,subdomains:"abcd",attribution:"&copy; OpenStreetMap &copy; CARTO"}).addTo(map);
 let layer=L.layerGroup().addTo(map);
 function clearMap(){layer.clearLayers();$("#legend").hidden=true;$("#legend").innerHTML="";}
-function pin(lat,lon,c,big){return L.circleMarker([lat,lon],{radius:big?12:8,color:"#fff",weight:2,fillColor:c,fillOpacity:1});}
+function dot(lat,lon,c,big){return L.circleMarker([lat,lon],{radius:big?12:8,color:"#fff",weight:2,fillColor:c,fillOpacity:1});}
 function walkMin(m){return Math.max(1,Math.round(m/80));}
-
 function showOnMap(origin,results,safety){
-  clearMap();$("#ph").style.display="none";
-  const pts=[];const types=new Set();
-  if(origin){pin(origin.lat,origin.lon,COLORS.origin,true).addTo(layer).bindPopup("<b>You are here</b>");pts.push([origin.lat,origin.lon]);}
+  clearMap();$("#ph").style.display="none";const pts=[],types=new Set();
+  if(origin){dot(origin.lat,origin.lon,COLORS.origin,true).addTo(layer).bindPopup("<b>You are here</b>");pts.push([origin.lat,origin.lon]);}
   (results||[]).forEach((r,i)=>{if(typeof r.lat!=="number")return;types.add(r.facility);pts.push([r.lat,r.lon]);
     const d=r.distance_m!=null?`<br>${walkMin(r.distance_m)} min walk (${r.distance_m} m)`:"";
-    pin(r.lat,r.lon,COLORS[r.facility]||"#888",i===0).addTo(layer).bindPopup(`<b>${ICON[r.facility]||""} ${r.name}</b>${r.address?"<br>"+r.address:""}${d}`);
-  });
+    dot(r.lat,r.lon,COLORS[r.facility]||"#888",i===0).addTo(layer).bindPopup(`<b>${ICON[r.facility]||""} ${r.name}</b>${r.address?"<br>"+r.address:""}${d}`);});
   if(origin&&results&&results[0])L.polyline([[origin.lat,origin.lon],[results[0].lat,results[0].lon]],{color:COLORS.origin,weight:5,opacity:.8}).addTo(layer);
-  if(safety&&origin){L.circle([origin.lat,origin.lon],{radius:safety.query?.radiusM||400,color:COLORS.cctv,weight:1,fillColor:COLORS.cctv,fillOpacity:.06}).addTo(layer);
-    (safety.nearest_cameras||[]).forEach(c=>pin(c.lat,c.lon,COLORS.cctv,false).addTo(layer));}
+  if(safety&&origin){L.circle([origin.lat,origin.lon],{radius:safety.query?.radiusM||400,color:COLORS.cctv,weight:1,fillColor:COLORS.cctv,fillOpacity:.06}).addTo(layer);(safety.nearest_cameras||[]).forEach(c=>dot(c.lat,c.lon,COLORS.cctv,false).addTo(layer));}
   if(pts.length)map.fitBounds(L.latLngBounds(pts).pad(0.35),{maxZoom:16});
-  if(types.size){$("#legend").hidden=false;$("#legend").innerHTML=[...types].map(t=>`<div><i style="background:${COLORS[t]}"></i>${LABEL[t]||t}</div>`).join("");}
-  renderList(origin,results,safety);
+  if(types.size){$("#legend").hidden=false;$("#legend").innerHTML=[...types].map(x=>`<div><i style="background:${COLORS[x]}"></i>${LABEL[x]||x}</div>`).join("");}
+  renderList(results,safety);
 }
-function renderList(origin,results,safety){
-  let h="";
-  (results||[]).forEach(r=>{h+=`<div class="lcard"><div class="big">${ICON[r.facility]||""} ${r.name}</div>
-    <div style="color:var(--muted)">${LABEL[r.facility]||r.facility}${r.borough?" · "+r.borough:""}</div>
-    ${r.address?`<div>${r.address}</div>`:""}${r.distance_m!=null?`<div><b>${walkMin(r.distance_m)} min walk</b> (${r.distance_m} m)</div>`:""}
-    ${badgesHtml(r)}</div>`;});
+function renderList(results,safety){
+  let h="";(results||[]).forEach(r=>{h+=`<div class="lcard"><div class="big">${ICON[r.facility]||""} ${r.name}</div><div style="color:var(--muted)">${LABEL[r.facility]||r.facility}${r.borough?" · "+r.borough:""}</div>${r.address?`<div>${r.address}</div>`:""}${r.distance_m!=null?`<div><b>${walkMin(r.distance_m)} min walk</b> (${r.distance_m} m)</div>`:""}${badgesHtml(r)}</div>`;});
   if(safety)h+=`<div class="lcard"><div class="big">🛡️ ${safety.cctv_count} cameras on busy, monitored streets nearby</div><div style="color:var(--muted)">Stick to the main, well-lit roads. (Traffic/town cameras - not crime surveillance.)</div></div>`;
   $("#listview").innerHTML=h||'<div class="placeholder">No results yet.</div>';
 }
-
-/* ---------- accessibility badges from a result's extra fields ---------- */
-function badgesHtml(r){
-  const b=[];const e=Object.entries(r.extra||{}).map(([k,v])=>`${k} ${v}`.toLowerCase()).join(" ");
+function phoneOf(r){const v=Object.values(r.extra||{}).join(" ");const m=v.match(/\+?\d[\d ()-]{6,}\d/);return m?m[0].trim():null;}
+function badgesHtml(r){const b=[];const e=Object.entries(r.extra||{}).map(([k,v])=>`${k} ${v}`.toLowerCase()).join(" ");
   if(/accessib|disabled|step.?free|wheelchair/.test(e))b.push('<span class="badge ok">♿ Step-free</span>');
   if(/baby/.test(e))b.push('<span class="badge">🚼 Baby change</span>');
-  const hrs=Object.entries(r.extra||{}).find(([k])=>/open|hour/i.test(k));
-  if(hrs)b.push(`<span class="badge">🕐 ${hrs[1]}</span>`);
-  if(r.distance_m!=null)b.push(`<span class="badge">🚶 ${walkMin(r.distance_m)} min</span>`);
-  return b.length?`<div class="badges">${b.join("")}</div>`:"";
-}
+  const hrs=Object.entries(r.extra||{}).find(([k])=>/open|hour/i.test(k));if(hrs)b.push(`<span class="badge">🕐 ${hrs[1]}</span>`);
+  if(r.distance_m!=null)b.push(`<span class="badge">🚶 ${walkMin(r.distance_m)} min</span>`);return b.length?`<div class="badges">${b.join("")}</div>`:"";}
 
-/* ---------- the answer card (hero) ---------- */
-function showAnswer(result,prose){
-  const a=$("#answer");
+/* ---------- answer card ---------- */
+let lastResult=null,lastOrigin=null,lastSpoken="";
+function showAnswer(result,prose,origin){
+  lastResult=result;lastOrigin=origin||lastOrigin;lastSpoken=prose||(result?result.name:"");
+  const x=t();const a=$("#answer");
   if(result){
-    a.innerHTML=`<div class="top"><span class="ico">${ICON[result.facility]||"📍"}</span>
-      <div><div class="big">${result.name}</div>
+    const ph=phoneOf(result);
+    a.innerHTML=`<div class="top"><span class="ico">${ICON[result.facility]||"📍"}</span><div><div class="big">${result.name}</div>
       <div class="meta">${LABEL[result.facility]||result.facility}${result.distance_m!=null?` · ${walkMin(result.distance_m)} min walk`:""}${result.address?` · ${result.address}`:""}</div></div></div>
-      ${badgesHtml(result)}
-      ${prose?`<div class="say">${prose}</div>`:""}
-      <div class="acts"><button id="again">🔊 Hear again</button>
-        <button class="ghost" onclick="map.flyTo([${result.lat},${result.lon}],16)">🗺️ Show on map</button></div>`;
-  }else{
-    a.innerHTML=`<div class="say">${prose||""}</div><div class="acts"><button id="again">🔊 Hear again</button></div>`;
-  }
+      ${badgesHtml(result)}${prose?`<div class="say">${prose}</div>`:""}
+      <div class="steps" id="steps"></div>
+      <div class="acts">
+        <button id="again">${x.hear}</button>
+        <button id="dirBtn">${x.dir}</button>
+        ${ph?`<a href="tel:${ph.replace(/[^\d+]/g,"")}">${x.call}</a>`:""}
+        <button id="saveBtn">${x.save}</button>
+        <button class="ghost" onclick="map.flyTo([${result.lat},${result.lon}],16)">${x.map}</button>
+      </div>`;
+  }else{a.innerHTML=`<div class="say">${prose||""}</div><div class="acts"><button id="again">${x.hear}</button></div>`;}
   a.classList.add("show");
-  const ag=$("#again");if(ag)ag.onclick=()=>speak(prose||(result&&result.name)||"");
+  if($("#again"))$("#again").onclick=()=>speak(lastSpoken);
+  if($("#dirBtn"))$("#dirBtn").onclick=directions;
+  if($("#saveBtn"))$("#saveBtn").onclick=()=>savePlace(result);
+  if(simpleMode){$("#simpleAns").textContent=prose||(result?result.name:"");}
 }
 
-/* ---------- bridge calls ---------- */
+/* ---------- bridge ---------- */
 async function api(path,b){const r=await fetch(bridgeUrl()+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});return r.json();}
-async function speak(text){if(muted||!text)return;try{const r=await fetch(bridgeUrl()+"/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:text.slice(0,700)})});if(r.ok){new Audio(URL.createObjectURL(await r.blob())).play();}}catch(e){}}
-function trans(who,t){const el=$("#transcript");el.innerHTML+=`<div class="msg"><span class="who">${who}</span><span class="b">${(t||"").replace(/</g,"&lt;")}</span></div>`;el.scrollTop=el.scrollHeight;}
+async function speak(text){if(muted||!text)return;try{const r=await fetch(bridgeUrl()+"/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:text.slice(0,700)})});if(r.ok)new Audio(URL.createObjectURL(await r.blob())).play();}catch(e){}}
+function trans(who,tx){const el=$("#transcript");el.innerHTML+=`<div class="msg"><span class="who">${who}</span><span class="b" dir="auto">${(tx||"").replace(/</g,"&lt;")}</span></div>`;el.scrollTop=el.scrollHeight;}
 
-const CATMAP={"polling station":"polling station","public toilet":"toilet","reception centre":"reception centre",library:"library","grit bin":"grit bin",safe:"safe"};
+async function directions(){
+  if(!lastResult||!lastOrigin)return;
+  const st=$("#steps");if(st)st.innerHTML="…";
+  let r;try{r=await api("/route",{fromLat:lastOrigin.lat,fromLon:lastOrigin.lon,toLat:lastResult.lat,toLon:lastResult.lon});}catch(e){r={steps:[]};}
+  if(r&&r.steps&&r.steps.length){
+    if(st)st.innerHTML="<b>Walking directions</b><ol class='steps'>"+r.steps.map(s=>`<li>${s.instruction}${s.distanceM?` (${s.distanceM} m)`:""}</li>`).join("")+"</ol>";
+    const mins=r.durationS?Math.round(r.durationS/60):walkMin(lastResult.distance_m);
+    speak(`About ${mins} minutes on foot. ${r.steps.slice(0,3).map(s=>s.instruction).join(", then ")}.`);
+  }else{ // fallback: bearing + distance (fully on-device)
+    const brg=bearing(lastOrigin,lastResult);const mins=walkMin(lastResult.distance_m);
+    if(st)st.innerHTML=`<b>Roughly ${brg}, about ${mins} min walk.</b>`;
+    speak(`It's roughly ${brg}, about ${mins} minutes' walk.`);
+  }
+}
+function bearing(a,b){const d=Math.atan2(b.lon-a.lon,b.lat-a.lat)*180/Math.PI;const dirs=["north","north-east","east","south-east","south","south-west","west","north-west"];return dirs[Math.round(((d+360)%360)/45)%8];}
 
+/* ---------- saved places ---------- */
+function getSaved(){try{return JSON.parse(localStorage.cb_saved||"[]")}catch(e){return[]}}
+function savePlace(r){if(!r)return;const s=getSaved();if(!s.find(p=>p.name===r.name)){s.unshift({name:r.name,facility:r.facility,lat:r.lat,lon:r.lon,address:r.address||""});localStorage.cb_saved=JSON.stringify(s.slice(0,20));}renderSaved();}
+function renderSaved(){const s=getSaved();$("#savedlist").innerHTML=s.length?s.map((p,i)=>`<div class="saved"><span>${ICON[p.facility]||"📍"} ${p.name}</span><span><button onclick="recall(${i})">Show</button> <button onclick="unsave(${i})">✕</button></span></div>`).join(""):"<div style='color:var(--muted);padding:6px 0'>None yet - tap ⭐ on an answer.</div>";}
+function recall(i){const p=getSaved()[i];if(!p)return;showOnMap(lastOrigin,[{...p,distance_m:null,extra:{}}]);showAnswer({...p,distance_m:null,extra:{}},p.name,lastOrigin);}
+function unsave(i){const s=getSaved();s.splice(i,1);localStorage.cb_saved=JSON.stringify(s);renderSaved();}
+renderSaved();
+
+/* ---------- core flow ---------- */
 async function run(message,category){
-  trans("You",message);
-  let origin=null,results=[],safety=null;
-  try{
-    const place=$("#place").value.trim();
-    const g=await api("/geocode",{query:place||message});
+  trans("You",message);let origin=null,results=[],safety=null;
+  try{const place=$("#place").value.trim();const g=await api("/geocode",{query:place||message});
     if(typeof g.lat==="number"){origin=g;
       if(category==="safe"){safety=await api("/safety",{lat:g.lat,lon:g.lon,radiusM:500});}
       else{const near=await api("/nearest",{lat:g.lat,lon:g.lon,category:CATMAP[category]||category||undefined,limit:5});results=near.results||[];}
-      showOnMap(origin,results,safety);
-    }
+      showOnMap(origin,results,safety);}
   }catch(e){}
-  // conversational reply from the live agent
-  let reply="";
-  try{const a=await api("/ask",{message,session:"codeborough-ui"});reply=a.reply||a.error||"";}
+  let reply="";try{const a=await api("/ask",{message,session:"codeborough-ui",lang:LANG.en});reply=a.reply||a.error||"";}
   catch(e){reply="(bridge offline - start ui/bridge.mjs on :8091)";}
   trans("Codeborough",reply);
-  showAnswer(results[0]||null, reply || (results[0]?`${results[0].name}, ${walkMin(results[0].distance_m)} minutes' walk.`:""));
-  speak(reply || (results[0]?`The nearest is ${results[0].name}, about ${walkMin(results[0].distance_m)} minutes' walk.`:""));
+  showAnswer(results[0]||null, reply || (results[0]?`${results[0].name}, ${walkMin(results[0].distance_m)} min walk.`:""), origin);
+  speak(reply || (results[0]?`The nearest is ${results[0].name}.`:""));
 }
-
-/* ---------- inputs ---------- */
 function ask(){const m=$("#q").value.trim();if(!m)return;$("#q").value="";run(m,null);}
 $("#send").onclick=ask;$("#q").addEventListener("keydown",e=>{if(e.key==="Enter")ask();});
 $("#place").addEventListener("keydown",e=>{if(e.key==="Enter")$("#q").focus();});
-document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{
-  const cat=b.dataset.cat;const place=$("#place").value.trim();
-  if(!place){$("#place").focus();$("#place").placeholder="Tell me where you are first ↑";return;}
-  const phrase=cat==="safe"?`Is it a safe, well-lit route around ${place}?`:`Where is the nearest ${cat} to ${place}?`;
-  run(phrase,cat);
-});
+document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{const cat=b.dataset.cat;const place=$("#place").value.trim();
+  if(!place){$("#place").focus();return;}
+  const human={vote:"polling station",toilet:"public toilet",rest:"emergency rest centre",library:"library",grit:"grit bin"}[cat]||cat;
+  run(cat==="safe"?`Is it a safe, well-lit route around ${place}?`:`Where is the nearest ${human} to ${place}?`,cat);});
 
-/* ---------- mic ---------- */
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const micBtn=$("#mic");
-if(SR){const rec=new SR();rec.lang="en-GB";rec.interimResults=false;
-  micBtn.onclick=()=>{micBtn.classList.add("on");try{rec.start();}catch(e){}};
-  rec.onresult=e=>{micBtn.classList.remove("on");$("#q").value=e.results[0][0].transcript;ask();};
-  rec.onend=()=>micBtn.classList.remove("on");rec.onerror=()=>micBtn.classList.remove("on");
-}else micBtn.onclick=()=>trans("System","Mic needs Chrome - please type. (Replies still speak aloud.)");
+/* ---------- mic (STT in chosen language) ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null;
+if(SR){rec=new SR();rec.interimResults=false;
+  rec.onresult=e=>{const tx=e.results[0][0].transcript;$("#q").value=tx;micOff();ask();};
+  rec.onend=micOff;rec.onerror=micOff;}
+function micOn(){$("#mic").classList.add("on");$("#simpleMic").classList.add("on");if(rec){rec.lang=LANG.code;try{rec.start();}catch(e){}}else trans("System","Mic needs Chrome - please type.");}
+function micOff(){$("#mic").classList.remove("on");$("#simpleMic").classList.remove("on");}
+$("#mic").onclick=micOn;$("#simpleMic").onclick=micOn;
+
+/* ---------- Big Simple mode ---------- */
+let simpleMode=false;
+$("#simpleOn").onclick=()=>{simpleMode=true;$("#simple").classList.add("show");$("#simpleAns").textContent=lastSpoken||"";};
+$("#simpleExit").onclick=()=>{simpleMode=false;$("#simple").classList.remove("show");};
+$("#simpleAgain").onclick=()=>speak(lastSpoken);
 
 /* ---------- map/list toggle ---------- */
 $("#viewMap").onclick=()=>{$("#listview").classList.remove("show");$("#viewMap").setAttribute("aria-pressed","true");$("#viewList").setAttribute("aria-pressed","false");map.invalidateSize();};
@@ -328,16 +357,15 @@ $("#viewList").onclick=()=>{$("#listview").classList.add("show");$("#viewMap").s
 const S={brixton:{query:"Brixton",lat:51.4626,lon:-0.1145},
  polling:{name:"Brixton Library (Brixton Oval)",facility:"polling-stations",borough:"lambeth",address:"Brixton Oval, SW2 1JQ",lat:51.4611,lon:-0.1147,distance_m:140,extra:{access:"step-free entrance"}},
  toilet:{name:"Windrush Square",facility:"public-toilets",borough:"lambeth",address:"Windrush Square, SW2",lat:51.4632,lon:-0.1107,distance_m:300,extra:{AccessibleCategory:"Accessible",BabyChange:"Yes",OpeningHours:"08:00-20:00"}},
- rest:{name:"Lambeth Rest Centre (sample)",facility:"reception-centres",borough:"lambeth",address:"Brixton, SW2",lat:51.459,lon:-0.117,distance_m:520},
+ rest:{name:"Lambeth Rest Centre (sample)",facility:"reception-centres",borough:"lambeth",address:"Brixton, SW2",lat:51.459,lon:-0.117,distance_m:520,extra:{reception_telephone_number:"020 7926 1000"}},
  cams:[{name:"Electric Ave",facility:"cctv",lat:51.4622,lon:-0.1141,distance_m:60},{name:"Atlantic Rd",facility:"cctv",lat:51.4629,lon:-0.1139,distance_m:70}]};
-function sample(k){
-  $("#place").value="Brixton";
-  if(k==="polling"){showOnMap(S.brixton,[S.polling]);showAnswer(S.polling,"Your nearest polling station is Brixton Library on Brixton Oval - step-free, about a 2 minute walk.");speak("Your nearest polling station is Brixton Library, step-free, about a 2 minute walk.");}
-  if(k==="toilets"){showOnMap(S.brixton,[S.toilet]);showAnswer(S.toilet,"The nearest accessible public toilet is Windrush Square - step-free with baby-change, about a 4 minute walk.");speak("The nearest accessible public toilet is Windrush Square, step-free with baby change.");}
-  if(k==="rest"){showOnMap(S.brixton,[S.rest]);showAnswer(S.rest,"The nearest emergency rest centre is in Brixton, about a 7 minute walk.");speak("The nearest rest centre is in Brixton, about a 7 minute walk.");}
-  if(k==="safety"){const sa={query:{radiusM:500},cctv_count:41,nearest_cameras:S.cams};showOnMap(S.brixton,[],sa);showAnswer(null,"There are 41 cameras on the busy, monitored main roads near Brixton - keep to those well-lit streets.");speak("There are 41 cameras on the busy monitored roads near Brixton. Keep to the well-lit main streets.");}
+function sample(k){$("#place").value="Brixton";
+  if(k==="polling"){showOnMap(S.brixton,[S.polling]);showAnswer(S.polling,"Your nearest polling station is Brixton Library on Brixton Oval - step-free, about a 2 minute walk.",S.brixton);speak("Your nearest polling station is Brixton Library, step-free, about a 2 minute walk.");}
+  if(k==="toilets"){showOnMap(S.brixton,[S.toilet]);showAnswer(S.toilet,"The nearest accessible public toilet is Windrush Square - step-free with baby-change.",S.brixton);speak("The nearest accessible public toilet is Windrush Square, step-free with baby change.");}
+  if(k==="rest"){showOnMap(S.brixton,[S.rest]);showAnswer(S.rest,"The nearest emergency rest centre is in Brixton, about a 7 minute walk.",S.brixton);speak("The nearest rest centre is in Brixton, about a 7 minute walk.");}
+  if(k==="safety"){const sa={query:{radiusM:500},cctv_count:41,nearest_cameras:S.cams};showOnMap(S.brixton,[],sa);showAnswer(null,"There are 41 cameras on the busy, monitored main roads near Brixton - keep to those well-lit streets.",S.brixton);speak("There are 41 cameras on the busy monitored roads near Brixton.");}
 }
-function clearAll(){clearMap();$("#answer").classList.remove("show");$("#transcript").innerHTML="";$("#ph").style.display="";$("#listview").innerHTML="";}
+function clearAll(){clearMap();$("#answer").classList.remove("show");$("#transcript").innerHTML="";$("#ph").style.display="";$("#listview").innerHTML="";lastResult=null;}
 </script>
 </body>
 </html>

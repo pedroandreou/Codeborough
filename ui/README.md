@@ -13,6 +13,16 @@ all-London map. Built for accessibility and one-tap use.
 - **Accessibility controls** (persisted): text size **A-/A+**, **dark** + **high-contrast** themes, **mute**.
 - **Clean, focused map** (light CARTO tiles) that zooms to your result with a clear "you → there" line -
   plus a **List view** so you never *need* the map.
+- **Multilingual** (13 languages incl. **English, Ελληνικά, 中文**, Español, Français, Português,
+  Italiano, Polski, …): ask + hear the answer in your language. Nemotron replies in the chosen
+  language; ElevenLabs `eleven_multilingual_v2` speaks it; mic STT switches locale; UI labels
+  translate for the major ones.
+- **Big Simple mode**: one giant mic + the spoken answer in huge text, nothing else - for the least
+  tech-confident / visually impaired.
+- **Walking directions** (🧭): real step-by-step via the bridge's `/route` (OSRM foot), spoken aloud;
+  falls back to bearing+distance if offline.
+- **Call & Save** on the answer card: **📞 Call** (when the dataset has a phone) and **⭐ Save** to a
+  local "Saved places" list.
 
 ## Run
 On the box, start the bridge (connects the UI to the agent + ElevenLabs voice):

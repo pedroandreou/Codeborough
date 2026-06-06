@@ -61,9 +61,13 @@ function cleanReply(out) {
     .trim();
 }
 
-function runAgent(message, session = "codeborough-ui") {
+function runAgent(message, session = "codeborough-ui", lang) {
+  // Ask the agent to answer in the user's language (place names/addresses stay as-is).
+  const msg = lang && !/^english$/i.test(lang)
+    ? `${message}\n\n(Reply in ${lang}. Keep place names, addresses and postcodes unchanged.)`
+    : message;
   return new Promise((resolve) => {
-    const args = ["agent", "--agent", "main", "--session-id", session, "--message", message];
+    const args = ["agent", "--agent", "main", "--session-id", session, "--message", msg];
     const p = spawn(OC, args, { env: process.env });
     let out = "";
     p.stdout.on("data", (c) => (out += c));
@@ -84,6 +88,25 @@ async function tts(text) {
   return Buffer.from(await r.arrayBuffer());
 }
 
+// Real walking directions via a public OSRM foot-routing server (network call; degrades gracefully).
+async function route({ fromLat, fromLon, toLat, toLon }) {
+  const u = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${fromLon},${fromLat};${toLon},${toLat}?overview=false&steps=true`;
+  const r = await fetch(u, { headers: { "User-Agent": "Codeborough/1.0 (hackathon)" } });
+  if (!r.ok) throw new Error("OSRM " + r.status);
+  const j = await r.json();
+  const rt = j.routes && j.routes[0];
+  if (!rt) return { steps: [] };
+  const VERB = { depart: "Head", turn: "Turn", continue: "Continue", "new name": "Continue", arrive: "Arrive", roundabout: "Take the roundabout", rotary: "Take the roundabout", merge: "Merge", fork: "Keep", "end of road": "Turn" };
+  const steps = (rt.legs?.[0]?.steps || []).map((s) => {
+    const m = s.maneuver || {};
+    const verb = VERB[m.type] || "Continue";
+    const dir = m.modifier ? " " + m.modifier : "";
+    const on = s.name ? " on " + s.name : "";
+    return { instruction: m.type === "arrive" ? "Arrive at your destination" : `${verb}${dir}${on}`, distanceM: Math.round(s.distance) };
+  });
+  return { distanceM: Math.round(rt.distance), durationS: Math.round(rt.duration), steps };
+}
+
 createServer(async (req, res) => {
   if (req.method === "OPTIONS") { res.writeHead(204, CORS); return res.end(); }
   const url = req.url || "/";
@@ -91,7 +114,8 @@ createServer(async (req, res) => {
     if (req.method === "GET" && url === "/health") return json(res, { ok: true, voice: !!EL_KEY });
     if (req.method !== "POST") return json(res, { error: "POST only" }, 405);
     const b = await body(req);
-    if (url === "/ask") return json(res, { reply: await runAgent(b.message, b.session) });
+    if (url === "/ask") return json(res, { reply: await runAgent(b.message, b.session, b.lang) });
+    if (url === "/route") return json(res, await route(b).catch((e) => ({ error: String(e.message || e), steps: [] })));
     if (url === "/geocode") return json(res, geocode(b.query));
     if (url === "/nearest")
       return json(res, findNearest({ lat: b.lat, lon: b.lon, category: b.category, limit: b.limit ?? 3, radiusKm: b.radiusKm }));
