@@ -42,12 +42,21 @@ const body = (req) =>
 // Strip OpenClaw's banners/warnings/box-drawing from `openclaw agent` stdout,
 // leaving just the assistant's reply text.
 function cleanReply(out) {
+  const ansi = /\x1b\[[0-9;?]*[ -\/]*[@-~]/g;
   const noise =
-    /^(Config \(|\[plugins\]|\[gateway\]|EMBEDDED FALLBACK|Gateway target:|Source:|Config:|Bind:|gateway connect failed|Possible causes:|- |Run `openclaw|Stopped systemd|Restarted systemd|🦞|Usage:|Updating|nohup:)/;
+    /^(\[plugins\]|plugins\.allow|Config \(|\[gateway\]|EMBEDDED FALLBACK|Gateway target:|Source:|Config:|Bind:|gateway connect failed|Possible causes:|- |Run `openclaw|Stopped systemd|Restarted systemd|Usage:|Updating|nohup:)/;
   const boxy = /[│◇├╮╯╰┌┐└┘▄▀█░▕▏▁]/;
   return out
+    .replace(ansi, "")
+    .replace(/\uFFFD\[[0-9;?]*[ -\/]*[@-~]/g, "")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
     .split("\n")
-    .filter((l) => l.trim() && !noise.test(l.trim()) && !boxy.test(l))
+    .map((l) => l.trimEnd())
+    .filter((l) => {
+      const t = l.trim();
+      return t && t !== "NO_REPLY" && !noise.test(t) && !boxy.test(t) && !t.startsWith("![") && !t.includes("(embed ref=") && !t.startsWith("<function=") && !t.startsWith("</function>") && !t.startsWith("<parameter=") && !t.startsWith("</parameter>") && !t.startsWith("title=\"") && !t.startsWith("height=\"");
+    })
     .join("\n")
     .trim();
 }
