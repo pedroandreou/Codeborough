@@ -16,7 +16,7 @@ name: codeborough
 services:
   # ---------- BRAIN: Nemotron NVFP4 via vLLM (GPU, internal-only) ----------
   vllm:
-    image: vllm/vllm-openai:v0.11.0          # arm64 manifest confirmed on Docker Hub
+    image: vllm/vllm-openai:v0.22.1          # arm64; has the Nemotron-3 (norm_eps) model code
     gpus: all
     command:
       - --model=${BRAIN_MODEL}

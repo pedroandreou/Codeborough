@@ -8,61 +8,51 @@ needs ElevenLabs voice in *and* out. OpenClaw provides the Talk loop; ElevenLabs
 
 ---
 
-## Status (Sat 6 Jun 2026, morning)
+## Status (Sat 6 Jun 2026)
 
 - **Host:** `nvidia@scan-05` - DGX Spark, **GB10 Grace Blackwell, CUDA 13**, driver 580.159.03, 121 GB unified, 3.5 TB free.
 - **OpenClaw:** installed (`~/.npm-global/bin/openclaw`), gateway already listening on `:18789`.
-- **Model runtime:** none yet - no Ollama / vLLM / NIM serving (checked `:8000 :11434 :30000`, all empty). HF cache dirs are 12 KB stubs (weights never downloaded), so we pull fresh.
-- **Access:** no `sudo`, and **Docker needs sudo** for us → no containers without help.
-- **BLOCKER → organizers:** asked for Docker access for `nvidia` (group/sudo) **or** Ollama system-wide with GPU, **or** the `nemotron-3-nano-30b-a3b` NIM on `:8000/v1` with tool-calling. Meanwhile trying the no-sudo Ollama install below.
+- **Docker + GPU:** working - `--gpus all` (CDI) passes the GPU into containers; Compose v2 present.
+- **Brain:** **Nemotron 3 Nano-30B-A3B NVFP4** served by **vLLM** (`vllm/vllm-openai:v0.22.1`, arm64),
+  validated loading + tool-calling on the GB10. The full containerized stack is in
+  [`../deploy/DOCKER.md`](../deploy/DOCKER.md); the steps below are the manual equivalent.
 
 ---
 
-## Step 1 - Serve Nemotron (Task #1, Dev 1)
+## Step 1 - Serve Nemotron NVFP4 via vLLM (Task #1, Dev 1)
 
-### 1a. Install Ollama, no sudo
+### 1a. Free the unified memory pool
+GB10 shares one 128 GB pool between CPU and GPU, so RAM pressure starves the model. `nvidia-smi`
+reports "Not Supported" for memory here - use `free -h`, where `available` is the real GPU budget.
 ```bash
-export PATH=$HOME/.local/bin:$PATH
-mkdir -p ~/.local
-curl -fSL https://github.com/ollama/ollama/releases/download/v0.30.6/ollama-linux-arm64.tar.zst -o /tmp/ollama.tar.zst
-tar --zstd -xf /tmp/ollama.tar.zst -C ~/.local 2>/dev/null \
-  || zstd -d -c /tmp/ollama.tar.zst | tar -x -C ~/.local
-~/.local/bin/ollama --version
-```
-> Use the plain `arm64` build (GB10 is sbsa-class, **not** the jetpack/Jetson variants).
-> If this build is CPU-only (no GPU in the log at 1b), fall back to the organizer ask (system-wide
-> Ollama or Docker), since a 30B on CPU is too slow for voice.
-
-### 1b. Start it + confirm GPU
-```bash
-OLLAMA_KEEP_ALIVE=24h nohup ~/.local/bin/ollama serve > ~/ollama.log 2>&1 &
-sleep 4
-curl -s http://localhost:11434/api/tags; echo
-grep -iE 'gpu|cuda|blackwell|gb10|compute|library' ~/ollama.log | tail -15   # expect CUDA + ~120 GB
+sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'   # reclaim page cache
+free -h                                                 # want `available` > ~45 GiB
 ```
 
-### 1c. Pull Nemotron (from Hugging Face - cache is empty)
+### 1b. Serve the NVFP4 checkpoint (weights pull once, ~16 GB, into a named volume)
 ```bash
-ollama pull hf.co/unsloth/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M   # confirm exact quant tag on HF
-# fallback brains if the Nemotron template misbehaves on tool-calls:
-#   ollama pull hf.co/unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M
+docker volume create cb_models
+docker run --rm --gpus all -p 8001:8000 -v cb_models:/models -e HF_HOME=/models \
+  vllm/vllm-openai:v0.22.1 \
+  --model nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4 \
+  --served-model-name nemotron-nano --max-model-len 32768 \
+  --gpu-memory-utilization 0.45 --trust-remote-code
 ```
-> Prefer the plain **Nemotron-3-Nano-30B-A3B** (cleaner tool-calling) over the Omni variant for a
-> text+tools agent. Keep Nemotron as the brain for the bounty; Qwen is only an unblock-the-pipeline
-> fallback.
+Wait for `Application startup complete`. (Host `:8001` → container `:8000`, since `:8000` is taken.)
+> Needs vLLM ≥ v0.22.1: the Nemotron-3 config uses `norm_eps`, which older builds don't read.
 
-### 1d. Tool-calling test - MUST PASS before wiring OpenClaw
+### 1c. Tool-calling test - MUST PASS before wiring OpenClaw
 ```bash
-curl -s http://localhost:11434/v1/chat/completions -H 'Content-Type: application/json' -d '{
-  "model":"<the-tag-from-1c>",
+curl -s http://localhost:8001/v1/chat/completions -H 'Content-Type: application/json' -d '{
+  "model":"nemotron-nano",
   "messages":[{"role":"user","content":"What civic facilities are near 51.52,-0.14? Use the tool."}],
   "tools":[{"type":"function","function":{"name":"find_nearest",
     "parameters":{"type":"object","properties":{"lat":{"type":"number"},"lon":{"type":"number"}},
     "required":["lat","lon"]}}}]
 }' | python3 -m json.tool
 ```
-Pass = the reply contains a `tool_calls` field. Fail = the model dumps JSON as plain text → the
-model's template doesn't support tools; switch tag/model.
+Pass = the reply contains a `tool_calls` field. Fail = the model dumps JSON as plain text → check the
+chat template / tool-parser flags.
 
 ---
 
@@ -72,8 +62,8 @@ OpenClaw is already installed; gateway on `:18789`. Configure `~/.openclaw/openc
 
 ```json5
 {
-  // brain: OpenClaw auto-detects Ollama at 127.0.0.1:11434
-  agents: { defaults: { model: { primary: "ollama/<the-tag-from-1c>" } } },
+  // brain: vLLM's OpenAI-compatible endpoint (set OPENAI_BASE_URL=http://localhost:8001/v1)
+  agents: { defaults: { model: { primary: "openai/nemotron-nano" } } },
 
   // VOICE: ElevenLabs (required - main sponsor + bounty). Talk loop = STT in + TTS out.
   talk: {
@@ -127,7 +117,7 @@ See [`../plugins/civic-geo/README.md`](../plugins/civic-geo/README.md) for cavea
 
 - Get the agent stable (steps 1–3 green), then **start one continuous session and leave it running**
   - launch it with hours to spare (e.g. over dinner); you present tomorrow, so the clock can run today.
-- Keep it one session (don't `/new`); `OLLAMA_KEEP_ALIVE=24h` keeps the model resident.
+- Keep it one session (don't `/new`); the vLLM brain stays resident for the whole run.
 - The session transcript (`~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl`) is the **submission
   artifact**. Rehearse the judge's "what did I ask earlier?" recall.
 

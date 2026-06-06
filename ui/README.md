@@ -34,7 +34,7 @@ all-London map. Built for accessibility and one-tap use.
 ## Run
 On the box, start the bridge (connects the UI to the agent + ElevenLabs voice):
 ```bash
-export ELEVENLABS_API_KEY=sk_...  ELEVENLABS_VOICE_ID=...  OLLAMA_API_KEY=ollama
+export ELEVENLABS_API_KEY=sk_...  ELEVENLABS_VOICE_ID=...
 export CIVIC_DATA_DIR="$HOME/Desktop/Codeborough/datasets"
 node ui/bridge.mjs            # :8091
 python3 -m http.server 8090   # serves the page

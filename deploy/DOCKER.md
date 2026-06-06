@@ -30,19 +30,24 @@ boundary: the reasoning core has no internet route; only the voice bridge egress
 cd ~/Desktop/Codeborough
 cp .env.example .env && $EDITOR .env          # set ELEVENLABS_API_KEY
 
-# 0) GATE TEST — confirm vLLM 0.11 serves Nemotron NVFP4 on the GB10 (downloads ~16GB once).
-make gate-test
-#    ✅ "Application startup complete" + tool_calls  -> proceed.
-#    ❌ fp4/cutlass/flashinfer/sm_121 error          -> NVFP4 kernels not in the arm64 wheel;
-#       try vllm/vllm-openai:nightly, or the nemotron-nano-9b-v2 NIM, or Ollama GGUF.
+# 0) FREE THE UNIFIED MEMORY POOL (GB10 shares one 128GB pool between CPU and GPU).
+#    Stop any other resident GPU/model processes, then drop reclaimable page cache so
+#    vLLM can claim its budget. `nvidia-smi` shows "Not Supported" for memory on GB10;
+#    use `free -h` — the `available` column is the real GPU budget.
+sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
+free -h                                       # want `available` comfortably above ~45 GiB
 
-# 1) Bring the whole stack up (stages weights, builds, waits for health, pre-warms).
+# 1) GATE TEST — confirm the brain serves Nemotron NVFP4 on the GB10 (downloads ~16GB once).
+make gate-test
+#    ✅ "Application startup complete" + a tool_calls reply  -> proceed.
+
+# 2) Bring the whole stack up (stages weights, builds, waits for health, pre-warms).
 make demo
 
-# 2) Prove the boundary to judges.
+# 3) Prove the boundary to judges.
 make prove-boundary
 
-# 3) Watch the only outbound traffic, live.
+# 4) Watch the only outbound traffic, live.
 make logs        # (or: docker compose logs -f egress-proxy)
 ```
 
@@ -72,5 +77,6 @@ These are the only spots I couldn't confirm without the box; the Docker layer is
   weights are staged by `make pull-model` at setup time.
 - **Secrets**: `.env` for the hackathon. Production: switch to Docker `secrets:` so the key never
   appears in `docker inspect`.
-- **Graceful fallback**: if NVFP4 is flaky live, your host Ollama GGUF (already working) is the
-  stage insurance — point `OPENAI_BASE_URL`/provider at it and skip the `vllm` service.
+- **GPU memory**: single GB10, one unified 128GB pool, so exactly one model is resident at a
+  time. `VLLM_GPU_FRAC` (default 0.45 ≈ 55 GiB) leaves headroom for the rest of the box; raise
+  it toward 0.6 if the box is otherwise idle for the demo.

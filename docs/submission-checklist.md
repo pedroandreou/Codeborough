@@ -7,8 +7,8 @@
 - [ ] Repo link: github.com/pedroandreou/Codeborough.
 
 ## Best use of NVIDIA Nemotron
-- [ ] Show Nemotron is the brain: `ollama ps` (nemotron-nano, 100% GPU) + the tool-call test
-      (`/v1/chat/completions` returns `tool_calls`).
+- [ ] Show Nemotron NVFP4 is the brain: vLLM lists it (`curl localhost:8001/v1/models` → `nemotron-nano`)
+      + the tool-call test (`/v1/chat/completions` returns `tool_calls`).
 - [ ] Show the agent actually calling `civic-geo` tools through OpenClaw (gateway, not embedded).
 - [ ] (Bonus) note the lineup option: reasoning + retriever + content-safety all from Nemotron 3.
 

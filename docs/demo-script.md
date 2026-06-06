@@ -1,7 +1,7 @@
 # Codeborough - 3-minute demo script
 
 ## Before you start - must be running
-- Nemotron on GPU: `ollama ps` shows `nemotron-nano` at 100% GPU.
+- Nemotron NVFP4 on GPU: vLLM serving `nemotron-nano` (`curl localhost:8001/v1/models`).
 - OpenClaw gateway up with civic-geo + elevenlabs + talk-voice (gateway log: "9 plugins").
 - `ELEVENLABS_API_KEY` set; **one long session already running** (for the bounty - start it ~90 min before judging).
 - Map UI open on the projector: `python3 -m http.server 8090` → `http://localhost:8090/ui/`.

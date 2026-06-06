@@ -4,20 +4,20 @@ SHELL := /bin/bash
 help:            ## show targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/' | sort
 
-gate-test:       ## does vLLM 0.11 serve Nemotron NVFP4 on the GB10? (run this FIRST)
+gate-test:       ## does the brain serve Nemotron NVFP4 on the GB10? (run this FIRST)
 	docker volume create cb_models >/dev/null
 	@echo "Bringing vLLM up — first run downloads ~16GB. Ctrl-C after you've confirmed it serves."
 	@echo "(host port 8001 -> container 8000, since host :8000 is taken by the org RAG stack)"
 	docker run --rm --gpus all -p 8001:8000 -v cb_models:/models -e HF_HOME=/models \
-	  vllm/vllm-openai:v0.11.0 \
+	  vllm/vllm-openai:v0.22.1 \
 	  --model nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4 \
-	  --served-model-name nemotron-nano --max-model-len 8192 \
-	  --gpu-memory-utilization 0.85 --trust-remote-code
+	  --served-model-name nemotron-nano --max-model-len 32768 \
+	  --gpu-memory-utilization 0.45 --trust-remote-code
 
 pull-model:      ## pre-stage NVFP4 weights into cb_models so demo-time vllm needs no egress
 	docker volume create cb_models >/dev/null
 	docker run --rm -v cb_models:/models -e HF_HOME=/models --entrypoint python3 \
-	  vllm/vllm-openai:v0.11.0 -c "from huggingface_hub import snapshot_download as d; \
+	  vllm/vllm-openai:v0.22.1 -c "from huggingface_hub import snapshot_download as d; \
 	  d('$${BRAIN_MODEL:-nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4}')"
 
 demo: pull-model up warm  ## one-command bring-up: stage weights, start stack, pre-warm

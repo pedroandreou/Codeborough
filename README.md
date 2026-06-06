@@ -32,7 +32,7 @@ A voice agent that we **build on OpenClaw**, grounded in real City of London ope
 entirely on an NVIDIA DGX Spark / ZGX Nano (GB10):
 
 - **Voice in/out** via **ElevenLabs** (Talk mode: Scribe STT + Eleven v3 TTS).
-- **Brain:** **NVIDIA Nemotron 3** (Nano-30B-A3B) served locally via vLLM/Ollama, doing
+- **Brain:** **NVIDIA Nemotron 3** (Nano-30B-A3B, **NVFP4**) served locally via vLLM, doing
   tool-calling - optionally with a Nemotron retriever + content-safety guard for breadth.
 - **Grounding:** our own [`plugins/civic-geo/`](plugins/civic-geo/) OpenClaw tool plugin queries
   the London GeoJSON datasets locally (`geocode` incl. **offline postcode lookup**, `find_nearest`,
@@ -114,7 +114,7 @@ datasets/<facility>/        ← London civic GeoJSON, per borough + a merged all
 | Path | What it is |
 |---|---|
 | [`docs/build-plan.md`](docs/build-plan.md) | **Build plan v3** - architecture, 3-dev task split, demo script, submission checklist |
-| [`docs/setup-runbook.md`](docs/setup-runbook.md) | **Setup runbook** - exact on-the-box commands (Ollama/Nemotron, OpenClaw + ElevenLabs voice, plugin install, 71-min session) + current status |
+| [`docs/setup-runbook.md`](docs/setup-runbook.md) | **Setup runbook** - exact on-the-box commands (Nemotron NVFP4 via vLLM, OpenClaw + ElevenLabs voice, plugin install, 71-min session) + current status |
 | [`docs/Codeborough-Pitch-Deck.pptx`](docs/Codeborough-Pitch-Deck.pptx) | **Pitch deck** (PowerPoint - GitHub won't preview it; download to view) |
 | [`docs/pitch.md`](docs/pitch.md) · [`docs/demo-script.md`](docs/demo-script.md) | Written pitch + 3-min demo script |
 | [`plugins/civic-geo/`](plugins/civic-geo/) | OpenClaw tool plugin: on-device GeoJSON lookups (see its [README](plugins/civic-geo/README.md)) |
