@@ -15,11 +15,13 @@ Built for **NVIDIA Hack for Impact - London** (Public Services track), targeting
 
 ## The problem
 
-Generic map tools don't know what's actually around you in a civic sense - where the nearest
-library, public toilet, or polling station is, or what a place offers - and they send your
-location to the cloud. The data exists across many London open datasets, but it's scattered and
-hard to query in plain language, especially for the people who most need it (new arrivals, the
-elderly, the visually impaired, those without a smartphone they trust).
+Commercial maps (Google, Apple) already do shops, restaurants and big POIs well - libraries
+included - so this isn't about finding a café. The gap is the **civic layer that councils publish
+but commercial maps don't ingest**: where you vote, winter grit bins, emergency rest centres,
+council safety cameras, and the civic detail on public toilets (accessible? baby-change? council
+hours). That data is open but **scattered across 33 separate council portals** and hard to query in
+plain language - hardest for the people who most need it (new arrivals, the elderly, the visually
+impaired, the privacy-conscious).
 
 ## Our solution
 
@@ -40,8 +42,9 @@ data surfaces detail a map app can't), and **anywhere** (self-contained, no clou
 
 ### Three things it does
 
-1. **Get me there** - finds the *right* destination for you (your child's school, your assigned
-   polling station) and guides you. *(libraries, schools, polling stations, reception centres)*
+1. **Find the civic thing maps miss** - the nearest polling station, rest centre, library or
+   accessible public toilet, and how to get to it. *(polling stations, reception centres, libraries,
+   schools, public toilets)* — we return the **nearest** facility (not your *assigned* station/catchment yet; that's a postcode-lookup next step).
 2. **Get me there safely** - prefers monitored, busy, well-served streets. *(CCTV, grit bins)*
    Honest framing: CCTV here is mostly traffic/town cameras = busy roads, **not** crime surveillance.
 3. **Tell me about it** - hours, accessibility, what's there. *(all datasets)*

@@ -126,11 +126,11 @@ On the box: `openclaw plugins build/validate/install` (see `plugins/civic-geo/RE
 8. Map UI + rehearse, incl. the 40-min recall moment. **(Dev 3)**
 
 ## Demo script (~3 min)
-**Family (lead):** "We just moved to Brixton, my daughter starts at [Lambeth school] Monday - how do
-we get there?" → school + route · "A safe walking route? It'll be dark." → monitored-street mention
-+ camera count · "Toilets near the school?" → en-route facility.
-**Elderly → polling (30s):** "I'm 78, where do I vote, step-free?" → assigned station.
-**Bounty moment (judge, ~40 min in):** "Remind me which school, and when we said to leave?" → recall.
+**Lead - voting + accessibility (the gap commercial maps can't fill):** "I've just moved to Brixton -
+nearest polling station, and is it step-free?" → polling + step-free · "Safe walk in the dark?" →
+monitored-streets + camera count · "Accessible toilet on the way?" → council toilet detail.
+**Second beat (council-only data, same engine):** "Nearest emergency rest centre?" → reception centre.
+**Bounty moment (judge, ~40 min in):** "Remind me where my polling station was?" → recall.
 Close on impact: *equitable, private access to civic services for the people who struggle most.*
 
 ## Submission checklist
