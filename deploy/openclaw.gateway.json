@@ -1,0 +1,19 @@
+{
+  "_comment": "Container gateway config. Brain = Nemotron NVFP4 served by vLLM over its OpenAI API (http://vllm:8000/v1). NOTE: voice (talk/tts) is handled by ui/bridge.mjs, NOT by the gateway, so the gateway needs no ElevenLabs key and stays internal-only. VERIFY the provider key names against `openclaw models list` on the box.",
+  "gateway": { "mode": "local" },
+  "agents": {
+    "defaults": {
+      "model": { "primary": "openai/nemotron-nano" }
+    }
+  },
+  "providers": {
+    "openai": {
+      "baseUrl": "http://vllm:8000/v1",
+      "apiKey": "${OPENAI_API_KEY}"
+    }
+  },
+  "session": {
+    "dmScope": "main",
+    "reset": { "idleMinutes": 1440 }
+  }
+}

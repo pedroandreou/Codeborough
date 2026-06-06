@@ -1,0 +1,7 @@
+{
+  "_comment": "Bridge-side OpenClaw client config. `openclaw agent --agent main` (spawned by ui/bridge.mjs) must route to the gateway CONTAINER, not localhost. VERIFY the exact remote-gateway key/flag against `openclaw gateway --help` / `openclaw agent --help` on the box; adjust if needed.",
+  "gateway": {
+    "mode": "remote",
+    "url": "http://gateway:18789"
+  }
+}

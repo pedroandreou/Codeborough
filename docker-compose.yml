@@ -1,0 +1,114 @@
+# Codeborough — single-box stack for the DGX Spark (GB10, arm64).
+#
+#   PRIVACY BOUNDARY (provable):
+#     core_net  is `internal: true`  -> vllm + gateway have NO route to the internet.
+#     edge_net  is a normal bridge   -> only egress-proxy + bridge touch it.
+#   The reasoning core (brain + civic-geo + memory) physically cannot phone home;
+#   only the voice bridge reaches ElevenLabs, through an allowlisted proxy.
+#
+#   GPU: uses `gpus: all` (CDI) — NOT `runtime: nvidia` — because that's what works
+#   on scan-05 (the legacy runtime isn't registered; --gpus all is verified working).
+#
+#   Brain weights are provisioned at SETUP time (make pull-model) into cb_models,
+#   so at demo time vllm runs on the internal network with no download / no egress.
+name: codeborough
+
+services:
+  # ---------- BRAIN: Nemotron NVFP4 via vLLM (GPU, internal-only) ----------
+  vllm:
+    image: vllm/vllm-openai:v0.11.0          # arm64 manifest confirmed on Docker Hub
+    gpus: all
+    command:
+      - --model=${BRAIN_MODEL}
+      - --served-model-name=${BRAIN_SERVED_NAME}
+      - --port=8000
+      - --gpu-memory-utilization=${VLLM_GPU_FRAC}
+      - --max-model-len=${VLLM_MAX_MODEL_LEN}
+      - --trust-remote-code
+    environment:
+      - HF_HOME=/models
+      - HF_HUB_OFFLINE=1                      # demo-time: read weights from volume, never fetch
+    volumes:
+      - cb_models:/models
+    networks: [core_net]
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 480s                      # 30B NVFP4 load + CUDA graph capture is slow; gate the gateway on it
+    restart: unless-stopped
+
+  # ---------- GATEWAY: OpenClaw + civic-geo plugin + memory (CPU, internal-only) ----------
+  gateway:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.gateway
+    environment:
+      - OPENCLAW_GATEWAY_PORT=18789
+      - CIVIC_DATA_DIR=/data/datasets
+      - OPENAI_BASE_URL=http://vllm:8000/v1   # brain via vLLM's OpenAI API
+      - OPENAI_API_KEY=local                  # vLLM ignores the value; provider needs non-empty
+    volumes:
+      - ./datasets:/data/datasets:ro          # London GeoJSON, read-only
+      - cb_memory:/root/.openclaw/agents      # sessions/*.jsonl + MEMORY.md (persistence bounty artifact)
+    networks: [core_net]                       # NO edge_net -> no internet route. This is the privacy claim.
+    depends_on:
+      vllm: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:18789/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    restart: unless-stopped
+
+  # ---------- EGRESS PROXY: the single controlled crossing point ----------
+  egress-proxy:
+    build:
+      context: ./deploy/egress-proxy
+    networks: [core_net, edge_net]             # the ONLY dual-homed infra service
+    restart: unless-stopped
+
+  # ---------- BRIDGE: bridge.mjs — browser-facing voice + map (CPU, edge) ----------
+  bridge:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.bridge
+    environment:
+      - BRIDGE_PORT=8091
+      - CIVIC_DATA_DIR=/data/datasets
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID}
+      - ELEVENLABS_MODEL=${ELEVENLABS_MODEL}
+      # bridge spawns `openclaw agent --agent main` -> must reach the gateway container.
+      # VERIFY on box: confirm this is the env/flag OpenClaw uses for a remote gateway target.
+      - OPENCLAW_GATEWAY_URL=http://gateway:18789
+      # clamp bridge egress to ElevenLabs only (Tier-2 enforcement):
+      - HTTPS_PROXY=http://egress-proxy:8888
+      - HTTP_PROXY=http://egress-proxy:8888
+      - NO_PROXY=gateway,vllm,localhost,127.0.0.1
+    volumes:
+      - ./datasets:/data/datasets:ro
+    ports:
+      - "${UI_PORT}:8091"                       # browser reaches the UI here (publishing != container egress)
+    networks: [core_net, edge_net]              # core_net to reach gateway; edge_net for ElevenLabs
+    depends_on:
+      gateway: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8091/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: unless-stopped
+
+networks:
+  core_net:
+    internal: true        # <-- enforcement: Docker attaches no gateway/NAT; no internet route exists
+  edge_net:
+    driver: bridge        # egress allowed; only egress-proxy + bridge are attached
+
+volumes:
+  cb_models:              # vLLM NVFP4 weights (HF cache) — provisioned by `make pull-model`
+  cb_memory:              # OpenClaw sessions + MEMORY.md
