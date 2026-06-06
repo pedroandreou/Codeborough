@@ -89,6 +89,9 @@ services:
       # VERIFY on box: confirm this is the env/flag OpenClaw uses for a remote gateway target.
       - OPENCLAW_GATEWAY_URL=http://gateway:18789
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-codeborough-local}  # must match the gateway's token
+      # core_net is an internal, no-internet Docker bridge -> plaintext ws:// to the gateway is safe.
+      # openclaw blocks non-loopback ws:// by default; this is the sanctioned break-glass for trusted private nets.
+      - OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1
       # clamp bridge egress to ElevenLabs only (Tier-2 enforcement):
       - HTTPS_PROXY=http://egress-proxy:8888
       - HTTP_PROXY=http://egress-proxy:8888
