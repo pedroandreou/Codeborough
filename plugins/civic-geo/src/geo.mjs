@@ -26,13 +26,17 @@ export const DATA_DIR =
 // ---------------------------------------------------------------------------
 const FIELDS = {
   libraries: {
-    name: ["Name"],
-    address: ["Address 1", "Address 2", "Postcode"],
-    extra: ["Type", "Hours open per week", "Email or website"],
+    // "Library" = Wandsworth, "ATT1" = Kingston (its name lives in ATT1).
+    name: ["Name", "Library", "ATT1"],
+    address: ["Address 1", "Address 2", "Address", "Postcode"],
+    extra: ["Type", "Hours open per week", "Email or website", "Telephone", "Website", "Web_Link"],
   },
   schools: {
-    name: ["Establishment name"],
-    address: ["Street", "Town", "Postcode"],
+    // "School" = Wandsworth. Camden ("establishment_name") and Lambeth
+    // ("ESTABLISHMENT_NAME") now match "Establishment name" via punctuation-
+    // insensitive key matching (see norm()).
+    name: ["Establishment name", "School"],
+    address: ["Street", "Town", "Address", "Postcode"],
     extra: ["Phase of education", "Type of establishment", "Gender", "Website address"],
   },
   "public-toilets": {
@@ -56,8 +60,10 @@ const FIELDS = {
     extra: ["Camera_Functionality", "Camera_Model"],
   },
   "grit-bins": {
-    name: ["road_name", "description"],
-    address: ["road_name"],
+    // "REMARK"/"Street_Name" = Kingston/City-of-London street; note Kingston's
+    // "ON_STREET" is a Y/N flag, NOT a street name, so it is deliberately absent.
+    name: ["road_name", "description", "REMARK", "Street_Name", "Description"],
+    address: ["road_name", "Street_Name"],
     extra: ["website", "description"],
   },
 };
@@ -187,20 +193,38 @@ export function haversine(lat1, lon1, lat2, lon2) {
 }
 
 // Property keys vary per BOROUGH, not just per facility, so we match candidate
-// field names case-insensitively against whatever keys a record actually has.
+// field names against whatever keys a record actually has. Matching is both
+// case- AND punctuation-insensitive: portals spell the same field as
+// "Establishment name" (Barnet), "establishment_name" (Camden/Socrata) and
+// "ESTABLISHMENT_NAME" (Lambeth/ArcGIS). norm() collapses all three to one key
+// so a single candidate covers every borough's spelling.
 const lc = (s) => String(s).toLowerCase();
+const norm = (s) => lc(s).replace(/[^a-z0-9]+/g, "");
 
 function indexProps(props) {
   const m = {};
-  for (const k of Object.keys(props)) m[lc(k)] = props[k];
+  // Insert in key order; first writer wins so earlier (often canonical) keys
+  // are not clobbered by a later key that normalises to the same token.
+  for (const k of Object.keys(props)) {
+    const n = norm(k);
+    if (!(n in m)) m[n] = props[k];
+  }
   return m;
 }
 
-/** First non-empty value among candidate field names (case-insensitive). */
+// Some portals nest a value in an object, e.g. Camden Socrata stores
+// website as {"url": "..."}. Flatten those to the meaningful string.
+function coerce(v) {
+  if (v != null && typeof v === "object" && !Array.isArray(v))
+    return v.url || v.href || v.value || null;
+  return v;
+}
+
+/** First non-empty value among candidate field names (case/punct-insensitive). */
 function pick(props, candidates) {
   const idx = indexProps(props);
   for (const c of candidates) {
-    const v = idx[lc(c)];
+    const v = coerce(idx[norm(c)]);
     if (v != null && String(v).trim() !== "") return String(v).trim();
   }
   return null;
@@ -223,12 +247,32 @@ const HIGHLIGHT_RE = /open|hour|accessib|baby|phone|telephone|website|email|^typ
 
 function nameOf(rec) {
   const map = FIELDS[rec.facility];
-  return (
+  const named =
     (map && pick(rec.props, map.name)) ||
     pick(rec.props, NAME_CANDIDATES) ||
-    pick(rec.props, GENERIC_NAME) ||
-    `${rec.facility} ${rec.id.split(":")[1]}`
-  );
+    pick(rec.props, GENERIC_NAME);
+  if (named) return named;
+  // No name field in this borough's schema (e.g. Camden/Wandsworth polling
+  // stations are address-only). Synthesise a human label from the address so a
+  // voice agent says "Polling station, Stukeley Street, WC2B 5LL" rather than
+  // the meaningless "polling-stations 143".
+  const human = humanFacility(rec.facility);
+  const addr = addressOf(rec);
+  return addr ? `${human}, ${addr}` : `${human} ${rec.id.split(":")[1]}`;
+}
+
+// Singular, human-facing label for a facility folder name.
+const FACILITY_LABELS = {
+  "polling-stations": "Polling station",
+  "grit-bins": "Grit bin",
+  "public-toilets": "Public toilet",
+  "reception-centres": "Reception centre",
+  libraries: "Library",
+  schools: "School",
+  cctv: "CCTV camera",
+};
+function humanFacility(f) {
+  return FACILITY_LABELS[f] || f.replace(/-/g, " ");
 }
 
 function addressOf(rec) {
@@ -249,9 +293,10 @@ function extraOf(rec) {
     if (v) out[k] = v;
   }
   // then generic highlights from any remaining matching keys (bounded)
-  for (const [k, v] of Object.entries(rec.props)) {
+  for (const [k, raw] of Object.entries(rec.props)) {
     if (Object.keys(out).length >= 5) break;
     if (k === "_borough" || out[k]) continue;
+    const v = coerce(raw);
     if (HIGHLIGHT_RE.test(k) && v != null && String(v).trim() !== "")
       out[k] = String(v).trim();
   }

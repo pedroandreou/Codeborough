@@ -57,7 +57,8 @@ Camden libraries come from the Arts Council England libraries dataset (national,
 - **Lambeth CCTV** is TfL traffic cameras, not council community-safety CCTV.
 - **Kensington & Chelsea reception centres** are emergency rest centres, the nearest match to "reception centres", not routine customer-service desks.
 - **City of London polling** is 4 polling places (tiny resident population); schools there are a catchment boundary, not points, so not included.
-- Each portal uses a different platform and field names. The unified files merge geometry and tag `_borough`, but the per-borough property fields are not yet normalised to a shared schema.
+- Each portal uses a different platform and field names. The unified files merge geometry and tag `_borough`; the raw per-borough property fields are kept verbatim (not rewritten to a shared schema on disk). Instead, the `civic-geo` engine normalises them **at read time** — matching name/address/highlight fields case- and punctuation-insensitively, so `Establishment name`, `establishment_name` and `ESTABLISHMENT_NAME` all resolve to the same logical field. Address-only sources with no venue name (e.g. Camden/Wandsworth polling stations) are labelled from their address (`"Polling station, Stukeley Street, WC2B 5LL"`).
+- **Camden `schools`** is a London-wide GIAS extract (658 rows) that is all tagged `_borough: camden` even though individual rows carry their true `local_authority_name` (often another borough). Treat Camden's school count as London-wide, not Camden-only, until the file is re-split by authority.
 
 ## A simpler route for three of these
 
