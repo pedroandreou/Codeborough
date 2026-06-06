@@ -1,8 +1,8 @@
-# Codeborough — Build Plan v3 (one-day hackathon)
+# Codeborough - Build Plan v3 (one-day hackathon)
 
 **One-liner:** A private, on-device, **voice-first civic wayfinding concierge** for London. Tell it
 who you are and where you need to go; it finds the *right* civic place, tells you how to get there on
-**monitored, well-served streets**, tells you about it, and remembers your situation the whole way —
+**monitored, well-served streets**, tells you about it, and remembers your situation the whole way -
 all on the edge, nothing to the cloud.
 
 **Targets (stacked):** Public Services track · Best use of NVIDIA Nemotron (RTX 5080) ·
@@ -18,10 +18,10 @@ ElevenLabs persistence bounty (≥ 1 h 11 m + live context retention).
 
 | Layer | What it is | Our move |
 |---|---|---|
-| **Nemotron 3** (open models) | The brains, on-device via vLLM | **config** — multi-model lineup → "Best use of Nemotron" |
-| **OpenClaw** (`openclaw/openclaw`, MIT) | Agent runtime: gateway, sessions, memory, Talk voice, plugin SDK, WS/HTTP API | **build on** — add 1 plugin + skills |
-| **ElevenLabs** | Voice in/out — a *native* OpenClaw provider | **config** — wins ElevenLabs bounty |
-| **NemoClaw** | NVIDIA's secure wrapper (OpenShell + onboard CLI) around OpenClaw; official DGX Spark path | **optional** — NVIDIA narrative / security demo |
+| **Nemotron 3** (open models) | The brains, on-device via vLLM | **config** - multi-model lineup → "Best use of Nemotron" |
+| **OpenClaw** (`openclaw/openclaw`, MIT) | Agent runtime: gateway, sessions, memory, Talk voice, plugin SDK, WS/HTTP API | **build on** - add 1 plugin + skills |
+| **ElevenLabs** | Voice in/out - a *native* OpenClaw provider | **config** - wins ElevenLabs bounty |
+| **NemoClaw** | NVIDIA's secure wrapper (OpenShell + onboard CLI) around OpenClaw; official DGX Spark path | **optional** - NVIDIA narrative / security demo |
 | **OpenShell** (`NVIDIA/OpenShell`, alpha) | Sandbox under NemoClaw: default-deny egress, credential brokering | **side-demo only** (don't sandbox the live voice loop) |
 
 ## Nemotron lineup (fits 128 GB; wins the bounty by breadth)
@@ -41,7 +41,7 @@ NIM support lags for the small models). **Avoid Super 120B for voice** (~87 GB, 
 ## Architecture
 
 ```
-DGX Spark / ZGX Nano (GB10, 128GB) — all on-device:
+DGX Spark / ZGX Nano (GB10, 128GB) - all on-device:
 
   vLLM ── Nemotron Nano-30B-NVFP4 (brain) + embed-1b + rerank-1b + Content-Safety-4B
     │  OpenAI /v1 @ :8000
@@ -73,14 +73,14 @@ bounty requires it.
 - **Voice = config only.** Talk mode `provider: "elevenlabs"` → Scribe v2 realtime STT + Eleven v3
   TTS, barge-in. No audio plumbing.
 - **Model = OpenAI-compatible config.** Point `agents.defaults.model.primary` at `vllm/<nemotron-id>`
-  (`http://127.0.0.1:8000/v1`). Must be a tool-calling model — Nano 30B is (Qwen3 parser).
+  (`http://127.0.0.1:8000/v1`). Must be a tool-calling model - Nano 30B is (Qwen3 parser).
 - **OpenShell verdict:** do NOT put the live voice loop in it (alpha; container/GPU/audio friction;
   SSRF blocks the local tool service). Use 1–2 hrs to run a *non-realtime slice* in a sandbox to show
-  default-deny egress + an API key the agent never sees + an OCSF audit trail — a strong judge asset.
+  default-deny egress + an API key the agent never sees + an OCSF audit trail - a strong judge asset.
 
 ---
 
-## Our code: `plugins/civic-geo/` (done — engine validated)
+## Our code: `plugins/civic-geo/` (done - engine validated)
 
 The one thing we write. Pure-Node engine (`src/geo.mjs`, zero deps) + thin OpenClaw adapter
 (`src/index.ts`). Five tools over the London datasets:
@@ -94,19 +94,19 @@ The one thing we write. Pure-Node engine (`src/geo.mjs`, zero deps) + thin OpenC
 | `list_coverage()` | what we actually cover (anti-over-promise) |
 
 Validate now, zero install: `node plugins/civic-geo/scripts/smoke.mjs` (proven against real
-`datasets/` — Triton Square → Regent's Park library @ 415 m; 41 cameras within 500 m of Brixton).
+`datasets/` - Triton Square → Regent's Park library @ 415 m; 41 cameras within 500 m of Brixton).
 On the box: `openclaw plugins build/validate/install` (see `plugins/civic-geo/README.md`). Set
 `CIVIC_DATA_DIR` to the deployed datasets path.
 
 ---
 
-## Team split — 3 devs (tracked as tasks #1–#4)
+## Team split - 3 devs (tracked as tasks #1–#4)
 
-- **Dev 1 — Brains & data:** `#1 nemotron-serve` (vLLM Nemotron on :8000, verify tool-calling) +
+- **Dev 1 - Brains & data:** `#1 nemotron-serve` (vLLM Nemotron on :8000, verify tool-calling) +
   `#2 civic-geo-plugin` (engine done; wrap as OpenClaw plugin + install).
-- **Dev 2 — OpenClaw, voice & the bounty:** `#3 openclaw-voice` (onboard OpenClaw; config vLLM +
+- **Dev 2 - OpenClaw, voice & the bounty:** `#3 openclaw-voice` (onboard OpenClaw; config vLLM +
   ElevenLabs Talk + long-session/memory; run the 71-min session). *Blocked by #1.*
-- **Dev 3 — Surface & pitch:** `#4 demo-ui-pitch` (map from tool JSON / thin WS UI; slides; demo
+- **Dev 3 - Surface & pitch:** `#4 demo-ui-pitch` (map from tool JSON / thin WS UI; slides; demo
   script; optional OpenShell security side-demo).
 
 **MVD:** Nano-30B brain + civic-geo plugin + ElevenLabs Talk + one long session.
@@ -116,8 +116,8 @@ On the box: `openclaw plugins build/validate/install` (see `plugins/civic-geo/RE
 ---
 
 ## Critical path
-1. **NOW:** ask organizers to install/serve **Nemotron-3-Nano-30B-A3B-NVFP4** (or pull weights) — long lead.
-2. `node plugins/civic-geo/scripts/smoke.mjs` — engine already passes (no hardware needed). **(Dev 1)**
+1. **NOW:** ask organizers to install/serve **Nemotron-3-Nano-30B-A3B-NVFP4** (or pull weights) - long lead.
+2. `node plugins/civic-geo/scripts/smoke.mjs` - engine already passes (no hardware needed). **(Dev 1)**
 3. vLLM Nemotron answering on :8000 with tool-calling. **(Dev 1)**
 4. `openclaw onboard` → vLLM provider + ElevenLabs Talk; one typed grounded answer. **(Dev 2)**
 5. `openclaw plugins install ./plugins/civic-geo`; agent fires the tools. **(Dev 1+2)**
@@ -126,7 +126,7 @@ On the box: `openclaw plugins build/validate/install` (see `plugins/civic-geo/RE
 8. Map UI + rehearse, incl. the 40-min recall moment. **(Dev 3)**
 
 ## Demo script (~3 min)
-**Family (lead):** "We just moved to Brixton, my daughter starts at [Lambeth school] Monday — how do
+**Family (lead):** "We just moved to Brixton, my daughter starts at [Lambeth school] Monday - how do
 we get there?" → school + route · "A safe walking route? It'll be dark." → monitored-street mention
 + camera count · "Toilets near the school?" → en-route facility.
 **Elderly → polling (30s):** "I'm 78, where do I vote, step-free?" → assigned station.

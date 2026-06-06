@@ -1,4 +1,4 @@
-# Setup runbook — standing up Codeborough on the DGX Spark
+# Setup runbook - standing up Codeborough on the DGX Spark
 
 Concrete, replayable steps for the box. Architecture and rationale are in
 [`build-plan.md`](build-plan.md); this is the "how we actually run it" companion.
@@ -10,15 +10,15 @@ needs ElevenLabs voice in *and* out. OpenClaw provides the Talk loop; ElevenLabs
 
 ## Status (Sat 6 Jun 2026, morning)
 
-- **Host:** `nvidia@scan-05` — DGX Spark, **GB10 Grace Blackwell, CUDA 13**, driver 580.159.03, 121 GB unified, 3.5 TB free.
+- **Host:** `nvidia@scan-05` - DGX Spark, **GB10 Grace Blackwell, CUDA 13**, driver 580.159.03, 121 GB unified, 3.5 TB free.
 - **OpenClaw:** installed (`~/.npm-global/bin/openclaw`), gateway already listening on `:18789`.
-- **Model runtime:** none yet — no Ollama / vLLM / NIM serving (checked `:8000 :11434 :30000`, all empty). HF cache dirs are 12 KB stubs (weights never downloaded), so we pull fresh.
+- **Model runtime:** none yet - no Ollama / vLLM / NIM serving (checked `:8000 :11434 :30000`, all empty). HF cache dirs are 12 KB stubs (weights never downloaded), so we pull fresh.
 - **Access:** no `sudo`, and **Docker needs sudo** for us → no containers without help.
 - **BLOCKER → organizers:** asked for Docker access for `nvidia` (group/sudo) **or** Ollama system-wide with GPU, **or** the `nemotron-3-nano-30b-a3b` NIM on `:8000/v1` with tool-calling. Meanwhile trying the no-sudo Ollama install below.
 
 ---
 
-## Step 1 — Serve Nemotron (Task #1, Dev 1)
+## Step 1 - Serve Nemotron (Task #1, Dev 1)
 
 ### 1a. Install Ollama, no sudo
 ```bash
@@ -41,7 +41,7 @@ curl -s http://localhost:11434/api/tags; echo
 grep -iE 'gpu|cuda|blackwell|gb10|compute|library' ~/ollama.log | tail -15   # expect CUDA + ~120 GB
 ```
 
-### 1c. Pull Nemotron (from Hugging Face — cache is empty)
+### 1c. Pull Nemotron (from Hugging Face - cache is empty)
 ```bash
 ollama pull hf.co/unsloth/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M   # confirm exact quant tag on HF
 # fallback brains if the Nemotron template misbehaves on tool-calls:
@@ -51,7 +51,7 @@ ollama pull hf.co/unsloth/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M   # confirm
 > text+tools agent. Keep Nemotron as the brain for the bounty; Qwen is only an unblock-the-pipeline
 > fallback.
 
-### 1d. Tool-calling test — MUST PASS before wiring OpenClaw
+### 1d. Tool-calling test - MUST PASS before wiring OpenClaw
 ```bash
 curl -s http://localhost:11434/v1/chat/completions -H 'Content-Type: application/json' -d '{
   "model":"<the-tag-from-1c>",
@@ -66,7 +66,7 @@ model's template doesn't support tools; switch tag/model.
 
 ---
 
-## Step 2 — OpenClaw + ElevenLabs voice (Task #3, Dev 2)
+## Step 2 - OpenClaw + ElevenLabs voice (Task #3, Dev 2)
 
 OpenClaw is already installed; gateway on `:18789`. Configure `~/.openclaw/openclaw.json`:
 
@@ -75,7 +75,7 @@ OpenClaw is already installed; gateway on `:18789`. Configure `~/.openclaw/openc
   // brain: OpenClaw auto-detects Ollama at 127.0.0.1:11434
   agents: { defaults: { model: { primary: "ollama/<the-tag-from-1c>" } } },
 
-  // VOICE: ElevenLabs (required — main sponsor + bounty). Talk loop = STT in + TTS out.
+  // VOICE: ElevenLabs (required - main sponsor + bounty). Talk loop = STT in + TTS out.
   talk: {
     provider: "elevenlabs",
     providers: {
@@ -103,7 +103,7 @@ openclaw tts audio "Hello from Codeborough"   # quick TTS smoke test
 
 ---
 
-## Step 3 — Install the civic-geo plugin (Task #2, Dev 1)
+## Step 3 - Install the civic-geo plugin (Task #2, Dev 1)
 
 Engine is done and validated. On the box:
 ```bash
@@ -123,10 +123,10 @@ See [`../plugins/civic-geo/README.md`](../plugins/civic-geo/README.md) for cavea
 
 ---
 
-## Step 4 — The 71-minute session + log (Task #3, ElevenLabs bounty)
+## Step 4 - The 71-minute session + log (Task #3, ElevenLabs bounty)
 
 - Get the agent stable (steps 1–3 green), then **start one continuous session and leave it running**
-  — launch it with hours to spare (e.g. over dinner); you present tomorrow, so the clock can run today.
+  - launch it with hours to spare (e.g. over dinner); you present tomorrow, so the clock can run today.
 - Keep it one session (don't `/new`); `OLLAMA_KEEP_ALIVE=24h` keeps the model resident.
 - The session transcript (`~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl`) is the **submission
   artifact**. Rehearse the judge's "what did I ask earlier?" recall.

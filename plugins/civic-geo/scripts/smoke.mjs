@@ -1,6 +1,6 @@
 // Zero-install sanity check for the civic-geo engine against the REAL datasets.
 // Run from anywhere:  node plugins/civic-geo/scripts/smoke.mjs
-// No build, no npm install, no OpenClaw needed — just Node.
+// No build, no npm install, no OpenClaw needed - just Node.
 
 import {
   facilities,

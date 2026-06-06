@@ -8,17 +8,17 @@
   <rect x="0" y="0" width="1040" height="680" fill="#FFFFFF"/>
 
   <!-- title -->
-  <text x="520" y="32" text-anchor="middle" font-size="21" font-weight="700" fill="#102027">Codeborough — System Architecture</text>
+  <text x="520" y="32" text-anchor="middle" font-size="21" font-weight="700" fill="#102027">Codeborough - System Architecture</text>
   <text x="520" y="53" text-anchor="middle" font-size="12.5" fill="#607D8B">Voice-first civic concierge · build on OpenClaw · NVIDIA Nemotron 3 brain · ElevenLabs voice · grounded in on-device London open data</text>
 
   <!-- ElevenLabs cloud -->
   <rect x="206" y="74" width="470" height="96" rx="14" fill="#FFF3E0" stroke="#EF6C00" stroke-width="2" stroke-dasharray="6 3"/>
-  <text x="220" y="95" font-size="13" font-weight="700" fill="#E65100">ElevenLabs — cloud (voice)</text>
+  <text x="220" y="95" font-size="13" font-weight="700" fill="#E65100">ElevenLabs - cloud (voice)</text>
   <rect x="220" y="106" width="210" height="48" rx="8" fill="#FFE0B2" stroke="#EF6C00" stroke-width="1.5"/>
-  <text x="325" y="127" text-anchor="middle" font-size="12" font-weight="700" fill="#E65100">Scribe v2 — STT</text>
+  <text x="325" y="127" text-anchor="middle" font-size="12" font-weight="700" fill="#E65100">Scribe v2 - STT</text>
   <text x="325" y="143" text-anchor="middle" font-size="10" fill="#8D4E00">speech → text (in)</text>
   <rect x="452" y="106" width="210" height="48" rx="8" fill="#FFE0B2" stroke="#EF6C00" stroke-width="1.5"/>
-  <text x="557" y="127" text-anchor="middle" font-size="12" font-weight="700" fill="#E65100">Eleven v3 — TTS</text>
+  <text x="557" y="127" text-anchor="middle" font-size="12" font-weight="700" fill="#E65100">Eleven v3 - TTS</text>
   <text x="557" y="143" text-anchor="middle" font-size="10" fill="#8D4E00">text → speech (out)</text>
 
   <!-- user -->
@@ -30,7 +30,7 @@
 
   <!-- on-device boundary -->
   <rect x="180" y="196" width="836" height="412" rx="16" fill="none" stroke="#2E7D32" stroke-width="2" stroke-dasharray="8 4"/>
-  <text x="198" y="217" font-size="12.5" font-weight="700" fill="#2E7D32">DGX Spark / ZGX Nano · GB10 · 128 GB unified — ON-DEVICE (private)</text>
+  <text x="198" y="217" font-size="12.5" font-weight="700" fill="#2E7D32">DGX Spark / ZGX Nano · GB10 · 128 GB unified - ON-DEVICE (private)</text>
 
   <!-- OpenClaw gateway -->
   <rect x="210" y="238" width="250" height="178" rx="10" fill="#E3F2FD" stroke="#1565C0" stroke-width="2"/>
@@ -45,7 +45,7 @@
 
   <!-- Nemotron brain -->
   <rect x="496" y="238" width="250" height="178" rx="10" fill="#F1F8E9" stroke="#558B2F" stroke-width="2"/>
-  <text x="621" y="264" text-anchor="middle" font-size="13.5" font-weight="700" fill="#33691E">NVIDIA Nemotron 3 — brain</text>
+  <text x="621" y="264" text-anchor="middle" font-size="13.5" font-weight="700" fill="#33691E">NVIDIA Nemotron 3 - brain</text>
   <text x="621" y="281" text-anchor="middle" font-size="10" fill="#558B2F">REUSE runtime · WE config</text>
   <text x="621" y="306" text-anchor="middle" font-size="10.5" fill="#263238">Nano-30B-A3B (NVFP4)</text>
   <text x="621" y="323" text-anchor="middle" font-size="10.5" fill="#263238">via vLLM / Ollama · /v1</text>
@@ -116,9 +116,9 @@
 
   <!-- legend -->
   <g font-size="10.5" fill="#37474F">
-    <rect x="40" y="636" width="13" height="13" rx="2" fill="#E3F2FD" stroke="#1565C0"/><text x="58" y="647">Reuse — OpenClaw runtime</text>
+    <rect x="40" y="636" width="13" height="13" rx="2" fill="#E3F2FD" stroke="#1565C0"/><text x="58" y="647">Reuse - OpenClaw runtime</text>
     <rect x="232" y="636" width="13" height="13" rx="2" fill="#F1F8E9" stroke="#558B2F"/><text x="250" y="647">Nemotron (NVIDIA)</text>
-    <rect x="392" y="636" width="13" height="13" rx="2" fill="#F3E5F5" stroke="#6A1B9A"/><text x="410" y="647">We write — civic-geo + data</text>
+    <rect x="392" y="636" width="13" height="13" rx="2" fill="#F3E5F5" stroke="#6A1B9A"/><text x="410" y="647">We write - civic-geo + data</text>
     <rect x="612" y="636" width="13" height="13" rx="2" fill="#FFF3E0" stroke="#EF6C00" stroke-dasharray="3 2"/><text x="630" y="647">ElevenLabs (cloud)</text>
     <rect x="772" y="636" width="13" height="13" rx="2" fill="none" stroke="#2E7D32" stroke-dasharray="3 2"/><text x="790" y="647">On-device boundary</text>
   </g>

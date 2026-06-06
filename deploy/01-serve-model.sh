@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Ensure Ollama is serving Nemotron-3-Nano on the GPU. Idempotent — safe to re-run.
+# Ensure Ollama is serving Nemotron-3-Nano on the GPU. Idempotent - safe to re-run.
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
 

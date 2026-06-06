@@ -1,7 +1,7 @@
 // OpenClaw adapter for the civic-geo engine.
 //
 // This is a THIN wrapper: it exposes the pure functions in ./geo.mjs as agent
-// tools. All the real logic lives in geo.mjs (which runs with zero deps — see
+// tools. All the real logic lives in geo.mjs (which runs with zero deps - see
 // ../scripts/smoke.mjs). If the installed OpenClaw plugin SDK differs from what
 // is assumed here, you only adjust THIS file; the engine is unaffected.
 //
@@ -77,7 +77,7 @@ export default defineToolPlugin({
     tool({
       name: "safety_count",
       description:
-        "Count CCTV cameras (and grit bins) within a radius of a point — the " +
+        "Count CCTV cameras (and grit bins) within a radius of a point - the " +
         "'monitored / busy streets' signal for safety-aware framing. Note: CCTV " +
         "is mostly traffic/town cameras (busy roads), NOT crime surveillance.",
       parameters: Type.Object({

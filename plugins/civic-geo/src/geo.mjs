@@ -1,4 +1,4 @@
-// Civic GeoJSON engine — pure Node ESM, zero dependencies.
+// Civic GeoJSON engine - pure Node ESM, zero dependencies.
 //
 // This is the real IP of the plugin: loading the London civic datasets and
 // answering "near me" / details / geocode / safety questions over them. It has
@@ -7,7 +7,7 @@
 //
 // The OpenClaw adapter (src/index.ts) is a thin wrapper that exposes these
 // functions as agent tools. If the SDK API differs on the box, only the wrapper
-// changes — this engine stays intact.
+// changes - this engine stays intact.
 
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -92,7 +92,7 @@ const CATEGORY_ALIASES = {
 };
 
 // Approximate landmark gazetteer for offline geocoding of common demo places.
-// [lat, lon]. Approximate to street/area level — fine for "near me" framing.
+// [lat, lon]. Approximate to street/area level - fine for "near me" framing.
 const LANDMARKS = {
   "triton square": [51.5247, -0.1417],
   "1 triton square": [51.5247, -0.1417],

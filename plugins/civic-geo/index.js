@@ -1,4 +1,4 @@
-// OpenClaw tool plugin entry — plain ESM JS, no build step, no external deps.
+// OpenClaw tool plugin entry - plain ESM JS, no build step, no external deps.
 // Targets the installed OpenClaw plugin API (definePluginEntry + api.registerTool),
 // matching the bundled `tavily` extension. Tool params are plain JSON Schema, so we
 // don't need TypeBox. The engine lives in ./src/geo.mjs (zero-dep, testable standalone).
@@ -89,7 +89,7 @@ export default definePluginEntry({
         name: "safety_count",
         label: "Monitored-streets signal",
         description:
-          "Count CCTV cameras (and grit bins) within a radius of a point — the " +
+          "Count CCTV cameras (and grit bins) within a radius of a point - the " +
           "'monitored / busy streets' signal. NOTE: CCTV here is mostly traffic/town " +
           "cameras (busy, well-served roads), NOT crime surveillance.",
         parameters: {
