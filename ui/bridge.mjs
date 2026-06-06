@@ -68,7 +68,7 @@ function cleanReply(out) {
   const noise =
     /^(\[plugins\]|plugins\.allow|Config \(|\[gateway\]|EMBEDDED FALLBACK|Gateway target:|Source:|Config:|Bind:|gateway connect failed|Possible causes:|- |Run `openclaw|Stopped systemd|Restarted systemd|Usage:|Updating|nohup:)/;
   const boxy = /[│◇├╮╯╰┌┐└┘▄▀█░▕▏▁]/;
-  return collapseRepeatedText(out
+  return stripMarkdownForUi(collapseRepeatedText(out
     .replace(ansi, "")
     .replace(/\uFFFD\[[0-9;?]*[ -\/]*[@-~]/g, "")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
@@ -80,7 +80,7 @@ function cleanReply(out) {
       return t && t !== "NO_REPLY" && !noise.test(t) && !boxy.test(t) && !t.startsWith("![") && !t.includes("(embed ref=") && !t.startsWith("<function=") && !t.startsWith("</function>") && !t.startsWith("<parameter=") && !t.startsWith("</parameter>") && !t.startsWith("title=\"") && !t.startsWith("height=\"");
     })
     .join("\n")
-    .trim());
+    .trim()));
 }
 
 function runAgent(message, session = "codeborough-ui") {
