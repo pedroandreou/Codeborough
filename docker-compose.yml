@@ -55,8 +55,10 @@ services:
     networks: [core_net]                       # NO edge_net -> no internet route. This is the privacy claim.
     depends_on:
       vllm: { condition: service_healthy }
+    # The gateway is a WebSocket server, so a plain HTTP GET is the wrong probe.
+    # Check the port is accepting connections instead (Node is already in the image).
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:18789/ >/dev/null || exit 1"]
+      test: ["CMD", "node", "-e", "require('net').connect(18789,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -94,7 +96,7 @@ services:
       - "${UI_PORT}:8091"                       # browser reaches the UI here (publishing != container egress)
     networks: [core_net, edge_net]              # core_net to reach gateway; edge_net for ElevenLabs
     depends_on:
-      gateway: { condition: service_healthy }
+      gateway: { condition: service_started }   # bridge serves the page + map even before the gateway's first reply
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8091/health >/dev/null || exit 1"]
       interval: 10s
@@ -111,4 +113,5 @@ networks:
 
 volumes:
   cb_models:              # vLLM NVFP4 weights (HF cache) — provisioned by `make pull-model`
+    name: cb_models       # use the bare name that `make pull-model`/`make gate-test` populate (NOT the project-prefixed one)
   cb_memory:              # OpenClaw sessions + MEMORY.md

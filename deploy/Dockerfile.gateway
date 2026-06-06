@@ -4,8 +4,8 @@ ENV NODE_ENV=production
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
-# OpenClaw runtime — pin to the version civic-geo's src/index.ts targets (>=2026.5).
-RUN npm install -g openclaw@2026.5.17 || npm install -g openclaw
+# OpenClaw runtime — pin to the version verified on the box (`openclaw --version` = 2026.6.1).
+RUN npm install -g openclaw@2026.6.1 || npm install -g openclaw
 
 # civic-geo plugin (pure JS, zero deps) + the agent skill + container gateway config
 COPY plugins/civic-geo/ /opt/civic-geo/
@@ -13,8 +13,10 @@ COPY deploy/skills/ /root/.openclaw/skills/
 COPY deploy/openclaw.gateway.json /root/.openclaw/openclaw.json
 
 EXPOSE 18789
-# Install the plugin (idempotent) then start the gateway bound to 0.0.0.0 so the
-# bridge container can reach it over core_net.
+# Install the plugin (idempotent) then run the gateway in the foreground.
+# openclaw 2026.6.1: subcommand is `gateway run`; there is no `--host` (use `--bind`).
+# `--bind lan` exposes the port on the container interface so the bridge can reach it
+# over core_net; `--auth none` is safe because core_net is internal-only.
 CMD ["sh","-lc","\
   (cd /opt/civic-geo && openclaw plugins install ./ || echo 'plugin install warn'); \
-  exec openclaw gateway --port ${OPENCLAW_GATEWAY_PORT:-18789} --host 0.0.0.0"]
+  exec openclaw gateway run --port ${OPENCLAW_GATEWAY_PORT:-18789} --bind lan --auth none"]

@@ -254,6 +254,16 @@ createServer(async (req, res) => {
   const url = req.url || "/";
   try {
     if (req.method === "GET" && url === "/health") return json(res, { ok: true, voice: !!EL_KEY });
+    // Serve the UI page itself so the browser can open the bridge directly (http://<box>:8091).
+    if (req.method === "GET" && (url === "/" || url === "/index.html" || url === "/ui/" || url === "/ui/index.html")) {
+      try {
+        const html = readFileSync(new URL("./index.html", import.meta.url));
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", ...CORS });
+        return res.end(html);
+      } catch {
+        return json(res, { error: "UI page not found next to bridge.mjs" }, 404);
+      }
+    }
     if (req.method !== "POST") return json(res, { error: "POST only" }, 405);
     const b = await body(req);
     if (url === "/ask") return json(res, { reply: await runAgent(b.message, b.session, b.lang, b.grounded) });
@@ -275,6 +285,6 @@ createServer(async (req, res) => {
   } catch (e) {
     return json(res, { error: String(e.message || e) }, 500);
   }
-}).listen(PORT, "127.0.0.1", () =>
-  console.log(`Codeborough bridge on http://127.0.0.1:${PORT}  (voice: ${EL_KEY ? "on" : "off"})`),
+}).listen(PORT, "0.0.0.0", () =>
+  console.log(`Codeborough bridge on http://0.0.0.0:${PORT}  (voice: ${EL_KEY ? "on" : "off"})`),
 );
