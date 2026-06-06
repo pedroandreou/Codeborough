@@ -1,8 +1,8 @@
 # Codeborough
 
-A **private, on-device, voice-first civic concierge** for London. Speak a question —
+A **private, on-device, voice-first civic concierge** for London. Speak a question -
 *"where's the nearest accessible public toilet to Triton Square?"*, *"where do I vote and can I
-get there step-free?"* — and Codeborough finds the right civic service near you, tells you how to
+get there step-free?"* - and Codeborough finds the right civic service near you, tells you how to
 get there on **monitored, well-served streets**, and remembers your situation across the whole
 conversation. Everything runs on the edge; your location and queries never leave the device.
 
@@ -15,8 +15,8 @@ Built for **NVIDIA Hack for Impact - London** (Public Services track), targeting
 
 ## The problem
 
-Generic map tools don't know what's actually around you in a civic sense — where the nearest
-library, public toilet, or polling station is, or what a place offers — and they send your
+Generic map tools don't know what's actually around you in a civic sense - where the nearest
+library, public toilet, or polling station is, or what a place offers - and they send your
 location to the cloud. The data exists across many London open datasets, but it's scattered and
 hard to query in plain language, especially for the people who most need it (new arrivals, the
 elderly, the visually impaired, those without a smartphone they trust).
@@ -28,7 +28,7 @@ entirely on an NVIDIA DGX Spark / ZGX Nano (GB10):
 
 - **Voice in/out** via **ElevenLabs** (Talk mode: Scribe STT + Eleven v3 TTS).
 - **Brain:** **NVIDIA Nemotron 3** (Nano-30B-A3B) served locally via vLLM/Ollama, doing
-  tool-calling — optionally with a Nemotron retriever + content-safety guard for breadth.
+  tool-calling - optionally with a Nemotron retriever + content-safety guard for breadth.
 - **Grounding:** our own [`plugins/civic-geo/`](plugins/civic-geo/) OpenClaw tool plugin queries
   the London GeoJSON datasets locally (`geocode`, `find_nearest`, `get_details`, `safety_count`,
   `list_coverage`).
@@ -40,15 +40,15 @@ data surfaces detail a map app can't), and **anywhere** (self-contained, no clou
 
 ### Three things it does
 
-1. **Get me there** — finds the *right* destination for you (your child's school, your assigned
+1. **Get me there** - finds the *right* destination for you (your child's school, your assigned
    polling station) and guides you. *(libraries, schools, polling stations, reception centres)*
-2. **Get me there safely** — prefers monitored, busy, well-served streets. *(CCTV, grit bins)*
+2. **Get me there safely** - prefers monitored, busy, well-served streets. *(CCTV, grit bins)*
    Honest framing: CCTV here is mostly traffic/town cameras = busy roads, **not** crime surveillance.
-3. **Tell me about it** — hours, accessibility, what's there. *(all datasets)*
+3. **Tell me about it** - hours, accessibility, what's there. *(all datasets)*
 
 ## Architecture
 
-How the components come together — voice via ElevenLabs, brain via Nemotron, grounded by our
+How the components come together - voice via ElevenLabs, brain via Nemotron, grounded by our
 `civic-geo` plugin over local data, all orchestrated by OpenClaw on the device:
 
 ![Codeborough system architecture](docs/architecture.svg)
@@ -67,22 +67,22 @@ bounty). Everything except the ElevenLabs voice calls runs on-device.
 | **Theme** | Build autonomous systems that think, act, and run anywhere, for positive impact |
 | **Platform** | On-device on NVIDIA DGX Spark / ZGX Nano (GB10 Grace Blackwell), open-source models |
 | **Stack** | OpenClaw · NVIDIA Nemotron 3 · ElevenLabs · (NemoClaw/OpenShell optional) |
-| **Track** | **Public Services** — improving access to and efficiency of city services |
+| **Track** | **Public Services** - improving access to and efficiency of city services |
 | **Bounties** | Best use of Nemotron · ElevenLabs persistent agent (≥ 1 h 11 m + context retention) |
 | **Team** | Codeborough |
 
 ## Repository contents
 
 ```
-docs/build-plan.md          ← the plan (architecture, tasks, demo script) — START HERE
+docs/build-plan.md          ← the plan (architecture, tasks, demo script) - START HERE
 plugins/civic-geo/          ← our OpenClaw tool plugin over the datasets (the part we write)
 datasets/<facility>/        ← London civic GeoJSON, per borough + a merged all-london file
 ```
 
 | Path | What it is |
 |---|---|
-| [`docs/build-plan.md`](docs/build-plan.md) | **Build plan v3** — architecture, 3-dev task split, demo script, submission checklist |
-| [`docs/setup-runbook.md`](docs/setup-runbook.md) | **Setup runbook** — exact on-the-box commands (Ollama/Nemotron, OpenClaw + ElevenLabs voice, plugin install, 71-min session) + current status |
+| [`docs/build-plan.md`](docs/build-plan.md) | **Build plan v3** - architecture, 3-dev task split, demo script, submission checklist |
+| [`docs/setup-runbook.md`](docs/setup-runbook.md) | **Setup runbook** - exact on-the-box commands (Ollama/Nemotron, OpenClaw + ElevenLabs voice, plugin install, 71-min session) + current status |
 | [`plugins/civic-geo/`](plugins/civic-geo/) | OpenClaw tool plugin: on-device GeoJSON lookups (see its [README](plugins/civic-geo/README.md)) |
 | [`datasets/libraries/`](datasets/libraries/) | Libraries (42 across 4 boroughs) |
 | [`datasets/reception-centres/`](datasets/reception-centres/) | Reception / rest centres (47 across 2 boroughs) |
@@ -93,7 +93,7 @@ datasets/<facility>/        ← London civic GeoJSON, per borough + a merged all
 | [`datasets/grit-bins/`](datasets/grit-bins/) | Grit bins (376 across 4 boroughs) |
 | [`datasets/SOURCES.md`](datasets/SOURCES.md) | Coverage matrix, sources, licences, caveats, refresh URLs |
 | [`docs/london-structure.md`](docs/london-structure.md) | How London is organised and why facility data is split across sources |
-| [`docs/data-scope-notes.md`](docs/data-scope-notes.md) | Historical pre-hackathon scope note (now settled — see the build plan) |
+| [`docs/data-scope-notes.md`](docs/data-scope-notes.md) | Historical pre-hackathon scope note (now settled - see the build plan) |
 | [`LICENSE`](LICENSE) | Project licence |
 
 Data covers 8 of 33 London authorities that publish these facilities as open location data;
@@ -103,7 +103,7 @@ all destination types). See [`datasets/SOURCES.md`](datasets/SOURCES.md) for the
 ## Quick start
 
 ```bash
-# Validate the data engine right now — zero install, no hardware needed:
+# Validate the data engine right now - zero install, no hardware needed:
 node plugins/civic-geo/scripts/smoke.mjs
 ```
 

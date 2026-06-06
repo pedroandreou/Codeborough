@@ -1,4 +1,4 @@
-// Codeborough UI bridge — tiny zero-dependency Node HTTP server that connects
+// Codeborough UI bridge - tiny zero-dependency Node HTTP server that connects
 // our web UI to the live agent + data + ElevenLabs voice. Run it ON the DGX.
 //
 //   ELEVENLABS_API_KEY=sk_... ELEVENLABS_VOICE_ID=... \

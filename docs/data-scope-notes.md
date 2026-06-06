@@ -1,6 +1,6 @@
 # Data scope: where we are and what to decide
 
-> **Historical note (pre-hackathon prep).** This scope question is now **settled** — see
+> **Historical note (pre-hackathon prep).** This scope question is now **settled** - see
 > [`build-plan.md`](build-plan.md). We use the data we already have, with the live demo focused on
 > **Lambeth**. Kept below for context on how we got here.
 

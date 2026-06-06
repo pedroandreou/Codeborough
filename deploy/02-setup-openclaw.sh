@@ -3,7 +3,7 @@
 # drop in our config, and (re)start the gateway pointed at the Nemotron (Ollama) endpoint.
 #
 # Prereqs: run 01-serve-model.sh first (Nemotron on :11434) and openclaw installed.
-# Voice is OPTIONAL on the first pass — text works without it. For voice, set your key first:
+# Voice is OPTIONAL on the first pass - text works without it. For voice, set your key first:
 #   export ELEVENLABS_API_KEY=sk_...     (then re-run this script)
 set -uo pipefail
 export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
@@ -17,7 +17,7 @@ export OLLAMA_API_KEY="${OLLAMA_API_KEY:-ollama}"  # Ollama provider needs any n
 command -v openclaw >/dev/null || { echo "ERROR: openclaw not on PATH."; exit 1; }
 
 if [ -z "${ELEVENLABS_API_KEY:-}" ]; then
-  echo "NOTE: ELEVENLABS_API_KEY not set — wiring brain + tools only (text). Voice stays inactive"
+  echo "NOTE: ELEVENLABS_API_KEY not set - wiring brain + tools only (text). Voice stays inactive"
   echo "      until you 'export ELEVENLABS_API_KEY=sk_...' and re-run this script."
 fi
 
@@ -25,7 +25,7 @@ echo "== 1/4 install civic-geo plugin (plain JS, no build) =="
 if ( cd "$REPO/plugins/civic-geo" && openclaw plugins install ./ ); then
   echo "   plugin installed."
 else
-  echo "   WARN: plugin install failed — see plugins/civic-geo/README.md."
+  echo "   WARN: plugin install failed - see plugins/civic-geo/README.md."
 fi
 
 echo "== 2/4 install civic-assistant skill =="

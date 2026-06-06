@@ -1,6 +1,6 @@
 # Codeborough demo map UI
 
-A self-contained Leaflet map that renders the `civic-geo` tool output on a London map —
+A self-contained Leaflet map that renders the `civic-geo` tool output on a London map -
 the visual we show on screen while the voice agent talks. No build step, no backend required.
 
 ## Run
@@ -15,7 +15,7 @@ python3 -m http.server 8090
 ## What it does
 
 - **Demo buttons** load bundled sample scenarios (family → school, toilets, safe streets/CCTV,
-  elderly → polling, coverage) and render them instantly — works offline for rehearsal.
+  elderly → polling, coverage) and render them instantly - works offline for rehearsal.
 - **Feed live tool JSON**: paste any `civic-geo` output into the box and click *Render*. It
   auto-detects the shape:
   - `geocode` → `{lat, lon, ...}` → "you are here" marker

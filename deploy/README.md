@@ -1,10 +1,10 @@
-# Deploy — running Codeborough on the DGX Spark
+# Deploy - running Codeborough on the DGX Spark
 
-We serve **Nemotron-3-Nano (GGUF) via Ollama on the GPU** — this is the official DGX Spark
+We serve **Nemotron-3-Nano (GGUF) via Ollama on the GPU** - this is the official DGX Spark
 `nemotron`/`ollama` playbook path, already tool-calling-verified. OpenClaw (brain + voice + memory)
 sits on top, with our `civic-geo` plugin for the data.
 
-Run order on the box (`scan-05`). Scripts are idempotent — re-run any safely.
+Run order on the box (`scan-05`). Scripts are idempotent - re-run any safely.
 
 ```bash
 cd ~/Desktop/Codeborough
@@ -33,8 +33,8 @@ bash deploy/02-setup-openclaw.sh          # re-run to enable Talk mode
 | `01-serve-model.sh` | Pull + serve `nemotron-nano` (Nemotron-3-Nano GGUF) on the GPU via Ollama |
 | `02-setup-openclaw.sh` | Build/install `civic-geo` plugin, install the skill, write config, restart the gateway |
 | `03-healthcheck.sh` | Confirm: Ollama serving, GPU + tool-calling, gateway up, tools registered, data readable |
-| `openclaw.config.json` | OpenClaw config — Nemotron brain (`ollama/nemotron-nano`), ElevenLabs Talk voice, one long session |
-| `skills/civic-assistant/SKILL.md` | Agent playbook — when to call each civic-geo tool, voice style, safety wording, memory |
+| `openclaw.config.json` | OpenClaw config - Nemotron brain (`ollama/nemotron-nano`), ElevenLabs Talk voice, one long session |
+| `skills/civic-assistant/SKILL.md` | Agent playbook - when to call each civic-geo tool, voice style, safety wording, memory |
 
 ## Try it
 
@@ -57,4 +57,4 @@ reset). The transcript at `~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl` i
   version differs (`openclaw --version`), only that file needs tweaking; `geo.mjs` is stable.
 - **Why GGUF not the NVFP4 file:** NVFP4 needs vLLM, which isn't prebuilt on the box (a from-source
   ARM64 build = hours). The GGUF is the same Nemotron model via the official playbook, already working.
-- **The org's RAG stack** (containers on :3000/:8000/Milvus/Postgres) is unrelated — leave it; we use our own.
+- **The org's RAG stack** (containers on :3000/:8000/Milvus/Postgres) is unrelated - leave it; we use our own.
