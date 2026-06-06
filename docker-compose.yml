@@ -58,7 +58,7 @@ services:
     # The gateway is a WebSocket server, so a plain HTTP GET is the wrong probe.
     # Check the port is accepting connections instead (Node is already in the image).
     healthcheck:
-      test: ["CMD", "node", "-e", "require('net').connect(18789,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "require('net').connect(18789,require('os').hostname()).on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 30
