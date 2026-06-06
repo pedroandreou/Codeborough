@@ -1,0 +1,49 @@
+# Modelfile — local stand-in brain for the Codeborough pipeline dry-run.
+#
+# Builds `codeborough-brain` from qwen3:4b. The real DGX brain (Nemotron-3-Nano)
+# is a REASONING model, so we keep thinking ON here to faithfully mirror it —
+# multi-step civic questions (geocode -> find_nearest -> safety_count) benefit
+# from reasoning. The HTTP 500 we hit earlier was NOT caused by thinking; it was
+# the reasoning OVERFLOWING the stock 4096 context. The fix is a bigger context,
+# not disabling thought.
+#
+#   - thinking: ON (default) — matches Nemotron's behaviour
+#   - num_ctx 16384          — plenty of room for reasoning + tool schemas + result
+#
+# Build:   ollama create codeborough-brain -f Modelfile
+# Use:     model tag becomes "codeborough-brain" (point OpenClaw at ollama/codeborough-brain)
+#
+# NOTE: This is a LOCAL convenience only. On the DGX the real brain is
+# Nemotron-3-Nano-30B; you do NOT use this file there.
+
+FROM qwen3:4b
+
+# Keep qwen3 thinking ENABLED (it's a reasoning model, like Nemotron). Size the
+# context so it fits ENTIRELY on the 8GB GPU while leaving room for OpenClaw's
+# big system prompt + tool schemas (~16k tokens) plus reasoning/answer room.
+#
+# Memory math on an 8GB card (RTX 2080 Super):
+#   - weights (qwen3:4b Q4)         ~2.5 GB
+#   - KV cache must be quantized to fit a big window. Run Ollama with:
+#       OLLAMA_FLASH_ATTENTION=1 OLLAMA_KV_CACHE_TYPE=q8_0
+#     (the setup script / run scripts export these).
+#   - At num_ctx 20480 with q8 KV + flash-attn, the whole thing stays on GPU.
+# If you ever see "X%/Y% CPU/GPU" in `ollama ps`, the context is too big for VRAM
+# and it spilled to CPU (slow / times out). Lower num_ctx until it's 100% GPU.
+PARAMETER num_ctx 20480
+
+# Mild sampling — qwen3's recommended settings for stable tool-calling.
+PARAMETER temperature 0.6
+PARAMETER top_p 0.95
+
+SYSTEM """You are Codeborough, a private on-device civic concierge for London.
+You answer questions about civic facilities (libraries, schools, public toilets,
+polling stations, grit bins, CCTV, reception centres) using ONLY the provided
+tools over local London open data.
+
+Rules:
+- To answer any 'near me' / 'nearest' / 'where is' question, FIRST call geocode
+  to turn the place name into coordinates, THEN call find_nearest.
+- Never invent facilities. If a borough or category is not covered, say so and
+  call list_coverage to explain what you do have.
+- Be brief and practical. Give name, distance, and address."""

@@ -1,0 +1,21 @@
+{
+  "_about": "LOCAL laptop dry-run config for OpenClaw. Merge the relevant keys into ~/.openclaw/openclaw.json (or use as a reference). Schema may differ slightly by OpenClaw version — verify on first run with `openclaw gateway --verbose`. Strict JSON (no comments) so it always parses; the voice block lives in README.md to keep this file loadable.",
+
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "ollama/codeborough-brain"
+      }
+    }
+  },
+
+  "session": {
+    "reset": {
+      "idleMinutes": 0
+    }
+  },
+
+  "_voice_hook": "Voice is OFF in this dry-run. To enable ElevenLabs later, add a top-level 'talk' block (see README.md 'Adding voice later') and export ELEVENLABS_API_KEY. No code changes — config only.",
+
+  "_dgx_swap": "On the DGX, change agents.defaults.model.primary to the served Nemotron-3-Nano-30B tag (e.g. 'ollama/hf.co/unsloth/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M' or the vLLM/llama.cpp model id). Everything else stays the same."
+}

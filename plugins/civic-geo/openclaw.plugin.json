@@ -1,0 +1,23 @@
+{
+  "id": "civic-geo",
+  "name": "Civic GeoJSON",
+  "description": "Local lookups over London civic-facility GeoJSON datasets (libraries, schools, public toilets, polling stations, grit bins, CCTV, reception centres). All on-device; nothing leaves the box.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "tools": [
+      "find_nearest",
+      "get_details",
+      "geocode",
+      "safety_count",
+      "list_coverage"
+    ]
+  }
+}
