@@ -1,11 +1,12 @@
 # Codeborough - pitch
 
 ## The problem
-Civic services in London - your child's school, your assigned polling station, the nearest
-accessible toilet, a library - are split across **33 separate councils' open datasets** in different
-formats. General map apps don't know *your* civic places, and they send your location to the cloud.
-The people who most need these services - new arrivals, the elderly, the visually impaired, those
-without a smartphone they trust - are the worst served.
+Commercial maps (Google, Apple) already do shops, restaurants and big POIs (libraries included)
+well - so this is **not** a "better map". The real gap is the **civic layer councils publish but
+commercial maps don't ingest**: where you vote, winter grit bins, emergency rest centres, council
+safety cameras, and the civic detail on public toilets (accessible? baby-change? council hours).
+It's open data, but **scattered across 33 separate council portals** and hard to query in plain
+language - worst for new arrivals, the elderly, the visually impaired, and the privacy-conscious.
 
 ## Who it helps
 New arrivals finding their way · elderly/step-free needs · visually impaired (voice-first) ·
@@ -18,8 +19,9 @@ calls our **`civic-geo`** plugin over local **City-of-London open GeoJSON**, and
 speaks a grounded answer back. It remembers your situation across the whole conversation.
 
 ### Three pillars
-1. **Get me there** - finds the *right* destination for *you* (your child's school, your assigned
-   polling station) and guides you. *(libraries, schools, polling, reception centres)*
+1. **Find the civic thing maps miss** - the nearest polling station, rest centre, accessible public
+   toilet or library, and how to reach it. *(polling stations, reception centres, public toilets,
+   libraries, schools)*
 2. **Get me there safely** - prefers **monitored, busy, well-served streets**. *(CCTV, grit bins)*
    *Honest framing: CCTV here is traffic/town cameras = busy roads, **not** crime surveillance.*
 3. **Tell me about it** - hours, accessibility, what's there.
@@ -35,10 +37,11 @@ TTS → speaker`, all on a **DGX Spark (GB10, 128 GB)**. Brain + data + memory o
 ElevenLabs. We *build on* OpenClaw - our IP is the `civic-geo` plugin (5 tools) + the civic data.
 
 ## Differentiation vs a map app
-- Knows **your** civic entities (assigned polling station, enrolled school) - not generic POIs.
-- **Private + offline-capable** brain/data.
-- **Safety-aware** routing framing from real CCTV data.
-- **Accessibility-first**, voice-native.
+- Surfaces **council civic data Google/Apple don't carry** (polling stations, grit bins, rest
+  centres, council CCTV, accessible-toilet detail) - not generic commercial POIs.
+- **Private + offline-capable** brain + data (only the voice call leaves the box).
+- **Safety-aware** framing from real CCTV/grit data (busy/monitored streets).
+- **Accessibility-first**, voice-native - built for users app-centric tools underserve.
 
 ## How we hit each prize
 - **Public Services track** - improves access to city services for the people who struggle most,
@@ -49,6 +52,10 @@ ElevenLabs. We *build on* OpenClaw - our IP is the `civic-geo` plugin (5 tools) 
   and **live context retention** (judge can ask it about something said 40 min earlier).
 
 ## Honest limitations
+- We return the **nearest** polling station / school, **not your *assigned* one** yet - that needs a
+  postcode→district lookup (e.g. Democracy Club's API); a clear, scoped next step.
+- Where it overlaps commercial maps (libraries, big POIs), we're not better - our edge is the
+  council civic layer they omit, plus on-device privacy and an accessible voice interface.
 - Open civic data exists for **8 of 33** boroughs; demo focuses on **Lambeth** (only borough with
   CCTV + all destination types). Coverage is partial - the agent says so rather than inventing.
 - CCTV = traffic/town cameras (busy roads), not crime surveillance.
