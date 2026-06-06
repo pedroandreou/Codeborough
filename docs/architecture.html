@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codeborough - System Architecture</title>
+<style>
+  :root{
+    --ink:#0F172A; --ink2:#475569; --ink3:#64748B; --line:#E2E8F0;
+    --blue:#2563EB; --blueDk:#1E3A8A; --blueBg:#EFF4FF;
+    --green:#5E9400; --greenDk:#3F6212; --greenBg:#F2F8E6; --nv:#76B900;
+    --purple:#7C3AED; --purpleDk:#5B21B6; --purpleBg:#F4EFFF;
+    --orange:#EA580C; --orangeDk:#9A3412; --orangeBg:#FFF9F4;
+    --emerald:#059669; --emeraldDk:#047857;
+    --grey:#94A3B8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:#EEF2F7; color:var(--ink);
+    -webkit-font-smoothing:antialiased; padding:22px;
+    display:flex; justify-content:center;
+  }
+  .wrap{width:100%; max-width:1100px}
+  .panel{
+    background:#FBFCFE; border:1.5px solid var(--line); border-radius:18px;
+    box-shadow:0 12px 40px -16px rgba(15,23,42,.28); padding:22px 26px 18px;
+    position:relative;
+  }
+  /* header */
+  .head{display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap}
+  .titleblock{display:flex; gap:14px}
+  .accent{width:6px; border-radius:3px; background:linear-gradient(180deg,var(--blue),var(--purple),var(--nv))}
+  h1{font-size:25px; margin:2px 0 4px; letter-spacing:-.2px}
+  h1 .sep{color:var(--grey); font-weight:600}
+  h1 .sub{color:var(--ink2); font-weight:600}
+  .tag{font-size:13.5px; color:var(--ink2); margin:0; max-width:620px}
+  /* segmented toggle */
+  .toggle{display:inline-flex; background:#EAEFF5; border:1px solid var(--line); border-radius:11px; padding:3px; gap:3px; flex:none}
+  .toggle button{
+    font:inherit; font-size:12.5px; font-weight:600; color:var(--ink2);
+    border:0; background:transparent; padding:8px 14px; border-radius:8px; cursor:pointer;
+    display:flex; align-items:center; gap:7px; transition:.15s;
+  }
+  .toggle button .dot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.5}
+  .toggle button.on{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(15,23,42,.14)}
+  .toggle button.on .dot{opacity:1}
+  .toggle button[data-flow="voice"].on{color:var(--blue)}
+  .toggle button[data-flow="memory"].on{color:var(--purple)}
+  /* legend */
+  .legend{display:flex; flex-wrap:wrap; gap:6px 20px; margin:14px 0 4px; font-size:12px; color:#334155; align-items:center}
+  .legend span{display:inline-flex; align-items:center; gap:7px}
+  .sw{width:14px;height:14px;border-radius:4px;border:1.5px solid}
+  .hint{margin-left:auto; font-size:11.5px; color:var(--ink3); font-style:italic}
+  hr.div{border:0; border-top:1.5px solid #E9EEF4; margin:8px 0 4px}
+  /* stage */
+  .stage{position:relative}
+  svg{display:block; width:100%; height:auto}
+  text{ -webkit-user-select:none; user-select:none }
+  .node{cursor:pointer; transition:opacity .18s}
+  .node .card{transition:filter .18s, transform .18s; transform-box:fill-box; transform-origin:center}
+  .stage.dim .node{opacity:.26}
+  .stage.dim .node.hot{opacity:1}
+  .stage.dim .flow{opacity:.12}
+  .stage.dim .badge{opacity:.18}
+  .node.hot .card{filter:drop-shadow(0 6px 16px rgba(15,23,42,.22))}
+  .node.lit .card{stroke-width:2.6}
+  .node.lit .ring{opacity:1}
+  .ring{opacity:0; transition:opacity .2s}
+  .flow{transition:opacity .18s}
+  /* pulse */
+  #pulse{filter:drop-shadow(0 0 5px rgba(37,99,235,.9))}
+  .mflow{display:none}
+  .stage[data-flow="memory"] .vflow{display:none}
+  .stage[data-flow="memory"] .mflow{display:block}
+  /* memory-mode emphasis: data nodes not used on a recall turn */
+  .node.faded{opacity:.32; transition:opacity .25s}
+  .node.faded.hot{opacity:1}
+  .stage[data-flow="memory"] .vonly{opacity:.2; transition:opacity .25s}
+  /* flow caption */
+  .flowcap{display:flex; align-items:flex-start; gap:10px; font-size:12.5px; line-height:1.45; border:1px solid; border-radius:11px; padding:10px 13px; margin:2px 0 12px; transition:.2s}
+  .flowcap .k{flex:none; font-size:10px; font-weight:700; letter-spacing:.4px; padding:3px 9px; border-radius:7px; color:#fff; margin-top:1px}
+  .flowcap.voice{background:#EFF4FF; border-color:#D2E0FB; color:#22436b}
+  .flowcap.voice .k{background:#2563EB}
+  .flowcap.memory{background:#F6F0FF; border-color:#E4D6FB; color:#3f2a6b}
+  .flowcap.memory .k{background:#7C3AED}
+  /* popover */
+  .pop{
+    position:absolute; z-index:9; width:268px; background:#fff; border:1px solid var(--line);
+    border-radius:13px; box-shadow:0 16px 44px -10px rgba(15,23,42,.34); padding:14px 15px 15px;
+    opacity:0; transform:translateY(6px) scale(.98); pointer-events:none; transition:.16s;
+  }
+  .pop.show{opacity:1; transform:none; pointer-events:auto}
+  .pop .pill{display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:.4px; color:#fff; padding:3px 9px; border-radius:8px; margin-bottom:8px}
+  .pop h3{margin:0 0 6px; font-size:15px}
+  .pop p{margin:0; font-size:12.5px; line-height:1.5; color:var(--ink2)}
+  .pop .meta{margin-top:9px; font-size:11px; color:var(--ink3); display:flex; gap:6px; align-items:center}
+  .pop .x{position:absolute; top:9px; right:11px; cursor:pointer; color:var(--ink3); font-size:16px; line-height:1; border:0; background:0}
+  .pop:after,.pop:before{content:""; position:absolute; left:var(--ax,40px); border:9px solid transparent}
+  .pop.below:before{top:-18px; border-bottom-color:var(--line)}
+  .pop.below:after{top:-16px; border-bottom-color:#fff}
+  .pop.above:before{bottom:-18px; border-top-color:var(--line)}
+  .pop.above:after{bottom:-16px; border-top-color:#fff}
+  .foot{font-size:12px; color:#334155; line-height:1.55; margin:12px 2px 2px}
+  .foot .num{display:inline-block; min-width:16px; height:16px; line-height:16px; text-align:center; background:#1E293B; color:#fff; border-radius:50%; font-size:10px; font-weight:700; margin:0 2px}
+  .foot .fine{color:var(--ink3); font-style:italic; margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+
+    <div class="head">
+      <div class="titleblock">
+        <div class="accent"></div>
+        <div>
+          <h1>Codeborough <span class="sep">·</span> <span class="sub">System Architecture</span></h1>
+          <p class="tag">A private, on-device, voice-first civic concierge for London. Your location and queries never leave the device.</p>
+        </div>
+      </div>
+      <div class="toggle" role="tablist" aria-label="Flow">
+        <button data-flow="voice" class="on" aria-selected="true"><span class="dot"></span>Voice turn</button>
+        <button data-flow="memory" aria-selected="false"><span class="dot"></span>Memory recall</button>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><span class="sw" style="background:var(--blueBg);border-color:var(--blue)"></span>Reuse: OpenClaw runtime</span>
+      <span><span class="sw" style="background:var(--greenBg);border-color:var(--green)"></span>Nemotron: NVIDIA brain</span>
+      <span><span class="sw" style="background:var(--purpleBg);border-color:var(--purple)"></span>We write: civic-geo + data</span>
+      <span><span class="sw" style="background:var(--orangeBg);border-color:var(--orange)"></span>ElevenLabs: cloud voice</span>
+      <span><span class="sw" style="background:#F4FBF7;border-color:var(--emerald);border-style:dashed"></span>On-device boundary</span>
+      <span class="hint">Hover to focus · click a box for detail</span>
+    </div>
+    <hr class="div">
+
+    <div class="flowcap voice" id="flowcap"><span class="k" id="flowcapK">Voice turn</span><span id="flowcapT"></span></div>
+
+    <div class="stage" id="stage" data-flow="voice">
+      <svg viewBox="0 0 1060 530" id="svg" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+        <defs>
+          <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.13"/></filter>
+          <filter id="pathGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3"/></filter>
+          <marker id="aDark" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#1E293B"/></marker>
+          <marker id="aOrange" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#EA580C"/></marker>
+          <marker id="aBlue" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#2563EB"/></marker>
+          <marker id="aPurple" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#7C3AED"/></marker>
+        </defs>
+
+        <!-- ON-DEVICE BOUNDARY -->
+        <rect x="340" y="34" width="688" height="396" rx="18" fill="#F4FBF7" stroke="#059669" stroke-width="2" stroke-dasharray="8 5"/>
+        <rect x="358" y="54" width="15" height="11" rx="2" fill="none" stroke="#047857" stroke-width="2"/>
+        <path d="M361 54 v-2 a4.5 4.5 0 0 1 9 0 v2" fill="none" stroke="#047857" stroke-width="2"/>
+        <text x="382" y="56" font-size="13.5" font-weight="700" fill="#047857" letter-spacing="0.3">ON-DEVICE <tspan font-weight="600">(private)</tspan></text>
+        <text x="382" y="74" font-size="11" fill="#059669">NVIDIA DGX Spark / ZGX Nano  ·  GB10 Grace Blackwell  ·  128 GB unified memory</text>
+
+        <!-- ===== FLOW PATHS ===== -->
+        <!-- VOICE flow lines -->
+        <g class="vflow">
+          <g class="flow" fill="none" stroke="#60A5FA" stroke-width="7" stroke-linecap="round" opacity="0.30" filter="url(#pathGlow)">
+            <path d="M308 152 H364"/><path d="M548 152 H592"/><path d="M776 152 H820"/><path d="M912 222 V266"/>
+          </g>
+          <g class="flow" fill="none" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round">
+            <path d="M100 228 C120 226 124 188 128 182" marker-end="url(#aDark)"/>
+            <path d="M308 152 H364" marker-end="url(#aDark)"/>
+            <path d="M548 152 H592" marker-start="url(#aDark)" marker-end="url(#aDark)"/>
+            <path d="M776 152 H820" marker-start="url(#aDark)" marker-end="url(#aDark)"/>
+            <path d="M912 222 V266" marker-start="url(#aDark)" marker-end="url(#aDark)"/>
+          </g>
+          <g class="flow" fill="none" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 4">
+            <path d="M364 192 C332 200 330 292 312 316" marker-end="url(#aOrange)"/>
+            <path d="M120 336 C112 320 110 250 98 230" marker-end="url(#aOrange)"/>
+          </g>
+          <text transform="rotate(-90 352 244)" x="352" y="244" font-size="9.5" font-weight="600" fill="#C2410C" text-anchor="middle">answer</text>
+          <text x="466" y="248" font-size="9" font-weight="600" fill="#2563EB">save / recall</text>
+          <path class="flow" d="M456 222 V266" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3.5" marker-start="url(#aBlue)" marker-end="url(#aBlue)"/>
+        </g>
+        <!-- MEMORY flow lines -->
+        <g class="mflow">
+          <g class="flow" fill="none" stroke="#1E293B" stroke-width="2.2" stroke-linecap="round" opacity="0.5">
+            <path d="M100 228 C120 226 124 188 128 182" marker-end="url(#aDark)"/>
+            <path d="M308 152 H364" marker-end="url(#aDark)"/>
+            <path d="M548 152 H592" marker-start="url(#aDark)" marker-end="url(#aDark)"/>
+          </g>
+          <g class="flow" fill="none" stroke="#A855F7" stroke-width="7" stroke-linecap="round" opacity="0.28" filter="url(#pathGlow)">
+            <path d="M456 222 V266"/>
+          </g>
+          <path class="flow" d="M456 222 V266" fill="none" stroke="#7C3AED" stroke-width="2.6" stroke-linecap="round" marker-start="url(#aPurple)" marker-end="url(#aPurple)"/>
+          <text x="464" y="248" font-size="9.5" font-weight="700" fill="#7C3AED">recall earlier turns</text>
+          <g class="flow" fill="none" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 4" opacity="0.5">
+            <path d="M364 192 C332 200 330 292 312 316" marker-end="url(#aOrange)"/>
+            <path d="M120 336 C112 320 110 250 98 230" marker-end="url(#aOrange)"/>
+          </g>
+        </g>
+
+        <!-- ===== NODES ===== -->
+        <!-- ElevenLabs wrapper -->
+        <rect x="116" y="42" width="204" height="376" rx="16" fill="#FFF9F4" stroke="#EA580C" stroke-width="1.6" stroke-dasharray="7 4"/>
+        <path d="M134 68 a7 7 0 0 1 13 -2 a5.5 5.5 0 0 1 3 11 H132 a6 6 0 0 1 2 -9 z" fill="#FDE3CF" stroke="#EA580C" stroke-width="1.1"/>
+        <text x="156" y="76" font-size="13" font-weight="700" fill="#C2410C">ElevenLabs</text>
+        <text x="308" y="76" font-size="10" fill="#C2410C" text-anchor="end">off-device</text>
+
+        <g class="node" id="scribe" data-tag="ElevenLabs · Cloud" data-color="#EA580C" data-cx="216" data-cy="152">
+          <rect class="ring" x="120" y="78" width="192" height="148" rx="15" fill="none" stroke="#EA580C" stroke-width="3"/>
+          <rect class="card" x="124" y="82" width="184" height="140" rx="12" fill="#FFFFFF" stroke="#F2A06A" stroke-width="1.4" filter="url(#cardShadow)"/>
+          <g transform="translate(136,94)"><rect width="44" height="15" rx="7.5" fill="#EA580C"/><text x="22" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">CLOUD</text></g>
+          <text x="136" y="135" font-size="14" font-weight="700" fill="#9A3412">Scribe v2</text>
+          <text x="136" y="157" font-size="11.5" fill="#7C2D12">Realtime speech-to-text</text>
+          <text x="136" y="178" font-size="11.5" fill="#7C2D12">listens as you speak</text>
+          <text x="136" y="204" font-size="12" font-weight="700" fill="#EA580C">voice in</text>
+        </g>
+
+        <g class="node" id="eleven" data-tag="ElevenLabs · Cloud" data-color="#EA580C" data-cx="216" data-cy="336">
+          <rect class="ring" x="120" y="262" width="192" height="148" rx="15" fill="none" stroke="#EA580C" stroke-width="3"/>
+          <rect class="card" x="124" y="266" width="184" height="140" rx="12" fill="#FFFFFF" stroke="#F2A06A" stroke-width="1.4" filter="url(#cardShadow)"/>
+          <g transform="translate(136,278)"><rect width="44" height="15" rx="7.5" fill="#EA580C"/><text x="22" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">CLOUD</text></g>
+          <text x="136" y="319" font-size="14" font-weight="700" fill="#9A3412">Eleven v3</text>
+          <text x="136" y="341" font-size="11.5" fill="#7C2D12">Realtime text-to-speech</text>
+          <text x="136" y="362" font-size="11.5" fill="#7C2D12">speaks the answer aloud</text>
+          <text x="136" y="388" font-size="12" font-weight="700" fill="#EA580C">voice out</text>
+        </g>
+
+        <g class="node" id="openclaw" data-tag="Reuse · OpenClaw runtime" data-color="#2563EB" data-cx="456" data-cy="152">
+          <rect class="ring" x="360" y="78" width="192" height="148" rx="15" fill="none" stroke="#2563EB" stroke-width="3"/>
+          <rect class="card" x="364" y="82" width="184" height="140" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.6" filter="url(#cardShadow)"/>
+          <g transform="translate(376,94)"><rect width="46" height="15" rx="7.5" fill="#2563EB"/><text x="23" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">REUSE</text></g>
+          <text x="536" y="105" font-size="10" fill="#1D4ED8" text-anchor="end">:18789</text>
+          <text x="376" y="135" font-size="14" font-weight="700" fill="#1E3A8A">OpenClaw Gateway</text>
+          <text x="376" y="156" font-size="11" fill="#334155">Agent runtime + sessions</text>
+          <text x="376" y="173" font-size="11" fill="#334155">Talk: turn-taking, barge-in</text>
+          <text x="376" y="190" font-size="11" fill="#334155">routes STT / brain / TTS</text>
+          <text x="376" y="209" font-size="11" font-weight="600" fill="#1D4ED8">WS + OpenAI HTTP API</text>
+        </g>
+
+        <g class="node" id="nemotron" data-tag="NVIDIA · the brain" data-color="#5E9400" data-cx="684" data-cy="152">
+          <rect class="ring" x="588" y="78" width="192" height="148" rx="15" fill="none" stroke="#5E9400" stroke-width="3"/>
+          <rect class="card" x="592" y="82" width="184" height="140" rx="12" fill="#F2F8E6" stroke="#5E9400" stroke-width="1.6" filter="url(#cardShadow)"/>
+          <g transform="translate(604,94)"><rect width="52" height="15" rx="7.5" fill="#76B900"/><text x="26" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">NVIDIA</text></g>
+          <text x="764" y="105" font-size="10" fill="#4D7C0F" text-anchor="end">the brain</text>
+          <text x="604" y="135" font-size="14" font-weight="700" fill="#3F6212">NVIDIA Nemotron 3</text>
+          <text x="604" y="156" font-size="11" font-weight="600" fill="#4D7C0F">does the tool-calling</text>
+          <text x="604" y="173" font-size="11" fill="#334155">Nano-30B-A3B (NVFP4)</text>
+          <text x="604" y="190" font-size="11" fill="#334155">vLLM, OpenAI /v1 :8000</text>
+          <text x="604" y="209" font-size="10.5" fill="#52525B">+ embed-1b, rerank, safety</text>
+        </g>
+
+        <g class="node" id="civicgeo" data-tag="We write · our IP" data-color="#7C3AED" data-cx="912" data-cy="152">
+          <rect class="ring" x="816" y="78" width="192" height="148" rx="15" fill="none" stroke="#7C3AED" stroke-width="3"/>
+          <rect class="card" x="820" y="82" width="184" height="140" rx="12" fill="#F4EFFF" stroke="#7C3AED" stroke-width="1.6" filter="url(#cardShadow)"/>
+          <g transform="translate(832,94)"><rect width="62" height="15" rx="7.5" fill="#7C3AED"/><text x="31" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">WE WRITE</text></g>
+          <text x="992" y="105" font-size="10" fill="#6D28D9" text-anchor="end">our IP</text>
+          <text x="832" y="135" font-size="14" font-weight="700" fill="#5B21B6">civic-geo plugin</text>
+          <text x="832" y="153" font-size="10.5" fill="#334155">Our code: OpenClaw plugin</text>
+          <text x="832" y="169" font-size="10.5" fill="#334155">pure-Node, zero deps</text>
+          <text x="832" y="187" font-size="10.5" fill="#6D28D9">geocode, find_nearest,</text>
+          <text x="832" y="203" font-size="10.5" fill="#6D28D9">get_details, safety_count,</text>
+          <text x="832" y="217" font-size="10.5" fill="#6D28D9">list_coverage</text>
+        </g>
+
+        <g class="node" id="memory" data-tag="Reuse · OpenClaw runtime" data-color="#2563EB" data-cx="456" data-cy="336">
+          <rect class="ring" x="360" y="262" width="192" height="148" rx="15" fill="none" stroke="#2563EB" stroke-width="3"/>
+          <rect class="card" x="364" y="266" width="184" height="140" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.6" filter="url(#cardShadow)"/>
+          <g transform="translate(376,278)"><rect width="46" height="15" rx="7.5" fill="#2563EB"/><text x="23" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">REUSE</text></g>
+          <text x="376" y="319" font-size="14" font-weight="700" fill="#1E3A8A">Session memory</text>
+          <text x="376" y="340" font-size="11" fill="#334155">transcript + MEMORY.md</text>
+          <text x="376" y="357" font-size="11" fill="#334155">persists to disk</text>
+          <text x="376" y="374" font-size="11" fill="#334155">save / recall earlier turns</text>
+          <text x="376" y="393" font-size="11" font-weight="700" fill="#1D4ED8">long session, over 1 h 11 m</text>
+        </g>
+
+        <g class="node" id="optional" data-tag="Optional · security side-demo" data-color="#94A3B8" data-cx="684" data-cy="336" opacity="0.92">
+          <rect class="ring" x="588" y="262" width="192" height="148" rx="15" fill="none" stroke="#94A3B8" stroke-width="3"/>
+          <rect class="card" x="592" y="266" width="184" height="140" rx="12" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.4" stroke-dasharray="6 4" filter="url(#cardShadow)"/>
+          <g transform="translate(604,278)"><rect width="62" height="15" rx="7.5" fill="#94A3B8"/><text x="31" y="11" font-size="8" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">OPTIONAL</text></g>
+          <text x="764" y="289" font-size="9.5" fill="#94A3B8" text-anchor="end">side-demo</text>
+          <text x="604" y="319" font-size="13" font-weight="700" fill="#475569">NemoClaw / OpenShell</text>
+          <text x="604" y="340" font-size="11" fill="#64748B">Security side-demo</text>
+          <text x="604" y="357" font-size="11" fill="#64748B">default-deny egress</text>
+          <text x="604" y="374" font-size="11" fill="#64748B">brokered key, OCSF audit</text>
+          <text x="604" y="391" font-size="11" fill="#64748B">subordinate to main flow</text>
+        </g>
+
+        <g class="node" id="geojson" data-tag="We write · on-device data" data-color="#7C3AED" data-cx="912" data-cy="336">
+          <rect class="ring" x="816" y="262" width="192" height="148" rx="15" fill="none" stroke="#7C3AED" stroke-width="3"/>
+          <rect class="card" x="820" y="266" width="184" height="140" rx="12" fill="#F4EFFF" stroke="#7C3AED" stroke-width="1.6" filter="url(#cardShadow)"/>
+          <g transform="translate(832,278)"><rect width="62" height="15" rx="7.5" fill="#7C3AED"/><text x="31" y="11" font-size="8.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.3">WE WRITE</text></g>
+          <text x="992" y="289" font-size="10" fill="#6D28D9" text-anchor="end">on-device data</text>
+          <text x="832" y="319" font-size="14" font-weight="700" fill="#5B21B6">London GeoJSON</text>
+          <text x="832" y="340" font-size="11" fill="#334155">On-device civic datasets:</text>
+          <text x="832" y="357" font-size="11" fill="#5B21B6">libraries, schools, toilets,</text>
+          <text x="832" y="374" font-size="11" fill="#5B21B6">polling stations, CCTV,</text>
+          <text x="832" y="391" font-size="11" fill="#5B21B6">grit bins, reception centres</text>
+        </g>
+
+        <!-- USER -->
+        <g class="node" id="user" data-tag="Londoner" data-color="#334155" data-cx="74" data-cy="210">
+          <rect class="ring" x="34" y="150" width="80" height="130" rx="14" fill="none" stroke="#334155" stroke-width="2.5"/>
+          <circle cx="74" cy="206" r="13" fill="none" stroke="#334155" stroke-width="2.2"/>
+          <path d="M54 240 a20 17 0 0 1 40 0" fill="none" stroke="#334155" stroke-width="2.2"/>
+          <text x="74" y="260" font-size="13" font-weight="700" fill="#0F172A" text-anchor="middle">User</text>
+          <text x="74" y="277" font-size="11" fill="#64748B" text-anchor="middle">Londoner</text>
+        </g>
+
+        <!-- step badges (1-5 request = dark, 6-7 answer back = amber) -->
+        <g class="badge" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">
+          <g><circle cx="110" cy="200" r="11" fill="#1E293B"/><text x="110" y="204">1</text></g>
+          <g><circle cx="332" cy="152" r="11" fill="#1E293B"/><text x="332" y="156">2</text></g>
+          <g><circle cx="570" cy="152" r="11" fill="#1E293B"/><text x="570" y="156">3</text></g>
+          <g class="vonly"><circle cx="798" cy="152" r="11" fill="#1E293B"/><text x="798" y="156">4</text></g>
+          <g class="vonly"><circle cx="912" cy="244" r="11" fill="#1E293B"/><text x="912" y="248">5</text></g>
+          <g><circle cx="328" cy="286" r="11" fill="#B45309"/><text x="328" y="290">6</text></g>
+          <g><circle cx="110" cy="246" r="11" fill="#B45309"/><text x="110" y="250">7</text></g>
+        </g>
+
+        <!-- moving pulse -->
+        <circle id="pulse" r="6.5" fill="#2563EB" opacity="0"/>
+      </svg>
+
+      <!-- popover -->
+      <div class="pop" id="pop">
+        <button class="x" id="popx" aria-label="close">×</button>
+        <span class="pill" id="popPill"></span>
+        <h3 id="popTitle"></h3>
+        <p id="popDesc"></p>
+      </div>
+    </div>
+
+    <div class="foot">
+      <strong>Voice turn</strong> <span class="num">1</span> you speak (Scribe STT) <span class="num">2</span> OpenClaw Gateway <span class="num">3</span> Nemotron reasons <span class="num">4</span> civic-geo tool call <span class="num">5</span> local London GeoJSON lookup <span class="num" style="background:#B45309">6</span> the grounded answer returns through OpenClaw to Eleven v3 <span class="num" style="background:#B45309">7</span> it is spoken back, you hear. <span style="color:var(--purple);font-weight:600">Session memory</span> saves and recalls every turn, a side loop rather than a numbered step.
+      <div class="fine">Brain, data and memory are fully on-device; only the voice in and out goes through ElevenLabs, which that bounty requires.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var stage = document.getElementById('stage');
+  var svg = document.getElementById('svg');
+  var pulse = document.getElementById('pulse');
+  var nodes = Array.prototype.slice.call(document.querySelectorAll('.node'));
+  var byId = {}; nodes.forEach(function(n){ byId[n.id] = n; });
+
+  var DETAIL = {
+    user:    {pill:'Londoner', color:'#334155', title:'User', desc:'Speaks a question out loud and hears the spoken answer back. Nothing about them leaves the device except the voice audio itself.'},
+    scribe:  {pill:'ElevenLabs · Cloud', color:'#EA580C', title:'Scribe v2 - speech to text', desc:'ElevenLabs realtime STT. Turns the spoken question into text. This is the only off-device hop, inbound.'},
+    eleven:  {pill:'ElevenLabs · Cloud', color:'#EA580C', title:'Eleven v3 - text to speech', desc:'ElevenLabs realtime TTS. Speaks the grounded answer aloud. The only off-device hop, outbound.'},
+    openclaw:{pill:'Reuse · OpenClaw runtime', color:'#2563EB', title:'OpenClaw Gateway', desc:'The agent runtime we build on (daemon :18789). Runs Talk mode with turn-taking and barge-in, keeps one long-lived session, routes STT⇄brain⇄TTS, and dispatches civic-geo tool calls. Exposes a WS + OpenAI-compatible HTTP API.'},
+    nemotron:{pill:'NVIDIA · the brain', color:'#5E9400', title:'NVIDIA Nemotron 3', desc:'The brain. Nemotron-3-Nano-30B-A3B (NVFP4) served locally via vLLM on an OpenAI /v1 endpoint (:8000). It does the function/tool-calling. Supporting lineup: embed-1b + rerank-1b (RAG) and a content-safety-4b guard.'},
+    civicgeo:{pill:'We write · our IP', color:'#7C3AED', title:'civic-geo plugin', desc:'Our original code: a pure-Node, zero-dependency OpenClaw tool plugin. Five tools - geocode(), find_nearest(), get_details(), safety_count(), list_coverage().'},
+    geojson: {pill:'We write · on-device data', color:'#7C3AED', title:'London civic GeoJSON', desc:'Local, on-device datasets the plugin queries: libraries, schools, public toilets, polling stations, CCTV, grit bins and reception centres.'},
+    memory:  {pill:'Reuse · OpenClaw runtime', color:'#2563EB', title:'Session memory', desc:'Transcript .jsonl + MEMORY.md, persisted to disk. Saves and recalls earlier turns across a single long session (over 1 h 11 m) so the agent remembers your situation.'},
+    optional:{pill:'Optional · side-demo', color:'#94A3B8', title:'NemoClaw / OpenShell sandbox', desc:'An optional security side-demo: default-deny egress, the ElevenLabs key brokered so the agent never sees it, and an OCSF audit trail. Visually subordinate to the main flow.'}
+  };
+
+  /* ---------- hover focus ---------- */
+  nodes.forEach(function(n){
+    n.addEventListener('mouseenter', function(){
+      if(popOpen) return;
+      stage.classList.add('dim'); n.classList.add('hot');
+    });
+    n.addEventListener('mouseleave', function(){
+      if(popOpen) return;
+      stage.classList.remove('dim'); n.classList.remove('hot');
+    });
+    n.addEventListener('click', function(e){ e.stopPropagation(); openPop(n); });
+  });
+
+  /* ---------- popover ---------- */
+  var pop = document.getElementById('pop');
+  var popOpen = false, popNode = null;
+  function openPop(n){
+    var d = DETAIL[n.id]; if(!d) return;
+    popNode = n; popOpen = true;
+    document.getElementById('popPill').textContent = d.pill;
+    document.getElementById('popPill').style.background = d.color;
+    document.getElementById('popTitle').textContent = d.title;
+    document.getElementById('popDesc').textContent = d.desc;
+    // focus this node
+    stage.classList.add('dim');
+    nodes.forEach(function(x){ x.classList.remove('hot'); });
+    n.classList.add('hot');
+    // position popover relative to node, using SVG->screen mapping
+    pop.classList.add('show');
+    positionPop(n);
+  }
+  function positionPop(n){
+    var cx = +n.getAttribute('data-cx'), cy = +n.getAttribute('data-cy');
+    var rect = svg.getBoundingClientRect();
+    var vb = svg.viewBox.baseVal;
+    var sx = rect.width / vb.width, sy = rect.height / vb.height;
+    var px = cx * sx, py = cy * sy;             // node centre in stage px
+    var pw = pop.offsetWidth, ph = pop.offsetHeight;
+    var stageW = stage.clientWidth;
+    var below = py < ph + 90;                    // open below if not enough room above
+    var left = px - pw/2;
+    left = Math.max(6, Math.min(left, stageW - pw - 6));
+    var arrow = px - left;                       // arrow x within popover
+    arrow = Math.max(18, Math.min(arrow, pw - 18));
+    pop.style.setProperty('--ax', (arrow - 9) + 'px');
+    pop.classList.toggle('below', below);
+    pop.classList.toggle('above', !below);
+    var nodeHalf = 78 * sy;                       // approx half-card height
+    if(below){ pop.style.top = (py + nodeHalf*0.55 + 12) + 'px'; }
+    else     { pop.style.top = (py - nodeHalf*0.55 - ph - 12) + 'px'; }
+    pop.style.left = left + 'px';
+  }
+  function closePop(){
+    popOpen = false; popNode = null;
+    pop.classList.remove('show');
+    stage.classList.remove('dim');
+    nodes.forEach(function(x){ x.classList.remove('hot'); });
+  }
+  document.getElementById('popx').addEventListener('click', function(e){ e.stopPropagation(); closePop(); });
+  document.addEventListener('click', function(){ if(popOpen) closePop(); });
+  pop.addEventListener('click', function(e){ e.stopPropagation(); });
+  window.addEventListener('resize', function(){ if(popOpen && popNode) positionPop(popNode); });
+
+  /* ---------- pulse animation ---------- */
+  var C = {}; nodes.forEach(function(n){ C[n.id] = {x:+n.getAttribute('data-cx'), y:+n.getAttribute('data-cy')}; });
+  var FLOWS = {
+    voice:  {color:'#2563EB', seq:['user','scribe','openclaw','nemotron','civicgeo','geojson','civicgeo','nemotron','openclaw','memory','openclaw','eleven','user']},
+    memory: {color:'#7C3AED', seq:['user','scribe','openclaw','memory','openclaw','nemotron','openclaw','eleven','user']}
+  };
+  var flow = 'voice', raf=null, seg=0, t=0, lastLit=null, paused=false;
+
+  function setFlow(f){
+    flow = f; stage.setAttribute('data-flow', f);
+    document.querySelectorAll('.toggle button').forEach(function(b){
+      var on = b.getAttribute('data-flow')===f; b.classList.toggle('on', on); b.setAttribute('aria-selected', on);
+    });
+    pulse.setAttribute('fill', FLOWS[f].color);
+    pulse.style.filter = 'drop-shadow(0 0 5px '+FLOWS[f].color+')';
+    var cap = document.getElementById('flowcap');
+    cap.className = 'flowcap ' + f;
+    document.getElementById('flowcapK').textContent = (f==='voice' ? 'Voice turn' : 'Memory recall');
+    document.getElementById('flowcapT').textContent = (f==='voice'
+      ? 'A fresh question. Voice in, the brain calls civic-geo to look up live London data, then speaks a grounded answer back. The numbered pulse runs all the way out to the datasets and back.'
+      : 'A follow-up later in the same session. The agent answers from Session memory with no new tool lookup, which is the ElevenLabs recall bounty. Notice civic-geo and the data sit idle this turn.');
+    ['civicgeo','geojson'].forEach(function(id){ byId[id].classList.toggle('faded', f==='memory'); });
+    restart();
+  }
+  function restart(){ seg=0; t=0; if(lastLit){byId[lastLit] && byId[lastLit].classList.remove('lit'); lastLit=null;} }
+
+  function lit(id){
+    if(lastLit && lastLit!==id){ byId[lastLit].classList.remove('lit'); }
+    if(id && !popOpen){ byId[id] && byId[id].classList.add('lit'); }
+    lastLit = id;
+  }
+
+  function tick(){
+    raf = requestAnimationFrame(tick);
+    if(paused || popOpen){ pulse.setAttribute('opacity','0'); return; }
+    var seq = FLOWS[flow].seq;
+    var a = C[seq[seg]], b = C[seq[(seg+1)%seq.length]];
+    if(seg+1 >= seq.length){ // loop with a pause
+      pulse.setAttribute('opacity','0');
+      t += 0.016;
+      if(t > 0.9){ restart(); }
+      return;
+    }
+    var dx=b.x-a.x, dy=b.y-a.y, dist=Math.sqrt(dx*dx+dy*dy);
+    var speed = 360; // px per second
+    t += (speed/Math.max(dist,1)) * (1/60);
+    var e = t<1 ? t : 1;
+    var x = a.x + dx*e, y = a.y + dy*e;
+    pulse.setAttribute('cx', x); pulse.setAttribute('cy', y);
+    pulse.setAttribute('opacity', 0.95);
+    lit(seq[seg]);
+    if(t>=1){ t=0; seg++; lit(seq[Math.min(seg,seq.length-1)]); if(seg>=seq.length-1){ t=0; } }
+  }
+
+  document.querySelectorAll('.toggle button').forEach(function(b){
+    b.addEventListener('click', function(){ setFlow(b.getAttribute('data-flow')); });
+  });
+  // pause pulse while hovering the stage so inspection is calm
+  stage.addEventListener('mouseenter', function(){ paused = true; pulse.setAttribute('opacity','0'); });
+  stage.addEventListener('mouseleave', function(){ paused = false; });
+
+  setFlow('voice');
+  tick();
+})();
+</script>
+</body>
+</html>

@@ -49,9 +49,13 @@ data surfaces detail a map app can't), and **anywhere** (self-contained, no clou
 ## Architecture
 
 How the components come together - voice via ElevenLabs, brain via Nemotron, grounded by our
-`civic-geo` plugin over local data, all orchestrated by OpenClaw on the device:
+`civic-geo` plugin over local data, all orchestrated by OpenClaw on the device.
 
-![Codeborough system architecture](docs/architecture.svg)
+**📐 Interactive diagram → [`docs/architecture.html`](docs/architecture.html)** - open it in a
+browser for the full interactive view. (GitHub shows committed HTML as source, so either download +
+open it, or view it live via
+[htmlpreview](https://htmlpreview.github.io/?https://github.com/pedroandreou/Codeborough/blob/main/docs/architecture.html)
+when the repo is public.)
 
 **Flow:** user speaks → ① ElevenLabs Scribe STT → ② OpenClaw Gateway → ③ Nemotron reasons and
 calls tools → ④ `civic-geo` plugin → ⑤ queries the local GeoJSON → results return to Nemotron →
