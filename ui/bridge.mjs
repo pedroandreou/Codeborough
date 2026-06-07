@@ -21,6 +21,10 @@ import { join } from "node:path";
 import { geocode, findNearest, safetyCount, routeSafety, getDetails, listCoverage } from "../plugins/civic-geo/src/geo.mjs";
 
 const PORT = Number(process.env.BRIDGE_PORT || 8091);
+// Bind 0.0.0.0 by default so Docker's published port (and the browser) can reach it; the
+// container is the exposure boundary, not this bind. Set BRIDGE_HOST=127.0.0.1 for a
+// loopback-only local run.
+const HOST = process.env.BRIDGE_HOST || "0.0.0.0";
 const EL_KEY = process.env.ELEVENLABS_API_KEY || "";
 const EL_VOICE = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM";
 const EL_MODEL = process.env.ELEVENLABS_MODEL || "eleven_multilingual_v2";
@@ -297,6 +301,6 @@ createServer(async (req, res) => {
   } catch (e) {
     return json(res, { error: String(e.message || e) }, 500);
   }
-}).listen(PORT, "127.0.0.1", () =>
-  console.log(`Codeborough bridge on http://127.0.0.1:${PORT}  (voice: ${EL_KEY ? "on" : "off"})`),
+}).listen(PORT, HOST, () =>
+  console.log(`Codeborough bridge on http://${HOST}:${PORT}  (voice: ${EL_KEY ? "on" : "off"})`),
 );
