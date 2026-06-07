@@ -146,13 +146,24 @@ function agentViaCli(message, session) {
   });
 }
 
-async function runAgent(message, session = "codeborough-ui", lang, grounded) {
+async function _runAgent(message, session, lang, grounded) {
   const msg = composeMessage(message, lang, grounded);
   if (OC_HTTP) {
     try { return await agentViaHttp(msg, session); }
     catch (e) { console.error("[agent] HTTP failed (" + e.message + "), falling back to CLI"); }
   }
   return agentViaCli(msg, session);
+}
+
+// Serialize agent runs PER SESSION: each `openclaw agent --local` locks the session's
+// .jsonl file, so two concurrent /ask on the same session collide
+// (EmbeddedAttemptSessionTakeoverError). Queue same-session calls; different sessions run in parallel.
+const sessionChains = new Map();
+function runAgent(message, session = "codeborough-ui", lang, grounded) {
+  const prev = sessionChains.get(session) || Promise.resolve();
+  const next = prev.catch(() => {}).then(() => _runAgent(message, session, lang, grounded));
+  sessionChains.set(session, next.catch(() => {}));
+  return next;
 }
 
 async function tts(text) {

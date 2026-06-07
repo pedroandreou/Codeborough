@@ -141,7 +141,7 @@
     <details><summary id="sumSaved">Saved places</summary><div id="savedlist"></div></details>
     <details><summary>Conversation</summary><div id="transcript"></div></details>
 
-    <div class="lbl" style="padding:0 18px">Try a sample (works offline)</div>
+    <div class="lbl" style="padding:0 18px">Rehearsal samples (pre-canned, no backend - the live buttons above run on-device)</div>
     <div class="samples">
       <button onclick="sample('polling')">🗳️ Vote</button>
       <button onclick="sample('toilets')">🚻 Toilet</button>
@@ -294,7 +294,10 @@ let currentAudio=null;
 async function speak(text){if(muted||!text)return;try{const r=await fetch(bridgeUrl()+"/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:text.slice(0,700)})});if(r.ok){if(currentAudio){try{currentAudio.pause();}catch(e){}}currentAudio=new Audio(URL.createObjectURL(await r.blob()));currentAudio.play();}}catch(e){}}
 /* screen-reader announcer for transient status (working / errors / mic) - clear+set so identical messages re-announce */
 function announce(msg){const s=$("#sr");if(!s||!msg)return;s.textContent="";setTimeout(()=>{s.textContent=msg;},40);}
-function trans(who,tx){const el=$("#transcript");el.innerHTML+=`<div class="msg"><span class="who">${who}</span><span class="b" dir="auto">${(tx||"").replace(/</g,"&lt;")}</span></div>`;el.scrollTop=el.scrollHeight;}
+function convoRow(who,tx){return `<div class="msg"><span class="who">${who}</span><span class="b" dir="auto">${(tx||"").replace(/</g,"&lt;")}</span></div>`;}
+function trans(who,tx){const el=$("#transcript");el.innerHTML+=convoRow(who,tx);el.scrollTop=el.scrollHeight;
+  try{const c=JSON.parse(localStorage.cb_convo||"[]");c.push({who,tx});localStorage.cb_convo=JSON.stringify(c.slice(-60));}catch(e){}}
+function restoreConvo(){try{const c=JSON.parse(localStorage.cb_convo||"[]");if(c.length){const el=$("#transcript");el.innerHTML=c.map(m=>convoRow(m.who,m.tx)).join("");el.scrollTop=el.scrollHeight;}}catch(e){}}
 
 async function directions(){
   if(!lastResult||!lastOrigin)return;
@@ -322,7 +325,7 @@ function savePlace(r){if(!r)return;const s=getSaved();if(!s.find(p=>p.name===r.n
 function renderSaved(){const s=getSaved();$("#savedlist").innerHTML=s.length?s.map((p,i)=>`<div class="saved"><span>${ICON[p.facility]||"📍"} ${p.name}</span><span><button onclick="recall(${i})">Show</button> <button onclick="unsave(${i})">✕</button></span></div>`).join(""):"<div style='color:var(--muted);padding:6px 0'>None yet - tap ⭐ on an answer.</div>";}
 function recall(i){const p=getSaved()[i];if(!p)return;showOnMap(lastOrigin,[{...p,distance_m:null,extra:{}}]);showAnswer({...p,distance_m:null,extra:{}},p.name,lastOrigin);}
 function unsave(i){const s=getSaved();s.splice(i,1);localStorage.cb_saved=JSON.stringify(s);renderSaved();}
-renderSaved();
+renderSaved();restoreConvo();
 
 /* ---------- core flow ---------- */
 /* Infer which civic service a free-text question is about, so a typed/spoken
@@ -433,7 +436,7 @@ function sample(k){$("#place").value="Brixton";
   if(k==="rest"){showOnMap(S.brixton,[S.rest]);showAnswer(S.rest,"The nearest emergency rest centre is in Brixton, about a 7 minute walk.",S.brixton);speak("The nearest rest centre is in Brixton, about a 7 minute walk.");}
   if(k==="safety"){const sa={query:{radiusM:500},cctv_count:41,nearest_cameras:S.cams};showOnMap(S.brixton,[],sa);showAnswer(null,"There are 41 cameras on the busy, monitored main roads near Brixton - keep to those well-lit streets.",S.brixton);speak("There are 41 cameras on the busy monitored roads near Brixton.");}
 }
-function clearAll(){clearMap();$("#answer").classList.remove("show");$("#transcript").innerHTML="";$("#ph").style.display="";$("#listview").innerHTML="";lastResult=null;}
+function clearAll(){clearMap();$("#answer").classList.remove("show");$("#transcript").innerHTML="";localStorage.cb_convo="[]";$("#ph").style.display="";$("#listview").innerHTML="";lastResult=null;}
 </script>
 </body>
 </html>
