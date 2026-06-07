@@ -63,6 +63,9 @@
   details{margin:8px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
   summary{cursor:pointer;padding:10px 14px;font-weight:700;font-size:calc(14px*var(--fs))}
   #transcript,#savedlist{padding:0 14px 12px;max-height:180px;overflow:auto;font-size:calc(14px*var(--fs))}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:7px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #send:disabled{opacity:.6;cursor:progress}
   .msg{margin:6px 0}.msg .who{color:var(--muted);font-size:calc(11px*var(--fs));text-transform:uppercase}
   .msg .b{display:block;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:7px 10px;margin-top:2px;white-space:pre-wrap}
   .saved{display:flex;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;align-items:center}
@@ -342,7 +345,10 @@ function inferCat(s){
   if(/grit|salt bin|grit bin/.test(m))return "grit";
   return null;
 }
+function setBusy(on){const b=$("#send");if(on){if(b){b.disabled=true;b._lbl=b._lbl||b.textContent;b.textContent="Working…";}const a=$("#answer");if(a){a.innerHTML='<div class="say"><span class="spin"></span>Finding the answer…</div>';a.classList.add("show");}}else if(b){b.disabled=false;if(b._lbl)b.textContent=b._lbl;}}
 async function run(message,category){
+  setBusy(true);
+  try{
   trans("You",message);
   const cat=category||inferCat(message);   // bug 1: derive the service from the question, never a blind "nearest anything"
   announce(cat?"One moment - finding the nearest…":"One moment…");
@@ -384,6 +390,7 @@ async function run(message,category){
     const msg="(bridge offline - start ui/bridge.mjs on :8091)";
     trans("Codeborough",msg);showAnswer(null,msg,origin);
   }
+  }finally{setBusy(false);}
 }
 function ask(){const m=$("#q").value.trim();if(!m)return;$("#q").value="";run(m,null);}
 $("#send").onclick=ask;$("#q").addEventListener("keydown",e=>{if(e.key==="Enter")ask();});
