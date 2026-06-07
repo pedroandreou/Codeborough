@@ -22,23 +22,27 @@
     -webkit-font-smoothing:antialiased; padding:22px;
     display:flex; justify-content:center;
   }
-  .wrap{width:100%; max-width:1140px}
+  .wrap{width:100%; max-width:1160px}
   .panel{
     background:#FBFCFE; border:1.5px solid var(--line); border-radius:18px;
     box-shadow:0 12px 40px -16px rgba(15,23,42,.28); padding:22px 26px 18px;
   }
   .head{display:flex; align-items:flex-start; gap:14px}
   .accent{width:6px; border-radius:3px; background:linear-gradient(180deg,var(--blue),var(--purple),var(--nv)); align-self:stretch}
-  h1{font-size:25px; margin:2px 0 4px; letter-spacing:-.2px}
+  h1{font-size:24px; margin:2px 0 4px; letter-spacing:-.2px}
   h1 .sep{color:var(--grey); font-weight:600}
   h1 .sub{color:var(--ink2); font-weight:600}
-  .tag{font-size:13.5px; color:var(--ink2); margin:0; max-width:760px}
-  .legend{display:flex; flex-wrap:wrap; gap:6px 18px; margin:14px 0 4px; font-size:12px; color:#334155; align-items:center}
-  .legend span{display:inline-flex; align-items:center; gap:7px}
-  .sw{width:14px;height:14px;border-radius:4px;border:1.5px solid}
-  hr.div{border:0; border-top:1.5px solid #E9EEF4; margin:8px 0 6px}
-  .flowcap{font-size:12.5px; line-height:1.5; border:1px solid #BBF7D0; background:#F0FBF6; color:#14532d; border-radius:11px; padding:10px 13px; margin:2px 0 12px}
+  .tag{font-size:13px; color:var(--ink2); margin:0; max-width:780px; line-height:1.45}
+  .legend{display:flex; flex-wrap:wrap; gap:7px 16px; margin:14px 0 0; font-size:11.5px; color:#334155; align-items:center}
+  .legend.two{margin-top:7px}
+  .legend .lab{font-size:10px; font-weight:700; letter-spacing:.4px; color:#94A3B8; text-transform:uppercase; margin-right:2px}
+  .legend span.it{display:inline-flex; align-items:center; gap:7px}
+  .sw{width:14px;height:14px;border-radius:4px;border:1.5px solid; flex:none}
+  .dot{width:11px;height:11px;border-radius:3px; flex:none}
+  hr.div{border:0; border-top:1.5px solid #E9EEF4; margin:11px 0 9px}
+  .flowcap{font-size:12.5px; line-height:1.5; border:1px solid #BBF7D0; background:#F0FBF6; color:#14532d; border-radius:11px; padding:11px 14px; margin:0 0 12px}
   .flowcap b{color:#065f46}
+  .flowcap code{background:#DCFCE7; padding:1px 5px; border-radius:5px; font-size:11.5px; color:#065f46}
   svg{display:block; width:100%; height:auto}
   text{ -webkit-user-select:none; user-select:none }
   .foot{font-size:12px; color:#334155; line-height:1.55; margin:12px 2px 2px}
@@ -53,155 +57,166 @@
     <div class="head">
       <div class="accent"></div>
       <div>
-        <h1>Codeborough <span class="sep">&middot;</span> <span class="sub">System Architecture &middot; containers &amp; connections</span></h1>
-        <p class="tag">A private, on-device, voice-first civic concierge for London. Four Docker containers on one box: who runs what, on which network, and what talks to what.</p>
+        <h1>Codeborough <span class="sep">&middot;</span> <span class="sub">System Architecture</span></h1>
+        <p class="tag">A private, on-device, voice-first civic concierge for London. Four Docker containers on one box: who runs what, on which network, and what talks to what. The reasoning core has no internet route; the only door out is a default-deny proxy to ElevenLabs.</p>
       </div>
     </div>
 
     <div class="legend">
-      <span><span class="sw" style="background:#FFFFFF;border-color:var(--slate);border-style:dashed"></span>Docker container</span>
-      <span><span class="sw" style="background:#FEF2F2;border-color:#FCA5A5;border-style:dashed"></span>core_net (internal, no internet)</span>
-      <span><span class="sw" style="background:#EFF4FF;border-color:#93C5FD;border-style:dashed"></span>edge_net (internet-facing)</span>
-      <span><span class="sw" style="background:#FFF9F4;border-color:var(--orange)"></span>off-device (cloud)</span>
-      <span><span class="sw" style="background:#F4FBF7;border-color:var(--emerald);border-style:dashed"></span>on-device host</span>
+      <span class="lab">Networks</span>
+      <span class="it"><span class="sw" style="background:#F4FBF7;border-color:var(--emerald);border-style:dashed"></span>on-device host</span>
+      <span class="it"><span class="sw" style="background:#EFF4FF;border-color:#93C5FD;border-style:dashed"></span>edge_net &middot; internet-facing</span>
+      <span class="it"><span class="sw" style="background:#FEF2F2;border-color:#FCA5A5;border-style:dashed"></span>core_net &middot; internal, no internet</span>
+      <span class="it"><span class="sw" style="background:#FFF9F4;border-color:var(--orange)"></span>off-device cloud</span>
+    </div>
+    <div class="legend two">
+      <span class="lab">Built by</span>
+      <span class="it"><span class="dot" style="background:#2563EB"></span>reuse &middot; OpenClaw</span>
+      <span class="it"><span class="dot" style="background:#76B900"></span>NVIDIA &middot; Nemotron</span>
+      <span class="it"><span class="dot" style="background:#7C3AED"></span>our code &amp; data</span>
+      <span class="it"><span class="dot" style="background:#475569"></span>infra &middot; container</span>
     </div>
     <hr class="div">
 
-    <div class="flowcap"><b>How it runs:</b> the user's browser hits only <b>bridge :8091</b>. The reasoning core - <b>vllm</b> (the brain) and <b>gateway</b> (OpenClaw + civic-geo + memory + data) - sits on <b>core_net</b>, which is <code>internal: true</code>, so it has <b>no route to the internet at all</b>. The only way out of the box is the default-deny <b>egress-proxy</b>, and it allows only ElevenLabs. Volumes (cb_models, cb_memory) are mounted into the containers that need them.</div>
+    <div class="flowcap"><b>How it runs:</b> the browser hits only <b>bridge :8091</b>. The reasoning core, <b>vllm</b> (the brain) and <b>gateway</b> (OpenClaw + civic-geo + memory + data), sits on <b>core_net</b> which is <code>internal: true</code>, so it has <b>no route to the internet at all</b>. The single way off the box is the default-deny <b>egress-proxy</b>, allowing only ElevenLabs. The <b>brain</b> is Nemotron, in <b>vllm</b>; <b>OpenClaw</b> (in the gateway) is the orchestrator that drives it and calls our <b>civic-geo</b> plugin, which answers from local London data.</div>
 
     <div class="stage">
-      <svg viewBox="0 0 1120 640" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+      <svg viewBox="0 0 1120 596" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
         <defs>
-          <filter id="cs" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.13"/></filter>
-          <marker id="aD" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#1E293B"/></marker>
-          <marker id="aO" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#EA580C"/></marker>
-          <marker id="aP" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#7C3AED"/></marker>
+          <marker id="aD" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#1E293B"/></marker>
+          <marker id="aO" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 L2.6,5 Z" fill="#EA580C"/></marker>
         </defs>
 
         <!-- ===================== OFF-DEVICE column ===================== -->
-        <text x="28" y="40" font-size="11.5" font-weight="700" fill="#64748B" letter-spacing="0.3">OFF-DEVICE</text>
+        <text x="26" y="34" font-size="11" font-weight="700" fill="#94A3B8" letter-spacing="0.5">OFF-DEVICE</text>
+
         <!-- Browser -->
-        <rect x="26" y="116" width="150" height="100" rx="12" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.4" filter="url(#cs)"/>
-        <circle cx="58" cy="150" r="11" fill="none" stroke="#334155" stroke-width="2"/><path d="M42 180 a16 13 0 0 1 32 0" fill="none" stroke="#334155" stroke-width="2"/>
-        <text x="82" y="148" font-size="13" font-weight="700" fill="#0F172A">Browser</text>
-        <text x="82" y="166" font-size="9.5" fill="#64748B">phone / laptop</text>
-        <text x="34" y="200" font-size="10" fill="#475569">UI + mic + speaker</text>
+        <rect x="24" y="120" width="156" height="104" rx="12" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.5"/>
+        <circle cx="54" cy="153" r="10" fill="none" stroke="#334155" stroke-width="2"/>
+        <path d="M40 181 a14 12 0 0 1 28 0" fill="none" stroke="#334155" stroke-width="2"/>
+        <text x="78" y="150" font-size="13" font-weight="700" fill="#0F172A">Browser</text>
+        <text x="78" y="167" font-size="9.5" fill="#64748B">phone / laptop</text>
+        <text x="38" y="206" font-size="10" fill="#475569">UI &middot; mic &middot; speaker</text>
+
         <!-- ElevenLabs -->
-        <rect x="26" y="392" width="150" height="120" rx="12" fill="#FFF9F4" stroke="#EA580C" stroke-width="1.5" filter="url(#cs)"/>
-        <g transform="translate(40,406)"><rect width="44" height="15" rx="7.5" fill="#EA580C"/><text x="22" y="11" font-size="8.5" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CLOUD</text></g>
-        <text x="40" y="446" font-size="13" font-weight="700" fill="#9A3412">ElevenLabs</text>
-        <text x="40" y="466" font-size="10" fill="#7C2D12">Scribe STT (voice in)</text>
-        <text x="40" y="482" font-size="10" fill="#7C2D12">Eleven TTS (voice out)</text>
-        <text x="40" y="500" font-size="9" fill="#C2410C">the only external service</text>
+        <rect x="24" y="400" width="156" height="104" rx="12" fill="#FFF9F4" stroke="#EA580C" stroke-width="1.5"/>
+        <g transform="translate(38,414)"><rect width="44" height="15" rx="7.5" fill="#EA580C"/><text x="22" y="11" font-size="8.5" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CLOUD</text></g>
+        <text x="38" y="452" font-size="13" font-weight="700" fill="#9A3412">ElevenLabs</text>
+        <text x="38" y="470" font-size="9.5" fill="#7C2D12">Scribe STT in &middot; Eleven v3 out</text>
+        <text x="38" y="488" font-size="9" fill="#C2410C">the only external service</text>
 
         <!-- ===================== HOST ===================== -->
-        <rect x="196" y="58" width="900" height="558" rx="18" fill="#F4FBF7" stroke="#059669" stroke-width="2" stroke-dasharray="8 5"/>
-        <rect x="218" y="78" width="15" height="11" rx="2" fill="none" stroke="#047857" stroke-width="2"/><path d="M221 78 v-2 a4.5 4.5 0 0 1 9 0 v2" fill="none" stroke="#047857" stroke-width="2"/>
-        <text x="242" y="88" font-size="12.5" font-weight="700" fill="#047857">ON-DEVICE &middot; NVIDIA DGX Spark (GB10) &middot; one Docker host</text>
+        <rect x="204" y="54" width="892" height="520" rx="18" fill="#F4FBF7" stroke="#059669" stroke-width="2" stroke-dasharray="8 5"/>
+        <rect x="226" y="74" width="15" height="11" rx="2" fill="none" stroke="#047857" stroke-width="2"/>
+        <path d="M229 74 v-2 a4.5 4.5 0 0 1 9 0 v2" fill="none" stroke="#047857" stroke-width="2"/>
+        <text x="250" y="84" font-size="12.5" font-weight="700" fill="#047857">ON-DEVICE &middot; NVIDIA DGX Spark (GB10) &middot; one Docker host</text>
 
         <!-- ===================== edge_net zone ===================== -->
-        <rect x="216" y="120" width="252" height="476" rx="14" fill="#EFF4FF" fill-opacity="0.45" stroke="#93C5FD" stroke-width="1.4" stroke-dasharray="6 4"/>
-        <text x="232" y="140" font-size="12" font-weight="700" fill="#1D4ED8">edge_net <tspan font-weight="500" fill="#64748B">&middot; can reach the internet</tspan></text>
+        <rect x="222" y="112" width="282" height="446" rx="14" fill="#EFF4FF" fill-opacity="0.5" stroke="#93C5FD" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="240" y="133" font-size="12" font-weight="700" fill="#1D4ED8">edge_net <tspan font-weight="500" fill="#64748B">&middot; internet-facing</tspan></text>
 
         <!-- bridge container -->
-        <rect x="234" y="156" width="216" height="186" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.7" filter="url(#cs)"/>
-        <g transform="translate(248,168)"><rect width="74" height="16" rx="8" fill="#334155"/><text x="37" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CONTAINER</text></g>
-        <text x="438" y="180" font-size="10" font-weight="700" fill="#1D4ED8" text-anchor="end">:8091</text>
-        <text x="248" y="208" font-size="14.5" font-weight="700" fill="#1E3A8A">bridge</text>
-        <text x="248" y="228" font-size="10.5" fill="#334155">bridge.mjs (Node, zero-dep)</text>
-        <text x="248" y="246" font-size="10.5" fill="#334155">serves the UI + map</text>
-        <text x="248" y="264" font-size="10.5" fill="#334155">relays voice + agent calls</text>
-        <text x="248" y="285" font-size="10.5" font-weight="700" fill="#1D4ED8">:8091 = the only inbound port</text>
-        <text x="248" y="305" font-size="9.5" fill="#64748B">on edge_net + core_net</text>
-        <text x="248" y="324" font-size="9.5" fill="#64748B">(the one container that bridges both)</text>
+        <rect x="240" y="150" width="248" height="170" rx="13" fill="#FFFFFF" stroke="#8A98A8" stroke-width="1.7"/>
+        <g transform="translate(254,162)"><rect width="72" height="16" rx="8" fill="#475569"/><text x="36" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.4">CONTAINER</text></g>
+        <text x="474" y="174" font-size="10" font-weight="700" fill="#475569" text-anchor="end">:8091</text>
+        <text x="254" y="202" font-size="15" font-weight="700" fill="#0F172A">bridge</text>
+        <text x="254" y="220" font-size="9.5" fill="#64748B">our code &middot; bridge.mjs (Node, zero-dep)</text>
+        <rect x="254" y="230" width="220" height="78" rx="9" fill="#F8F5FF" stroke="#D9C9F7" stroke-width="1.2"/>
+        <text x="266" y="250" font-size="11" font-weight="700" fill="#5B21B6">serves UI + map, relays voice</text>
+        <text x="266" y="268" font-size="9.5" fill="#475569">:8091 is the only inbound port</text>
+        <text x="266" y="284" font-size="9.5" fill="#475569">keeps the ElevenLabs key server-side</text>
+        <text x="266" y="301" font-size="9.5" font-weight="700" fill="#1D4ED8">dual-homed: edge_net + core_net</text>
 
         <!-- egress-proxy container -->
-        <rect x="234" y="372" width="216" height="176" rx="12" fill="#F1F5F9" stroke="#475569" stroke-width="1.7" filter="url(#cs)"/>
-        <g transform="translate(248,384)"><rect width="74" height="16" rx="8" fill="#334155"/><text x="37" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CONTAINER</text></g>
-        <text x="248" y="424" font-size="14.5" font-weight="700" fill="#334155">egress-proxy</text>
-        <text x="248" y="444" font-size="10.5" fill="#475569">tinyproxy</text>
-        <text x="248" y="462" font-size="10.5" font-weight="700" fill="#B91C1C">default-deny</text>
-        <text x="248" y="480" font-size="10.5" fill="#475569">allow *.elevenlabs.io only</text>
-        <text x="248" y="500" font-size="10" fill="#64748B">the single controlled door</text>
-        <text x="248" y="516" font-size="10" fill="#64748B">out of the whole box</text>
-        <text x="248" y="534" font-size="9.5" fill="#64748B">on edge_net + core_net</text>
+        <rect x="240" y="360" width="248" height="170" rx="13" fill="#FFFFFF" stroke="#8A98A8" stroke-width="1.7"/>
+        <g transform="translate(254,372)"><rect width="72" height="16" rx="8" fill="#475569"/><text x="36" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.4">CONTAINER</text></g>
+        <text x="474" y="384" font-size="10" font-weight="700" fill="#475569" text-anchor="end">:8888</text>
+        <text x="254" y="412" font-size="15" font-weight="700" fill="#0F172A">egress-proxy</text>
+        <text x="254" y="430" font-size="9.5" fill="#64748B">infra &middot; tinyproxy</text>
+        <rect x="254" y="440" width="220" height="78" rx="9" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.2"/>
+        <text x="266" y="460" font-size="11" font-weight="700" fill="#B91C1C">default-deny allowlist</text>
+        <text x="266" y="478" font-size="9.5" fill="#475569">allow *.elevenlabs.io only, else 403</text>
+        <text x="266" y="494" font-size="9.5" fill="#475569">the single controlled door off the box</text>
+        <text x="266" y="511" font-size="9.5" font-weight="700" fill="#B45309">CONNECT :443 (HTTPS)</text>
 
         <!-- ===================== core_net zone ===================== -->
-        <rect x="490" y="120" width="588" height="476" rx="14" fill="#FEF2F2" fill-opacity="0.6" stroke="#FCA5A5" stroke-width="1.6" stroke-dasharray="6 4"/>
-        <text x="506" y="140" font-size="12" font-weight="700" fill="#B91C1C">core_net <tspan font-weight="600">&middot; internal: true</tspan></text>
-        <g transform="translate(936,126)"><rect width="132" height="20" rx="10" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.2"/><text x="66" y="14" font-size="10" font-weight="700" fill="#B91C1C" text-anchor="middle">NO internet route</text></g>
+        <rect x="514" y="112" width="564" height="446" rx="14" fill="#FEF2F2" fill-opacity="0.6" stroke="#FCA5A5" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <text x="532" y="133" font-size="12" font-weight="700" fill="#B91C1C">core_net <tspan font-weight="600" fill="#475569">&middot; internal: true</tspan></text>
+        <g transform="translate(932,119)"><rect width="130" height="20" rx="10" fill="#FEE2E2" stroke="#EF4444" stroke-width="1.2"/><text x="65" y="14" font-size="9.5" font-weight="700" fill="#B91C1C" text-anchor="middle">NO internet route</text></g>
 
-        <!-- gateway container (holds 4 components) -->
-        <rect x="510" y="156" width="262" height="424" rx="12" fill="#EFF4FF" stroke="#2563EB" stroke-width="1.7" filter="url(#cs)"/>
-        <g transform="translate(524,168)"><rect width="74" height="16" rx="8" fill="#334155"/><text x="37" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CONTAINER</text></g>
-        <text x="760" y="180" font-size="10" font-weight="700" fill="#1D4ED8" text-anchor="end">:18789</text>
-        <text x="524" y="206" font-size="14.5" font-weight="700" fill="#1E3A8A">gateway</text>
-        <text x="524" y="223" font-size="9.5" fill="#64748B">OpenClaw runtime + civic-geo + memory + data</text>
-        <!-- 4 inner components -->
-        <rect x="524" y="234" width="234" height="74" rx="9" fill="#FFFFFF" stroke="#BFD3F6" stroke-width="1.2"/>
-        <text x="536" y="254" font-size="11.5" font-weight="700" fill="#1E3A8A">OpenClaw runtime</text>
-        <text x="536" y="271" font-size="10" fill="#475569">agent loop, Talk turn-taking,</text>
-        <text x="536" y="287" font-size="10" fill="#475569">one long session, tool dispatch</text>
-        <text x="750" y="300" font-size="9" fill="#94A3B8" text-anchor="end">:18789</text>
+        <!-- gateway container -->
+        <rect x="532" y="150" width="248" height="380" rx="13" fill="#FFFFFF" stroke="#8A98A8" stroke-width="1.7"/>
+        <g transform="translate(546,162)"><rect width="72" height="16" rx="8" fill="#475569"/><text x="36" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.4">CONTAINER</text></g>
+        <text x="766" y="174" font-size="10" font-weight="700" fill="#475569" text-anchor="end">:18789</text>
+        <text x="546" y="202" font-size="15" font-weight="700" fill="#0F172A">gateway</text>
+        <text x="546" y="219" font-size="9.5" fill="#64748B">OpenClaw runtime + our plugin, data &amp; memory</text>
 
-        <rect x="524" y="316" width="234" height="60" rx="9" fill="#F8F5FF" stroke="#D9C9F7" stroke-width="1.2"/>
-        <text x="536" y="336" font-size="11.5" font-weight="700" fill="#5B21B6">civic-geo plugin</text>
-        <text x="536" y="353" font-size="10" fill="#475569">our code: geocode, find_nearest,</text>
-        <text x="536" y="369" font-size="10" fill="#475569">safety_count, route_safety...</text>
+        <rect x="546" y="228" width="220" height="66" rx="9" fill="#EFF4FF" stroke="#BFD3F6" stroke-width="1.2"/>
+        <text x="558" y="248" font-size="11" font-weight="700" fill="#1E3A8A">OpenClaw runtime</text>
+        <text x="558" y="265" font-size="9.5" fill="#475569">the harness that drives the brain:</text>
+        <text x="558" y="281" font-size="9.5" fill="#475569">turn-taking, routing, tool dispatch</text>
 
-        <rect x="524" y="384" width="234" height="92" rx="9" fill="#F8F5FF" stroke="#D9C9F7" stroke-width="1.2"/>
-        <text x="536" y="404" font-size="11.5" font-weight="700" fill="#5B21B6">London GeoJSON (data)</text>
-        <text x="536" y="421" font-size="10" fill="#475569">libraries, schools, toilets, polling,</text>
-        <text x="536" y="437" font-size="10" fill="#475569">CCTV, grit bins, reception centres</text>
-        <text x="536" y="456" font-size="9.5" fill="#7C3AED">mounted read-only from ./datasets</text>
+        <rect x="546" y="300" width="220" height="66" rx="9" fill="#F8F5FF" stroke="#D9C9F7" stroke-width="1.2"/>
+        <text x="558" y="320" font-size="11" font-weight="700" fill="#5B21B6">civic-geo plugin</text>
+        <text x="558" y="337" font-size="9.5" fill="#475569">our tools: geocode, find_nearest,</text>
+        <text x="558" y="353" font-size="9.5" fill="#475569">safety_count, route_safety, details</text>
 
-        <rect x="524" y="484" width="234" height="84" rx="9" fill="#FFFFFF" stroke="#BFD3F6" stroke-width="1.2"/>
-        <text x="536" y="504" font-size="11.5" font-weight="700" fill="#1E3A8A">session memory</text>
-        <text x="536" y="521" font-size="10" fill="#475569">transcripts .jsonl + MEMORY.md</text>
-        <text x="536" y="537" font-size="10" fill="#475569">recall over 1 h 11 m</text>
-        <text x="536" y="556" font-size="9.5" fill="#7C3AED">persisted in cb_memory volume</text>
+        <rect x="546" y="372" width="220" height="66" rx="9" fill="#F8F5FF" stroke="#D9C9F7" stroke-width="1.2"/>
+        <text x="558" y="392" font-size="11" font-weight="700" fill="#5B21B6">London GeoJSON</text>
+        <text x="558" y="409" font-size="9.5" fill="#475569">libraries, schools, toilets, polling,</text>
+        <text x="558" y="425" font-size="9.5" fill="#475569">CCTV, grit bins, reception centres</text>
 
-        <!-- vllm container -->
-        <rect x="794" y="156" width="262" height="208" rx="12" fill="#F2F8E6" stroke="#5E9400" stroke-width="1.7" filter="url(#cs)"/>
-        <g transform="translate(808,168)"><rect width="74" height="16" rx="8" fill="#334155"/><text x="37" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.3">CONTAINER</text></g>
-        <text x="1044" y="180" font-size="10" font-weight="700" fill="#4D7C0F" text-anchor="end">:8000</text>
-        <text x="808" y="206" font-size="14.5" font-weight="700" fill="#3F6212">vllm <tspan font-size="10" font-weight="600" fill="#4D7C0F">(the brain)</tspan></text>
-        <rect x="808" y="220" width="234" height="60" rx="9" fill="#FFFFFF" stroke="#CBE39A" stroke-width="1.2"/>
-        <text x="820" y="240" font-size="11.5" font-weight="700" fill="#3F6212">NVIDIA Nemotron-3 Nano</text>
-        <text x="820" y="257" font-size="10" fill="#475569">30B-A3B NVFP4, tool-calling</text>
-        <text x="820" y="273" font-size="10" fill="#475569">served by vLLM, OpenAI /v1 API</text>
-        <rect x="808" y="288" width="234" height="62" rx="9" fill="#FBFEF4" stroke="#CBE39A" stroke-width="1.2"/>
-        <text x="820" y="308" font-size="11.5" font-weight="700" fill="#3F6212">cb_models volume</text>
-        <text x="820" y="325" font-size="10" fill="#475569">NVFP4 weights (HF cache)</text>
-        <text x="820" y="341" font-size="10" fill="#475569">HF_HUB_OFFLINE - read, never fetch</text>
+        <rect x="546" y="444" width="220" height="72" rx="9" fill="#F8F5FF" stroke="#D9C9F7" stroke-width="1.2"/>
+        <text x="558" y="464" font-size="11" font-weight="700" fill="#5B21B6">session memory</text>
+        <text x="558" y="481" font-size="9.5" fill="#475569">transcripts .jsonl + MEMORY.md</text>
+        <text x="558" y="497" font-size="9.5" fill="#475569">recall over 1 h 11 m</text>
+        <text x="558" y="511" font-size="9" font-weight="600" fill="#7C3AED">persists across restarts</text>
+
+        <!-- vllm container (the brain) -->
+        <rect x="796" y="240" width="248" height="200" rx="13" fill="#FFFFFF" stroke="#8A98A8" stroke-width="1.7"/>
+        <g transform="translate(810,252)"><rect width="72" height="16" rx="8" fill="#475569"/><text x="36" y="11.5" font-size="8" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0.4">CONTAINER</text></g>
+        <text x="1030" y="264" font-size="10" font-weight="700" fill="#475569" text-anchor="end">:8000</text>
+        <text x="810" y="292" font-size="15" font-weight="700" fill="#0F172A">vllm <tspan font-size="10" font-weight="600" fill="#4D7C0F">&middot; the brain (GPU)</tspan></text>
+
+        <rect x="810" y="304" width="220" height="122" rx="9" fill="#F2F8E6" stroke="#CBE39A" stroke-width="1.2"/>
+        <text x="822" y="326" font-size="11.5" font-weight="700" fill="#3F6212">NVIDIA Nemotron-3 Nano</text>
+        <text x="822" y="345" font-size="9.5" fill="#475569">30B-A3B NVFP4 &middot; reasons + tool-calling</text>
+        <text x="822" y="362" font-size="9.5" fill="#475569">served locally by vLLM</text>
+        <text x="822" y="380" font-size="9" font-weight="600" fill="#4D7C0F">OpenAI-style /v1 API (on-box)</text>
+        <text x="822" y="403" font-size="9.5" fill="#475569">weights stay local, never fetched online</text>
 
         <!-- ===================== CONNECTIONS ===================== -->
-        <!-- 1) browser -> bridge (only inbound) -->
-        <path d="M176 166 C205 166 208 205 232 214" fill="none" stroke="#1E293B" stroke-width="2.4" marker-end="url(#aD)"/>
-        <g><circle cx="200" cy="150" r="10" fill="#1E293B"/><text x="200" y="154" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text></g>
-        <text x="150" y="120" font-size="9.5" font-weight="700" fill="#1E293B">HTTP/WS :8091</text>
-        <!-- 2) bridge -> gateway (core_net) -->
-        <path d="M450 232 H510" fill="none" stroke="#1E293B" stroke-width="2.4" marker-end="url(#aD)"/>
-        <g><circle cx="480" cy="232" r="10" fill="#1E293B"/><text x="480" y="236" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text></g>
-        <text x="455" y="222" font-size="9" font-weight="700" fill="#1D4ED8">WS :18789 + token</text>
-        <!-- 3) gateway -> vllm -->
-        <path d="M772 250 H794" fill="none" stroke="#1E293B" stroke-width="2.4" marker-start="url(#aD)" marker-end="url(#aD)"/>
-        <g><circle cx="783" cy="250" r="10" fill="#1E293B"/><text x="783" y="254" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text></g>
-        <text x="690" y="240" font-size="9" font-weight="700" fill="#4D7C0F">OpenAI /v1 :8000</text>
-        <!-- 4) bridge -> egress-proxy -->
-        <path d="M342 342 V372" fill="none" stroke="#1E293B" stroke-width="2.2" marker-end="url(#aD)"/>
-        <g><circle cx="342" cy="357" r="10" fill="#1E293B"/><text x="342" y="361" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text></g>
-        <text x="352" y="361" font-size="9" fill="#475569">voice audio</text>
-        <!-- 5) egress-proxy -> ElevenLabs (only egress) -->
-        <path d="M234 458 C204 458 200 452 178 450" fill="none" stroke="#EA580C" stroke-width="2.2" stroke-dasharray="6 4" marker-end="url(#aO)"/>
-        <g><circle cx="206" cy="476" r="10" fill="#EA580C"/><text x="206" y="480" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">5</text></g>
-        <text x="150" y="436" font-size="9" font-weight="700" fill="#C2410C">HTTPS (allowed)</text>
+        <!-- 1) browser -> bridge -->
+        <path d="M180 172 C206 172 210 200 240 206" fill="none" stroke="#1E293B" stroke-width="2.4" marker-end="url(#aD)"/>
+        <g><circle cx="206" cy="186" r="10" fill="#1E293B" stroke="#fff" stroke-width="2"/><text x="206" y="190" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text></g>
+        <text x="184" y="148" font-size="9" font-weight="700" fill="#1E293B">HTTP + WebSocket</text>
+
+        <!-- 2) bridge -> gateway -->
+        <path d="M488 240 H532" fill="none" stroke="#1E293B" stroke-width="2.4" marker-end="url(#aD)"/>
+        <g><circle cx="510" cy="240" r="10" fill="#1E293B" stroke="#fff" stroke-width="2"/><text x="510" y="244" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text></g>
+        <text x="510" y="196" font-size="8.5" font-weight="700" fill="#1D4ED8" text-anchor="middle">WebSocket</text>
+
+        <!-- 3) gateway <-> vllm -->
+        <path d="M780 280 H796" fill="none" stroke="#1E293B" stroke-width="2.4" marker-start="url(#aD)" marker-end="url(#aD)"/>
+        <g><circle cx="788" cy="280" r="10" fill="#1E293B" stroke="#fff" stroke-width="2"/><text x="788" y="284" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text></g>
+
+        <!-- voice excursion (steps 2 in + 5 out, voice only): bridge <-> egress-proxy -->
+        <path d="M360 320 V360" fill="none" stroke="#EA580C" stroke-width="2.2" marker-start="url(#aO)" marker-end="url(#aO)"/>
+        <g><circle cx="351" cy="340" r="8.5" fill="#EA580C" stroke="#fff" stroke-width="2"/><text x="351" y="343.5" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">2</text></g>
+        <g><circle cx="370" cy="340" r="8.5" fill="#EA580C" stroke="#fff" stroke-width="2"/><text x="370" y="343.5" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">5</text></g>
+        <text x="385" y="336" font-size="8.5" font-weight="700" fill="#C2410C">voice only</text>
+        <text x="385" y="348" font-size="8" fill="#94A3B8">STT in / TTS out</text>
+
+        <!-- voice excursion continues out to ElevenLabs (allowlisted HTTPS) -->
+        <path d="M240 452 H180" fill="none" stroke="#EA580C" stroke-width="2.3" stroke-dasharray="6 4" marker-start="url(#aO)" marker-end="url(#aO)"/>
+        <text x="210" y="434" font-size="8.5" font-weight="700" fill="#C2410C" text-anchor="middle">HTTPS</text>
+        <text x="210" y="445" font-size="8.5" font-weight="700" fill="#C2410C" text-anchor="middle">allowed</text>
       </svg>
     </div>
 
     <div class="foot">
-      <strong>Request path</strong> <span class="num">1</span> browser to <b>bridge</b> on :8091 (the only inbound) <span class="num">2</span> bridge to <b>gateway</b> over WS :18789 with a token <span class="num">3</span> gateway to <b>vllm</b> on the OpenAI /v1 API :8000 (the brain reasons + tool-calls civic-geo over the local GeoJSON) <span class="num">4</span> for speech, bridge hands voice to the <b>egress-proxy</b> <span class="num" style="background:#B45309">5</span> which is the only thing allowed off the box, and only to ElevenLabs.
-      <div class="fine">core_net is internal, so vllm and gateway have no internet route at all; cb_models is mounted into vllm and cb_memory + the GeoJSON datasets into gateway. Disable the optional walking-route and polling lookups and the box is fully air-gapped apart from voice.</div>
+      <strong>Spine, every turn</strong> <span class="num">1</span> browser to <b>bridge</b> :8091, the only inbound. <span class="num">3</span> bridge to <b>gateway</b> over WebSocket + token. <span class="num">4</span> gateway to <b>vllm</b> on a local <b>/v1 API</b> that uses the OpenAI API format (a common standard, so existing tools work) but runs entirely on the box: the brain reasons and tool-calls civic-geo over local data, then the answer returns to the gateway and bridge.
+      <div class="fine"><strong style="color:#C2410C">Voice only</strong> <span class="num" style="background:#EA580C">2</span> before the brain reasons, bridge sends the spoken question out via the <b>egress-proxy</b> to <b>ElevenLabs Scribe</b> (speech to text); <span class="num" style="background:#EA580C">5</span> afterwards it sends the answer to <b>Eleven&nbsp;v3</b> (text to speech) so you hear it. A <b>typed</b> turn uses only steps 1, 3 and 4 and never touches ElevenLabs.</div>
     </div>
 
   </div>

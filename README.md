@@ -88,18 +88,24 @@ How the components come together - voice via ElevenLabs, brain via Nemotron, gro
 **📐 Full-resolution version → [`docs/architecture.html`](docs/architecture.html)** - the four
 Docker containers on one box: which container holds what, on which network, and what connects to
 what (with ports). The reasoning core (`vllm` + `gateway`) sits on an `internal` network with no
-route to the internet; the only door out is the default-deny `egress-proxy`. (GitHub can't render
+route to the internet; the only door out is the default-deny `egress-proxy` (allows only
+`*.elevenlabs.io`, everything else 403). (GitHub can't render
 HTML in a README, so the image above is a static preview of it; or view the HTML live via
 [htmlpreview](https://htmlpreview.github.io/?https://github.com/pedroandreou/Codeborough/blob/main/docs/architecture.html)
 when the repo is public.)
 
-**Flow:** user speaks → ① ElevenLabs Scribe STT → ② OpenClaw Gateway → ③ Nemotron reasons and
-calls tools → ④ `civic-geo` plugin → ⑤ queries the local GeoJSON → results return to Nemotron →
-it composes a grounded answer → back through OpenClaw → ElevenLabs Eleven v3 TTS → user hears.
-Session memory persists across turns, so it recalls earlier context (the ≥ 1 h 11 m ElevenLabs
-bounty). Reasoning, data, memory and safety scoring run on-device; only the optional voice / route /
-assigned-polling calls touch the network, and each can be disabled (see
-[Privacy](#privacy-what-is-and-isnt-on-device)).
+**Flow.** Every turn runs on a **spine that never leaves the box:** ① the browser hits only the
+**bridge** on `:8091` (the sole inbound port) → ③ the bridge relays to the **gateway** over an
+authenticated **WebSocket** → ④ the gateway calls **vllm** on a local, on-box **OpenAI-style `/v1`
+API**, where **Nemotron** reasons and tool-calls **`civic-geo`** over the local GeoJSON; the grounded
+answer then returns back through the gateway and bridge. **Voice is an optional excursion** taken
+only on spoken turns: ② before the brain reasons, the bridge sends the spoken question out through
+the **`egress-proxy`** to **ElevenLabs Scribe** (speech→text), and ⑤ afterwards sends the answer to
+**Eleven v3** (text→speech) so you hear it. A **typed** turn uses only the spine (①③④) and **never
+touches ElevenLabs or any network.** Session memory persists across turns, so it recalls earlier
+context (the ≥ 1 h 11 m ElevenLabs bounty). Reasoning, data, memory and safety scoring run
+on-device; only the optional voice / route / assigned-polling calls touch the network, and each can
+be disabled (see [Privacy](#privacy-what-is-and-isnt-on-device)).
 
 > The **diagram above** is the deployment topology - which container holds what, on which Docker
 > network, what connects to what (with ports), and where the privacy boundary is enforced. The
