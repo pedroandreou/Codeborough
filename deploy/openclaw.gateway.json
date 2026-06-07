@@ -10,6 +10,13 @@
       "vllm": { "enabled": true }
     }
   },
+  "models": {
+    "providers": {
+      "vllm": {
+        "models": [ { "id": "nemotron-nano" } ]
+      }
+    }
+  },
   "session": {
     "dmScope": "main",
     "reset": { "idleMinutes": 1440 }

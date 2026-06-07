@@ -54,6 +54,7 @@ services:
       - OPENAI_BASE_URL=http://vllm:8000/v1
       - OPENAI_API_KEY=local
       - VLLM_BASE_URL=http://vllm:8000/v1
+      - VLLM_API_KEY=local                     # the vllm provider needs a (placeholder) key; vLLM ignores the value
       - BRAIN_SERVED_NAME=${BRAIN_SERVED_NAME}
       # openclaw 2026.6.1 REFUSES a non-loopback bind without auth; supply a token (safe on the
       # isolated internal core_net). The bridge must present the SAME token.
