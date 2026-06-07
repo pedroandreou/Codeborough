@@ -25,6 +25,13 @@ services:
       - --gpu-memory-utilization=${VLLM_GPU_FRAC}
       - --max-model-len=${VLLM_MAX_MODEL_LEN}
       - --trust-remote-code
+      # Tool calling + reasoning for Nemotron-3 Nano (so the model emits STRUCTURED tool calls
+      # instead of writing the tool-call as prose). The reasoning-parser plugin ships in the
+      # model snapshot. Per the NVIDIA/vLLM recipe for this model family.
+      - --enable-auto-tool-choice
+      - --tool-call-parser=qwen3_coder
+      - --reasoning-parser-plugin=/models/hub/models--nvidia--NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4/snapshots/ce1b118ae66ec705d02c241525192832eb045fd3/nano_v3_reasoning_parser.py
+      - --reasoning-parser=nano_v3
     environment:
       - HF_HOME=/models
       - HF_HUB_OFFLINE=1                      # demo-time: read weights from volume, never fetch
