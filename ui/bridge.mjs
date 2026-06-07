@@ -131,11 +131,12 @@ async function agentViaHttp(message, session) {
   return String(reply).trim();
 }
 
-// FALLBACK transport: the CLI, stdout scrubbed. Kept so a missing/changed HTTP
-// API never hard-fails the demo - but it's no longer the primary path.
+// PRIMARY transport (containerized stack): the CLI in EMBEDDED mode. `--local` runs the
+// agent in-process with the baked brain config + civic-geo plugin (model provider keys come
+// from the bridge env), so we never depend on the gateway daemon's WebSocket. stdout scrubbed.
 function agentViaCli(message, session) {
   return new Promise((resolve) => {
-    const args = ["agent", "--agent", "main", "--session-id", session, "--message", message];
+    const args = ["agent", "--local", "--agent", "main", "--session-id", session, "--message", message];
     const p = spawn(OC, args, { env: process.env });
     let out = "";
     p.stdout.on("data", (c) => (out += c));
