@@ -1,19 +1,13 @@
 {
-  "_comment": "Container gateway config (OpenClaw 2026.6.1). Registers our LOCAL brain as a ROOT-LEVEL custom provider 'vllm' (this build validates root `providers`, NOT `models.providers`). api 'openai-completions' = talk to it in the OpenAI wire format; it points at our NVIDIA Nemotron NVFP4 (nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4) served by vLLM at http://vllm:8000/v1 as 'nemotron-nano'. Provider name 'vllm' is free-form ('openai' is reserved), so the model id is 'vllm/nemotron-nano'. apiKey 'local' is a placeholder (bare-hostname internal endpoint; nothing leaves the box). Voice/tts handled by ui/bridge.mjs, not the gateway.",
   "gateway": { "mode": "local" },
-  "providers": {
-    "vllm": {
-      "baseUrl": "http://vllm:8000/v1",
-      "apiKey": "local",
-      "api": "openai-completions",
-      "models": [
-        { "id": "nemotron-nano", "name": "NVIDIA Nemotron-3 Nano NVFP4 (local)" }
-      ]
-    }
-  },
   "agents": {
     "defaults": {
       "model": { "primary": "vllm/nemotron-nano" }
+    }
+  },
+  "plugins": {
+    "entries": {
+      "vllm": { "enabled": true }
     }
   },
   "session": {

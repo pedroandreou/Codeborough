@@ -47,9 +47,13 @@ services:
     environment:
       - OPENCLAW_GATEWAY_PORT=18789
       - CIVIC_DATA_DIR=/data/datasets
-      # Brain provider (NVIDIA Nemotron NVFP4 via vLLM) is registered declaratively in
-      # deploy/openclaw.gateway.json -> models.providers.vllm. BRAIN_SERVED_NAME must match
-      # vLLM's --served-model-name so the entrypoint asserts the right default: vllm/<this>.
+      # Brain = our NVFP4 Nemotron via vLLM. OpenClaw 2026.6.1 ships a bundled `vllm` plugin
+      # (enabled in deploy/openclaw.gateway.json -> plugins.entries.vllm). It reaches the vLLM
+      # endpoint over the OpenAI-compatible API; point it there. BRAIN_SERVED_NAME must match
+      # vLLM's --served-model-name so the agent default resolves to vllm/<this>.
+      - OPENAI_BASE_URL=http://vllm:8000/v1
+      - OPENAI_API_KEY=local
+      - VLLM_BASE_URL=http://vllm:8000/v1
       - BRAIN_SERVED_NAME=${BRAIN_SERVED_NAME}
       # openclaw 2026.6.1 REFUSES a non-loopback bind without auth; supply a token (safe on the
       # isolated internal core_net). The bridge must present the SAME token.
