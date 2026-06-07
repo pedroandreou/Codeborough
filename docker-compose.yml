@@ -93,20 +93,21 @@ services:
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
       - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID}
       - ELEVENLABS_MODEL=${ELEVENLABS_MODEL}
-      # bridge spawns `openclaw agent --agent main` -> must reach the gateway container.
-      # VERIFY on box: confirm this is the env/flag OpenClaw uses for a remote gateway target.
-      - OPENCLAW_GATEWAY_URL=http://gateway:18789
-      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-codeborough-local}  # must match the gateway's token
-      # gateway is reached over plaintext ws:// on the ISOLATED internal core_net (no untrusted
-      # hop to intercept). OpenClaw blocks plaintext ws:// to non-loopback by default; this is the
-      # documented break-glass for trusted private networks. Without it /ask fails with a SECURITY ERROR.
-      - OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=1
+      # bridge /ask spawns `openclaw agent` and runs it EMBEDDED (the gateway daemon's WS is
+      # unreliable across the version split), so it needs the brain provider env directly. It
+      # reaches vLLM on core_net; NO_PROXY (below) keeps that call off the egress proxy.
+      - OPENAI_BASE_URL=http://vllm:8000/v1
+      - OPENAI_API_KEY=local
+      - VLLM_BASE_URL=http://vllm:8000/v1
+      - VLLM_API_KEY=local
+      - BRAIN_SERVED_NAME=${BRAIN_SERVED_NAME}
       # clamp bridge egress to ElevenLabs only (Tier-2 enforcement):
       - HTTPS_PROXY=http://egress-proxy:8888
       - HTTP_PROXY=http://egress-proxy:8888
       - NO_PROXY=gateway,vllm,localhost,127.0.0.1
     volumes:
       - ./datasets:/data/datasets:ro
+      - cb_memory:/root/.openclaw/agents        # the embedded agent's sessions + MEMORY.md (71-min persistence)
     ports:
       - "${UI_PORT}:8091"                       # browser reaches the UI here (publishing != container egress)
     networks: [core_net, edge_net]              # core_net to reach gateway; edge_net for ElevenLabs
