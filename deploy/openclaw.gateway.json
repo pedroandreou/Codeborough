@@ -13,6 +13,7 @@
   "models": {
     "providers": {
       "vllm": {
+        "request": { "allowPrivateNetwork": true },
         "models": [
           {
             "id": "nemotron-nano",
