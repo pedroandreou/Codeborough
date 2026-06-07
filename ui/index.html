@@ -152,7 +152,7 @@
       <button onclick="sample('safety')">🛡️ Safe route</button>
       <button onclick="clearAll()">Clear</button>
     </div>
-    <div class="set"><details><summary>Settings</summary><div style="margin-top:6px">bridge <input id="bridge" value="http://127.0.0.1:8091" size="22"></div></details></div>
+    <div class="set"><details><summary>Settings</summary><div style="margin-top:6px">bridge <input id="bridge" value="" placeholder="(same origin)" size="22"></div></details></div>
   </section>
 
   <section class="right" aria-label="Map">
@@ -178,7 +178,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const $=s=>document.querySelector(s);
-const bridgeUrl=()=>$("#bridge").value.replace(/\/$/,"");
+const bridgeUrl=()=>{const v=($("#bridge").value||"").trim().replace(/\/$/,"");if(v)return v;return location.protocol.startsWith("http")?location.origin:"http://127.0.0.1:8091";};
 const COLORS={libraries:"#2b7cff",schools:"#d99800","public-toilets":"#0e9f7e","polling-stations":"#7c3aed","grit-bins":"#64748b",cctv:"#e0245e","reception-centres":"#ea580c",origin:"#0e8f5e"};
 const LABEL={libraries:"Library",schools:"School","public-toilets":"Public toilet","polling-stations":"Polling station","grit-bins":"Grit bin",cctv:"Camera","reception-centres":"Rest centre"};
 const ICON={"polling-stations":"🗳️","public-toilets":"🚻","reception-centres":"🆘",libraries:"📚","grit-bins":"❄️",schools:"🏫",cctv:"🎥"};

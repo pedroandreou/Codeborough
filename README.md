@@ -193,7 +193,20 @@ make prove-boundary   # 3) judge-facing proof: core has NO internet, only Eleven
 make logs             # 4) tail the stack (watch egress-proxy for the only outbound traffic)
 ```
 
-Then open the UI at **`http://<box>:8091`**.
+### Open the UI (from the box or any other device)
+
+The **bridge serves both the web UI and the API on `:8091`** (one origin), so there's nothing else to start.
+
+- **On the box / same LAN:** open **`http://<box>:8091`** in a browser.
+- **From another device over SSH** (no LAN access, or to keep it private): forward the one port and open localhost:
+  ```bash
+  # on your laptop:
+  ssh -N -L 8091:127.0.0.1:8091 <user>@<box>     # leave running (no output = working)
+  # then in the laptop browser:
+  #   http://localhost:8091
+  ```
+
+The page calls the bridge at its **own origin** by default, so it works as-is in both cases - no config. Voice (ElevenLabs) needs the laptop to have internet; the civic data, brain, map and memory are all on the box.
 
 **What `make demo` actually runs** is plain `docker compose up -d --build --wait` (preceded by a
 weights-staging step and followed by a warm-up call) - so if you prefer raw Compose:

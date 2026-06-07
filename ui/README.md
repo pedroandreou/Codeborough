@@ -32,15 +32,17 @@ all-London map. Built for accessibility and one-tap use.
   local "Saved places" list.
 
 ## Run
-On the box, start the bridge (connects the UI to the agent + ElevenLabs voice):
+The bridge serves **both the page and the API on `:8091`** (one origin) - nothing else to start.
+In the containerized stack it comes up with `docker compose up`. Standalone:
 ```bash
 export ELEVENLABS_API_KEY=sk_...  ELEVENLABS_VOICE_ID=...
 export CIVIC_DATA_DIR="$HOME/Desktop/Codeborough/datasets"
-node ui/bridge.mjs            # :8091
-python3 -m http.server 8090   # serves the page
+node ui/bridge.mjs            # serves UI + API on :8091
 ```
-Open `http://127.0.0.1:8090/ui/` (tunnel 8090 + 8091 to your laptop for the demo).
-The **sample buttons work offline** (no bridge) for rehearsal.
+Open **`http://<box>:8091`** (same LAN), or forward one port from a laptop
+(`ssh -N -L 8091:127.0.0.1:8091 <user>@<box>`) and open `http://localhost:8091`.
+The page targets its own origin by default, so no config is needed.
+The **rehearsal sample buttons** are pre-canned (no bridge) for practice.
 
 ### Bridge env knobs (all optional)
 | Var | Effect |

@@ -292,6 +292,15 @@ createServer(async (req, res) => {
   const url = req.url || "/";
   try {
     if (req.method === "GET" && url === "/health") return json(res, { ok: true, voice: !!EL_KEY });
+    // Serve the UI page itself, so :8091 is everything (page + API, one origin). Open
+    // http://<box>:8091 from any device (directly on the LAN, or over an ssh -L 8091 tunnel).
+    if (req.method === "GET" && (url === "/" || url === "/index.html" || url === "/ui" || url === "/ui/" || url === "/ui/index.html")) {
+      try {
+        const html = readFileSync(new URL("./index.html", import.meta.url));
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", ...CORS });
+        return res.end(html);
+      } catch { return json(res, { error: "UI page not found next to bridge.mjs" }, 404); }
+    }
     if (req.method !== "POST") return json(res, { error: "POST only" }, 405);
     const b = await body(req);
     if (url === "/ask") return json(res, { reply: await runAgent(b.message, b.session, b.lang, b.grounded) });
