@@ -6,8 +6,8 @@
 #   The reasoning core (brain + civic-geo + memory) physically cannot phone home;
 #   only the voice bridge reaches ElevenLabs, through an allowlisted proxy.
 #
-#   GPU: uses `gpus: all` (CDI) — NOT `runtime: nvidia` — because that's what works
-#   on scan-05 (the legacy runtime isn't registered; --gpus all is verified working).
+#   GPU: uses `gpus: all` (CDI) — NOT `runtime: nvidia` — requires Docker with NVIDIA GPU
+#   support; verify with `docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi`.
 #
 #   Brain weights are provisioned at SETUP time (make pull-model) into cb_models,
 #   so at demo time vllm runs on the internal network with no download / no egress.
@@ -34,7 +34,7 @@ services:
       - --reasoning-parser=nano_v3
     environment:
       - HF_HOME=/models
-      - HF_HUB_OFFLINE=1                      # demo-time: read weights from volume, never fetch
+      - HF_HUB_OFFLINE=1                      # read weights from volume at runtime, never fetch
     volumes:
       - cb_models:/models
     networks: [core_net]
@@ -68,7 +68,7 @@ services:
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN:-codeborough-local}
     volumes:
       - ./datasets:/data/datasets:ro          # London GeoJSON, read-only
-      - cb_memory:/root/.openclaw/agents      # sessions/*.jsonl + MEMORY.md (persistence bounty artifact)
+      - cb_memory:/root/.openclaw/agents      # sessions/*.jsonl + MEMORY.md (long-session memory)
     networks: [core_net]                       # NO edge_net -> no internet route. This is the privacy claim.
     depends_on:
       vllm: { condition: service_healthy }
@@ -114,7 +114,7 @@ services:
       - NO_PROXY=gateway,vllm,localhost,127.0.0.1
     volumes:
       - ./datasets:/data/datasets:ro
-      - cb_memory:/root/.openclaw/agents        # the embedded agent's sessions + MEMORY.md (71-min persistence)
+      - cb_memory:/root/.openclaw/agents        # the embedded agent's sessions + MEMORY.md (long-session persistence)
     ports:
       - "${UI_PORT}:8091"                       # browser reaches the UI here (publishing != container egress)
     networks: [core_net, edge_net]              # core_net to reach gateway; edge_net for ElevenLabs

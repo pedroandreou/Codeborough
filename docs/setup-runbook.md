@@ -1,25 +1,13 @@
 # Setup runbook - standing up Codeborough on the DGX Spark
 
-Concrete, replayable steps for the box. Architecture and rationale are in
-[`build-plan.md`](build-plan.md); this is the "how we actually run it" companion.
+Concrete, replayable steps for the bare-metal path. The full containerised stack (recommended) is in
+[`../deploy/DOCKER.md`](../deploy/DOCKER.md); the steps below are the manual equivalent.
 
-**Voice = ElevenLabs API (required).** ElevenLabs is a main sponsor and the persistence bounty
-needs ElevenLabs voice in *and* out. OpenClaw provides the Talk loop; ElevenLabs does the STT + TTS.
-
----
-
-## Status (Sat 6 Jun 2026)
-
-- **Host:** `nvidia@scan-05` - DGX Spark, **GB10 Grace Blackwell, CUDA 13**, driver 580.159.03, 121 GB unified, 3.5 TB free.
-- **OpenClaw:** installed (`~/.npm-global/bin/openclaw`), gateway already listening on `:18789`.
-- **Docker + GPU:** working - `--gpus all` (CDI) passes the GPU into containers; Compose v2 present.
-- **Brain:** **Nemotron 3 Nano-30B-A3B NVFP4** served by **vLLM** (`vllm/vllm-openai:v0.22.1`, arm64),
-  validated loading + tool-calling on the GB10. The full containerized stack is in
-  [`../deploy/DOCKER.md`](../deploy/DOCKER.md); the steps below are the manual equivalent.
+**Voice = ElevenLabs API (required).** OpenClaw provides the Talk loop; ElevenLabs does the STT + TTS.
 
 ---
 
-## Step 1 - Serve Nemotron NVFP4 via vLLM (Task #1, Dev 1)
+## Step 1 - Serve Nemotron NVFP4 via vLLM
 
 ### 1a. Free the unified memory pool
 GB10 shares one 128 GB pool between CPU and GPU, so RAM pressure starves the model. `nvidia-smi`
@@ -56,7 +44,7 @@ chat template / tool-parser flags.
 
 ---
 
-## Step 2 - OpenClaw + ElevenLabs voice (Task #3, Dev 2)
+## Step 2 - OpenClaw + ElevenLabs voice
 
 OpenClaw is already installed; gateway on `:18789`. Configure `~/.openclaw/openclaw.json`:
 
@@ -65,7 +53,7 @@ OpenClaw is already installed; gateway on `:18789`. Configure `~/.openclaw/openc
   // brain: vLLM's OpenAI-compatible endpoint (set OPENAI_BASE_URL=http://localhost:8001/v1)
   agents: { defaults: { model: { primary: "openai/nemotron-nano" } } },
 
-  // VOICE: ElevenLabs (required - main sponsor + bounty). Talk loop = STT in + TTS out.
+  // VOICE: ElevenLabs Talk loop = STT in + TTS out.
   talk: {
     provider: "elevenlabs",
     providers: {
@@ -79,7 +67,7 @@ OpenClaw is already installed; gateway on `:18789`. Configure `~/.openclaw/openc
     silenceTimeoutMs: 1500
   },
 
-  // MEMORY: keep one long session alive for the 71-min run (no idle reset)
+  // MEMORY: no idle reset so a long session stays alive
   session: { reset: { idleMinutes: 0 } }
 }
 ```
@@ -88,12 +76,11 @@ export ELEVENLABS_API_KEY=sk_...        # from the ElevenLabs dashboard
 openclaw gateway stop && openclaw gateway --port 18789 --verbose
 openclaw tts audio "Hello from Codeborough"   # quick TTS smoke test
 ```
-> If ever run inside NemoClaw/OpenShell, add egress for `api.elevenlabs.io:443` to the policy.
-> Unsandboxed (our path today) it just works.
+> If run inside NemoClaw/OpenShell, add egress for `api.elevenlabs.io:443` to the policy.
 
 ---
 
-## Step 3 - Install the civic-geo plugin (Task #2, Dev 1)
+## Step 3 - Install the civic-geo plugin
 
 Engine is done and validated. On the box:
 ```bash
@@ -113,22 +100,8 @@ See [`../plugins/civic-geo/README.md`](../plugins/civic-geo/README.md) for cavea
 
 ---
 
-## Step 4 - The 71-minute session + log (Task #3, ElevenLabs bounty)
+## Step 4 - Verify long-session persistence
 
-- Get the agent stable (steps 1–3 green), then **start one continuous session and leave it running**
-  - launch it with hours to spare (e.g. over dinner); you present tomorrow, so the clock can run today.
-- Keep it one session (don't `/new`); the vLLM brain stays resident for the whole run.
-- The session transcript (`~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl`) is the **submission
-  artifact**. Rehearse the judge's "what did I ask earlier?" recall.
-
----
-
-## Quick map: steps → tasks
-| Step | Task |
-|---|---|
-| 1 serve Nemotron + tool-call test | #1 nemotron-serve |
-| 2 OpenClaw + ElevenLabs voice | #3 openclaw-voice |
-| 3 civic-geo plugin install | #2 civic-geo-plugin |
-| 4 71-min session + log | #3 openclaw-voice (ElevenLabs bounty) |
-
-Dev 3 (#4) works in parallel: map from civic-geo JSON + slides + demo script.
+- With steps 1–3 green, start a session and leave it running to confirm memory persists across many turns.
+- Keep it one session (don't `/new`); the vLLM brain stays resident.
+- The session transcript is at `~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl`.

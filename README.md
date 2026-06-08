@@ -1,236 +1,201 @@
 # Codeborough
 
-A **private, on-device, voice-first civic concierge** for London. Speak a question -
-*"where's the nearest accessible public toilet to Triton Square?"*, *"where do I vote and can I
-get there step-free?"* - and Codeborough finds the right civic service near you, tells you how to
-get there on **monitored, well-served streets**, and remembers your situation across the whole
-conversation. The **reasoning, civic data, memory, and safety scoring run on the edge** - *who is
-asking and what they asked stays on the box*. Voice uses ElevenLabs (the bounty), and two **optional,
-off-by-default** network helpers (walking-route geometry, assigned-polling lookup) can each be
-disabled for a fully air-gapped run - see [Privacy](#privacy-what-is-and-isnt-on-device).
+**Private, on-device, voice-first civic concierge for London.**  
+Ask in plain language — *"where do I vote and is it step-free?"*, *"nearest accessible toilet to Brixton station?"* — and get a spoken answer grounded in real council open data, on a device that keeps your questions and location to itself.
 
-Built for **NVIDIA Hack for Impact - London** (Public Services track), targeting the
-**Nemotron** and **ElevenLabs** bounties as well.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Platform: NVIDIA GB10](https://img.shields.io/badge/platform-NVIDIA%20GB10%20arm64-76b900?style=flat-square)](https://www.nvidia.com/en-us/products/workstations/dgx-spark/)
+[![Brain: Nemotron-3-Nano NVFP4](https://img.shields.io/badge/brain-Nemotron--3--Nano%20NVFP4-76b900?style=flat-square)](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4)
+[![Voice: ElevenLabs](https://img.shields.io/badge/voice-ElevenLabs-000000?style=flat-square)](https://elevenlabs.io)
 
-> **Current direction is v3.** See [`docs/build-plan.md`](docs/build-plan.md) for the full
-> architecture, task split, and demo script. This README is the front door; the build plan is the
-> source of truth.
+---
 
-## The problem
+## What it does
 
-Commercial maps (Google, Apple) already do shops, restaurants and big POIs well - libraries
-included - so this isn't about finding a café. The gap is the **civic layer that councils publish
-but commercial maps don't ingest**: where you vote, winter grit bins, emergency rest centres,
-council safety cameras, and the civic detail on public toilets (accessible? baby-change? council
-hours). That data is open but **scattered across 33 separate council portals** and hard to query in
-plain language - hardest for the people who most need it (new arrivals, the elderly, the visually
-impaired, the privacy-conscious).
+- **Surfaces civic data commercial maps don't carry** — polling stations, emergency rest centres,
+  grit bins, council CCTV coverage, accessible-toilet detail — across 8 London authorities, by asking
+  in plain language via voice or text.
+- **Routes safely** — walking routes prefer monitored, well-served streets; CCTV and grit-bin
+  density are scored on-device from the same GeoJSON, not from a remote service.
+- **Stays on the box** — reasoning, civic lookups, postcode geocoding, route-safety scoring and
+  conversation memory never leave the device. Voice (ElevenLabs) is the only network call, and
+  it can be replaced with on-device Whisper.
 
-## Our solution
+Built for the people commercial tools underserve: new arrivals, the elderly, the visually impaired,
+and anyone who needs civic access rather than the nearest café.
 
-A voice agent that we **build on OpenClaw**, grounded in real City of London open data, running
-entirely on an NVIDIA DGX Spark / ZGX Nano (GB10):
+---
 
-- **Voice in/out** via **ElevenLabs** (Talk mode: Scribe STT + Eleven v3 TTS).
-- **Brain:** **NVIDIA Nemotron 3** (Nano-30B-A3B, **NVFP4**) served locally via vLLM, doing
-  tool-calling. Grounding is exact GeoJSON lookups via civic-geo, so this build needs no
-  retrieval/RAG; a Nemotron retriever + content-safety guard are a possible future add-on, not shipped here.
-- **Grounding:** our own [`plugins/civic-geo/`](plugins/civic-geo/) OpenClaw tool plugin queries
-  the London GeoJSON datasets locally (`geocode` incl. **offline postcode lookup**, `find_nearest`,
-  `get_details`, `safety_count`, **`route_safety`** = monitored-streets coverage *along the walk*,
-  `list_coverage`).
-- **Memory:** one long-lived OpenClaw session + persistent memory, so it recalls earlier turns
-  (the ElevenLabs ≥ 1 h 11 m context-retention bounty).
-- **Surface:** an accessible, answer-first **web UI** ([`ui/`](ui/)) - big mic, one-tap civic
-  buttons, GPS "use my location", spoken answers, 13 languages, Big Simple mode and a clean map.
-  A zero-dep Node **bridge** (`ui/bridge.mjs`) sits in front of the gateway and keeps the
-  ElevenLabs key server-side. See the [UI README](ui/README.md).
-- **Deployment:** a one-command **containerized stack** ([`deploy/`](deploy/) + `docker-compose.yml`)
-  for the DGX Spark, with a **Docker-enforced** privacy boundary - the reasoning core has no
-  internet route; only the voice bridge egresses. See [Deployment](#quick-start--deployment).
+## Quick start
 
-Why on-device matters: **privacy** (location/queries stay on the box), **richer answers** (local
-data surfaces detail a map app can't), and **anywhere** (self-contained, no cloud dependency).
-
-### Privacy: what is (and isn't) on-device
-
-We're precise about this so the claim survives scrutiny. **On the box, always:** Nemotron reasoning,
-all civic-data lookups, postcode geocoding, **route-safety scoring**, and conversation memory. *Who is
-asking and what they asked never leaves the device.*
-
-Three things *can* use the network, each **optional and clearly labelled**:
-
-| Network call | Why | How to go fully offline |
-|---|---|---|
-| **ElevenLabs** voice in/out | Required by the bounty; best-in-class TTS | Set `LOCAL_STT_CMD` for on-device whisper STT; mute TTS |
-| **Walking-route geometry** (OSRM) | Turn-by-turn steps | `ROUTING_DISABLE=1` → straight-line corridor; **safety scoring is local either way** |
-| **Assigned polling station** (gov API) | The *correct* "where do I vote", not just nearest | Unset `POLLING_LOOKUP_URL` → on-device **nearest** station (honestly labelled) |
-
-With those three disabled the system is **air-gapped** end to end. None of them ever sends the user's
-*identity* - OSRM sees two coordinates, the polling API sees a postcode, ElevenLabs sees text/audio.
-
-### Three things it does
-
-1. **Find the civic thing maps miss** - the nearest polling station, rest centre, library or
-   accessible public toilet, and how to get to it. *(polling stations, reception centres, libraries,
-   schools, public toilets)* - we return the **nearest** facility (not your *assigned* station/catchment yet; that's a postcode-lookup next step).
-2. **Get me there safely** - prefers monitored, busy, well-served streets. *(CCTV, grit bins)*
-   Honest framing: CCTV here is mostly traffic/town cameras = busy roads, **not** crime surveillance.
-3. **Tell me about it** - hours, accessibility, what's there. *(all datasets)*
-
-## Architecture
-
-How the components come together - voice via ElevenLabs, brain via Nemotron, grounded by our
-`civic-geo` plugin over local data, all orchestrated by OpenClaw on the device.
-
-![Codeborough system architecture](docs/architecture.png)
-
-**📐 Full-resolution version → [`docs/architecture.html`](docs/architecture.html)** - the four
-Docker containers on one box: which container holds what, on which network, and what connects to
-what (with ports). The reasoning core (`vllm` + `gateway`) sits on an `internal` network with no
-route to the internet; the only door out is the default-deny `egress-proxy` (allows only
-`*.elevenlabs.io`, everything else 403). (GitHub can't render
-HTML in a README, so the image above is a static preview of it; or view the HTML live via
-[htmlpreview](https://htmlpreview.github.io/?https://github.com/pedroandreou/Codeborough/blob/main/docs/architecture.html)
-when the repo is public.)
-
-**Flow.** Every turn runs on a **spine that never leaves the box:** ① the browser hits only the
-**bridge** on `:8091` (the sole inbound port) → ③ the bridge relays to the **gateway** over an
-authenticated **WebSocket** → ④ the gateway calls **vllm** on a local, on-box **OpenAI-style `/v1`
-API**, where **Nemotron** reasons and tool-calls **`civic-geo`** over the local GeoJSON; the grounded
-answer then returns back through the gateway and bridge. **Voice is an optional excursion** taken
-only on spoken turns: ② before the brain reasons, the bridge sends the spoken question out through
-the **`egress-proxy`** to **ElevenLabs Scribe** (speech→text), and ⑤ afterwards sends the answer to
-**Eleven v3** (text→speech) so you hear it. A **typed** turn uses only the spine (①③④) and **never
-touches ElevenLabs or any network.** Session memory persists across turns, so it recalls earlier
-context (the ≥ 1 h 11 m ElevenLabs bounty). Reasoning, data, memory and safety scoring run
-on-device; only the optional voice / route / assigned-polling calls touch the network, and each can
-be disabled (see [Privacy](#privacy-what-is-and-isnt-on-device)).
-
-> The **diagram above** is the deployment topology - which container holds what, on which Docker
-> network, what connects to what (with ports), and where the privacy boundary is enforced. The
-> **Flow** above is the same system told as a single voice turn; in the running system the browser
-> hits the **bridge** ([`ui/bridge.mjs`](ui/bridge.mjs)) first, then the gateway - exactly as the
-> diagram shows. GB10 memory gotchas, the OpenClaw integration points to verify on the box, and what
-> we deliberately skipped under 24 h are in [`deploy/DOCKER.md`](deploy/DOCKER.md).
-
-## Hackathon
-
-| | |
-|---|---|
-| **Event** | NVIDIA Hack for Impact - London |
-| **Theme** | Build autonomous systems that think, act, and run anywhere, for positive impact |
-| **Platform** | On-device on NVIDIA DGX Spark / ZGX Nano (GB10 Grace Blackwell), open-source models |
-| **Stack** | OpenClaw · NVIDIA Nemotron 3 · ElevenLabs · (NemoClaw/OpenShell optional) |
-| **Track** | **Public Services** - improving access to and efficiency of city services |
-| **Bounties** | Best use of Nemotron · ElevenLabs persistent agent (≥ 1 h 11 m + context retention) |
-| **Team** | Codeborough |
-
-## Repository contents
-
-```
-docs/build-plan.md          ← the plan (architecture, tasks, demo script) - START HERE
-plugins/civic-geo/          ← our OpenClaw tool plugin over the datasets (the part we write)
-datasets/<facility>/        ← London civic GeoJSON, per borough + a merged all-london file
-ui/                         ← accessible, answer-first web UI + zero-dep voice/map bridge
-deploy/ · docker-compose.yml · Makefile  ← one-command containerized stack for the DGX
-```
-
-| Path | What it is |
-|---|---|
-| [`docs/build-plan.md`](docs/build-plan.md) | **Build plan v3** - architecture, 3-dev task split, demo script, submission checklist |
-| [`docs/setup-runbook.md`](docs/setup-runbook.md) | **Setup runbook** - exact on-the-box commands (Nemotron NVFP4 via vLLM, OpenClaw + ElevenLabs voice, plugin install, 71-min session) + current status |
-| [`docs/Codeborough-Pitch-Deck.pptx`](docs/Codeborough-Pitch-Deck.pptx) | **Pitch deck** (PowerPoint - GitHub won't preview it; download to view) |
-| [`docs/pitch.md`](docs/pitch.md) · [`docs/demo-script.md`](docs/demo-script.md) | Written pitch + 3-min demo script |
-| [`docs/submission-checklist.md`](docs/submission-checklist.md) | Per-bounty submission checklist (Public Services · Nemotron · ElevenLabs) |
-| [`ui/`](ui/) | Accessible, answer-first **web UI** (`index.html`) + zero-dep voice/map **bridge** (`bridge.mjs`) - see its [README](ui/README.md) |
-| [`deploy/`](deploy/) · [`docker-compose.yml`](docker-compose.yml) · [`Makefile`](Makefile) · [`.env.example`](.env.example) | **Containerized stack** for the DGX Spark + the provable privacy boundary - full runbook in [`deploy/DOCKER.md`](deploy/DOCKER.md) |
-| [`plugins/civic-geo/`](plugins/civic-geo/) | OpenClaw tool plugin: on-device GeoJSON lookups (see its [README](plugins/civic-geo/README.md)) |
-| [`datasets/libraries/`](datasets/libraries/) | Libraries (42 across 4 boroughs) |
-| [`datasets/reception-centres/`](datasets/reception-centres/) | Reception / rest centres (47 across 2 boroughs) |
-| [`datasets/cctv/`](datasets/cctv/) | CCTV cameras (549 across 2 boroughs) |
-| [`datasets/schools/`](datasets/schools/) | Schools (1000 across 4 boroughs) |
-| [`datasets/public-toilets/`](datasets/public-toilets/) | Public toilets (216 across 5 boroughs) |
-| [`datasets/polling-stations/`](datasets/polling-stations/) | Polling stations (464 across 7 boroughs) |
-| [`datasets/grit-bins/`](datasets/grit-bins/) | Grit bins (376 across 4 boroughs) |
-| [`datasets/SOURCES.md`](datasets/SOURCES.md) | Coverage matrix, sources, licences, caveats, refresh URLs |
-| [`docs/london-structure.md`](docs/london-structure.md) | How London is organised and why facility data is split across sources |
-| [`docs/data-scope-notes.md`](docs/data-scope-notes.md) | Historical pre-hackathon scope note (now settled - see the build plan) |
-| [`LICENSE`](LICENSE) | Project licence |
-
-Data covers 8 of 33 London authorities that publish these facilities as open location data;
-coverage per facility is partial. The demo focuses on **Lambeth** (the one borough with CCTV *and*
-all destination types). See [`datasets/SOURCES.md`](datasets/SOURCES.md) for the full matrix and caveats.
-
-## Quick start & deployment
-
-### 1. Validate the data engine (zero install, no hardware)
+**Validate the data engine** — no install, no GPU, no API key:
 
 ```bash
 node plugins/civic-geo/scripts/smoke.mjs
 ```
 
-### 2. Deploy the full stack on the DGX Spark (Docker Compose)
+Expected: Triton Square → Regent's Park library at ~415 m; 41 cameras within 500 m of Brixton.
+If it looks right, the civic data logic is proven independently of the LLM or the box.
 
-The whole system ships as a **single `docker compose` stack**, orchestrated by a `Makefile` so you
-don't type the long commands by hand. `vllm` (Nemotron NVFP4 brain, GPU), `gateway` (OpenClaw +
-`civic-geo` + memory), `bridge` (the UI's voice/map server) and `egress-proxy` (the one allowlisted
-crossing point) come up together. **You need Docker with NVIDIA GPU support on the GB10 box and an
-ElevenLabs API key** - nothing else.
+**Deploy the full stack** (requires an NVIDIA GB10 box and an ElevenLabs API key):
 
 ```bash
-cd ~/Desktop/Codeborough
-git pull
-cp .env.example .env && $EDITOR .env     # set ELEVENLABS_API_KEY (the only required secret)
+cp .env.example .env && $EDITOR .env   # set ELEVENLABS_API_KEY — the only required secret
 
-# Free the unified memory pool first (GB10 shares one 128GB pool between CPU and GPU):
+# GB10 shares one 128 GB unified pool between CPU and GPU; free it before loading the model:
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
-free -h                                  # want the `available` column comfortably above ~45 GiB
+free -h                                # want `available` comfortably above ~45 GiB
 
-make gate-test        # 1) confirm the Nemotron NVFP4 brain serves on the GB10 (downloads ~16GB once)
-make demo             # 2) stage weights → docker compose up --build --wait → pre-warm the brain
-make prove-boundary   # 3) judge-facing proof: core has NO internet, only ElevenLabs egresses
-make logs             # 4) tail the stack (watch egress-proxy for the only outbound traffic)
+make gate-test    # confirm Nemotron NVFP4 serves on the GB10 (~16 GB weights, downloaded once)
+make demo         # stage weights → build → docker compose up --wait → pre-warm
 ```
 
-### Open the UI (from the box or any other device)
+Then open **`http://<box>:8091`** in a browser.
 
-The **bridge serves both the web UI and the API on `:8091`** (one origin), so there's nothing else to start.
-
-- **On the box / same LAN:** open **`http://<box>:8091`** in a browser.
-- **From another device over SSH** (no LAN access, or to keep it private): forward the one port and open localhost:
-  ```bash
-  # on your laptop:
-  ssh -N -L 8091:127.0.0.1:8091 <user>@<box>     # leave running (no output = working)
-  # then in the laptop browser:
-  #   http://localhost:8091
-  ```
-
-The page calls the bridge at its **own origin** by default, so it works as-is in both cases - no config. Voice (ElevenLabs) needs the laptop to have internet; the civic data, brain, map and memory are all on the box.
-
-**What `make demo` actually runs** is plain `docker compose up -d --build --wait` (preceded by a
-weights-staging step and followed by a warm-up call) - so if you prefer raw Compose:
-
+**SSH tunnel** (from a laptop with no LAN access):
 ```bash
-make pull-model              # pre-stage the NVFP4 weights into the cb_models volume
-docker compose up -d --build --wait
-docker compose ps            # all services healthy?
-docker compose logs -f egress-proxy
-docker compose down          # stop (keep volumes) · `make nuke` / `down -v` to drop weights too
+ssh -N -L 8091:127.0.0.1:8091 <user>@<box>
+# then open http://localhost:8091
 ```
 
-Quick text sanity check without the UI:
-
+Quick text test without the UI:
 ```bash
 docker compose exec gateway openclaw agent --agent main --message "nearest library to 1 Triton Square"
 ```
 
-**Full runbook** - topology diagram, the GB10 memory gotchas, the two OpenClaw integration points to
-verify on the box, and what we deliberately skipped under 24 h - is in
-**[`deploy/DOCKER.md`](deploy/DOCKER.md)** (quick version in [`deploy/README.md`](deploy/README.md)).
-For the non-containerized / bare-box path (running OpenClaw + vLLM directly), see
-[`docs/setup-runbook.md`](docs/setup-runbook.md) and [`plugins/civic-geo/README.md`](plugins/civic-geo/README.md).
+Full runbook (topology, GB10 memory gotchas, integration points to verify, raw Compose commands) →
+**[`deploy/DOCKER.md`](deploy/DOCKER.md)**. Bare-metal path (no Docker) →
+[`docs/setup-runbook.md`](docs/setup-runbook.md).
 
-## Team
+---
 
-**Codeborough**
+## How it works
+
+Four Docker containers on one GB10 box, connected by two Docker networks that enforce the privacy
+boundary at the infrastructure level.
+
+![Codeborough system architecture](docs/architecture.png)
+
+**Full-resolution interactive diagram → [`docs/architecture.html`](docs/architecture.html)**
+([htmlpreview link](https://htmlpreview.github.io/?https://github.com/pedroandreou/Codeborough/blob/main/docs/architecture.html)
+when the repo is public — GitHub can't render HTML directly.)
+
+**Spine (never leaves the box):** browser → `bridge :8091` → `gateway` (OpenClaw + `civic-geo`
+plugin) → `vllm` (Nemotron reasons, calls tools) → answer back through the same path.
+
+**Voice excursion (spoken turns only):** ① browser mic → ② bridge sends audio out through
+`egress-proxy` to **ElevenLabs Scribe** (STT) → ③ spine runs → ④ bridge sends answer text out to
+**ElevenLabs v3** (TTS) → spoken reply. A *typed* turn uses only the spine and never touches
+ElevenLabs or any network.
+
+The `egress-proxy` is a default-deny allowlist: `*.elevenlabs.io` only, everything else 403. The
+`vllm` and `gateway` containers sit on an `internal: true` Docker network with no gateway/NAT —
+they *cannot* initiate outbound connections. The privacy boundary is enforced by Docker, not just
+asserted.
+
+---
+
+## Privacy
+
+**Always on the box:** reasoning, civic-data lookups, postcode geocoding, route-safety scoring,
+conversation memory. What you asked and where you are never leaves the device.
+
+Three optional network calls, each independently disableable:
+
+| Call | Purpose | How to disable |
+|---|---|---|
+| **ElevenLabs** voice in/out | STT (Scribe) + TTS (v3) | Set `LOCAL_STT_CMD` for on-device Whisper STT; mute TTS to go fully offline |
+| **Walking-route geometry** (OSRM) | Turn-by-turn step directions | `ROUTING_DISABLE=1` — route-safety scoring stays on-device either way |
+| **Assigned polling station** (gov API) | Your *assigned* station, not just nearest | Unset `POLLING_LOOKUP_URL` — falls back to nearest facility, honestly labelled |
+
+With all three disabled the system is air-gapped end to end. None sends your identity: OSRM sees
+two coordinates, the polling API sees a postcode, ElevenLabs sees audio or text.
+
+---
+
+## Extending Codeborough
+
+The components are designed to be extended independently:
+
+| What to extend | How |
+|---|---|
+| **More London boroughs** | Add `datasets/<facility>/<borough>/<facility>.geojson`; the engine picks it up at startup with no code changes |
+| **More facility types** | Add a GeoJSON folder + a category entry in `plugins/civic-geo/src/geo.mjs`; the OpenClaw layer and LLM need no changes |
+| **Assigned polling lookup** | Set `POLLING_LOOKUP_URL` to a [Democracy Club API](https://wheredoivote.co.uk/api/) template with `{postcode}` |
+| **On-device voice (no ElevenLabs)** | Set `LOCAL_STT_CMD` to a Whisper command for STT; TTS is independently mutable |
+| **Different LLM** | Swap `agents.defaults.model.primary` in `deploy/openclaw.gateway.json`; `civic-geo` is model-agnostic |
+| **Embed + rerank + content-safety** | Add extra vLLM services + a LiteLLM router; point the gateway at the router |
+| **Different city** | Replace `datasets/` with any city's open GeoJSON; update category mappings in `geo.mjs` |
+
+The clean separation is: `civic-geo` owns data logic (pure Node, zero deps, independently testable);
+OpenClaw owns agent runtime, voice and memory; the bridge owns the web surface. Each layer can be
+swapped without touching the others.
+
+---
+
+## Scope & known limitations
+
+- **Dataset coverage: 8 of 33 London authorities.** Only those that publish civic facilities as
+  open location data under OGL; the other 25 have no open location data portal. Full coverage
+  matrix, sources, caveats and refresh URLs → [`datasets/SOURCES.md`](datasets/SOURCES.md).
+- **Nearest ≠ assigned.** Returns the *nearest* polling station or school, not your legally assigned
+  one. Assigned lookup requires a postcode-to-district API; see `POLLING_LOOKUP_URL` above.
+- **Geocoding is approximate.** Landmark gazetteer + address/name fallback — accurate enough for
+  "near Brixton", not OS-grade surveyed points. Add entries to `geo.mjs LANDMARKS` for any place
+  the product will name by landmark.
+- **CCTV = traffic cameras.** The CCTV layer is TfL traffic/town cameras (busy, well-served roads),
+  not community-safety surveillance. `safety_count` documents this and the agent repeats it.
+- **Hardware-specific.** The containerized stack is built and tested for the GB10 (arm64, 128 GB
+  unified memory, CDI GPU passthrough). Other NVIDIA hardware needs `VLLM_GPU_FRAC` and
+  `--max-model-len` tuning; x86 needs a different vLLM image tag.
+
+---
+
+## Repository layout
+
+```
+plugins/civic-geo/     on-device GeoJSON tool plugin — the team's core IP (see its README)
+datasets/              London civic facility GeoJSON, per borough + merged all-london files (OGL)
+ui/                    accessible, answer-first web UI + zero-dep Node bridge (bridge.mjs)
+deploy/                containerized stack: Dockerfiles, OpenClaw configs, egress allowlist
+docker-compose.yml     single-command bring-up
+Makefile               orchestration (gate-test, demo, prove-boundary, logs, nuke)
+docs/                  architecture diagram (HTML + PNG), setup runbook, pitch deck
+datasets/SOURCES.md    coverage matrix, sources, licences, field caveats, refresh URLs
+docs/london-structure.md   why facility data is split across 33 separate council portals
+```
+
+---
+
+## Contributing
+
+The highest-impact contribution is **additional borough datasets**: if your council publishes any of
+these facilities as open location data, open a PR adding a GeoJSON file under
+`datasets/<facility>/<borough>/` — the engine picks it up with no code changes. See
+[`datasets/SOURCES.md`](datasets/SOURCES.md) for the format, coverage gaps, and which 25 boroughs
+are still missing.
+
+For code contributions, [`plugins/civic-geo/README.md`](plugins/civic-geo/README.md) is the right
+starting point — that's where the data logic lives and it has a zero-install test harness.
+
+---
+
+## Datasets
+
+London civic facility data is sourced borough-by-borough from council open data portals, all
+released under the [UK Open Government Licence (OGL v3)](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
+OGL permits redistribution, reuse and adaptation with attribution. Sources and attribution per
+borough → [`datasets/SOURCES.md`](datasets/SOURCES.md).
+
+---
+
+## Origin
+
+Codeborough was built at **NVIDIA Hack for Impact - London** (June 2026, Public Services track) in
+under 24 hours. The IP belongs to the team; the code is MIT-licensed.
+
+---
+
+## Licence
+
+[MIT](LICENSE)

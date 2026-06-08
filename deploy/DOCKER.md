@@ -22,7 +22,7 @@ boundary: the reasoning core has no internet route; only the voice bridge egress
   *cannot* reach the internet. That's the privacy claim, enforced by Docker, not asserted.
 - **bridge** is the only reasoning-adjacent service on `edge_net`, and its egress is clamped
   to ElevenLabs by `egress-proxy` (default-deny allowlist).
-- GPU via **`gpus: all`** (CDI) - matches what's verified working on scan-05.
+- GPU via **`gpus: all`** (CDI) — requires Docker with NVIDIA GPU support (`docker run --gpus all` must work on the host).
 
 ## Run order
 
@@ -44,7 +44,7 @@ make gate-test
 # 2) Bring the whole stack up (stages weights, builds, waits for health, pre-warms).
 make demo
 
-# 3) Prove the boundary to judges.
+# 3) Verify the privacy boundary (core has no internet, only ElevenLabs egresses).
 make prove-boundary
 
 # 4) Watch the only outbound traffic, live.
@@ -68,15 +68,15 @@ These are the only spots I couldn't confirm without the box; the Docker layer is
    gateway service - at the cost of moving the egress boundary to the bridge (still provable, just
    a coarser line).
 
-## Hackathon-vs-production notes / what we skipped (<24h)
+## Notes & known trade-offs
 
-- **embed + rerank + safety**: skipped. civic-geo does exact GeoJSON lookups (no semantic
-  retrieval), so embeddings earn nothing on stage. To add later: extra vllm services + a LiteLLM
-  router in front, gateway points at the router instead of vllm directly.
+- **Embed + rerank + safety models**: not included — civic-geo does exact GeoJSON lookups so
+  semantic retrieval adds nothing here. To add later: extra vllm services + a LiteLLM router in
+  front; point the gateway at the router instead of vllm directly.
 - **Weights**: `HF_HUB_OFFLINE=1` at runtime so the brain can't fetch even if it had a route;
   weights are staged by `make pull-model` at setup time.
-- **Secrets**: `.env` for the hackathon. Production: switch to Docker `secrets:` so the key never
-  appears in `docker inspect`.
-- **GPU memory**: single GB10, one unified 128GB pool, so exactly one model is resident at a
+- **Secrets**: `.env` is fine for a single-box deployment. For production, switch to Docker
+  `secrets:` so the key never appears in `docker inspect`.
+- **GPU memory**: single GB10, one unified 128 GB pool, so exactly one model is resident at a
   time. `VLLM_GPU_FRAC` (default 0.45 ≈ 55 GiB) leaves headroom for the rest of the box; raise
-  it toward 0.6 if the box is otherwise idle for the demo.
+  toward 0.6 if the box is otherwise idle.

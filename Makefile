@@ -7,14 +7,14 @@ help:            ## show targets
 gate-test:       ## does the brain serve Nemotron NVFP4 on the GB10? (run this FIRST)
 	docker volume create cb_models >/dev/null
 	@echo "Bringing vLLM up — first run downloads ~16GB. Ctrl-C after you've confirmed it serves."
-	@echo "(host port 8001 -> container 8000, since host :8000 is taken by the org RAG stack)"
+	@echo "(host port 8001 -> container 8000; change if :8001 is already in use on your box)"
 	docker run --rm --gpus all -p 8001:8000 -v cb_models:/models -e HF_HOME=/models \
 	  vllm/vllm-openai:v0.22.1 \
 	  --model nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4 \
 	  --served-model-name nemotron-nano --max-model-len 32768 \
 	  --gpu-memory-utilization 0.45 --trust-remote-code
 
-pull-model:      ## pre-stage NVFP4 weights into cb_models so demo-time vllm needs no egress
+pull-model:      ## pre-stage NVFP4 weights into cb_models so vllm starts without network access
 	docker volume create cb_models >/dev/null
 	docker run --rm -v cb_models:/models -e HF_HOME=/models --entrypoint python3 \
 	  vllm/vllm-openai:v0.22.1 -c "from huggingface_hub import snapshot_download as d; \
@@ -25,7 +25,7 @@ demo: pull-model up warm  ## one-command bring-up: stage weights, start stack, p
 up:              ## start the whole stack and block until healthchecks pass
 	docker compose up -d --build --wait
 
-warm:            ## pre-warm the brain + civic path so there's no cold start on stage
+warm:            ## pre-warm the brain + civic path so there's no cold start on first use
 	@docker compose exec -T gateway sh -lc 'curl -s http://vllm:8000/v1/chat/completions \
 	  -H "content-type: application/json" \
 	  -d "{\"model\":\"nemotron-nano\",\"messages\":[{\"role\":\"user\",\"content\":\"warmup\"}],\"max_tokens\":4}" >/dev/null' \
@@ -34,7 +34,7 @@ warm:            ## pre-warm the brain + civic path so there's no cold start on 
 	  -H "content-type: application/json" -d "{\"message\":\"nearest library to 1 Triton Square\"}" >/dev/null' \
 	  && echo "civic path warm ✅" || echo "civic warm FAILED"
 
-prove-boundary:  ## show the privacy boundary holding (for judges)
+prove-boundary:  ## verify the privacy boundary: reasoning core blocked, only ElevenLabs egresses
 	@echo "1) reasoning core has NO internet route:"
 	@docker compose exec -T gateway sh -lc 'curl -m5 -sS https://example.com >/dev/null 2>&1 && echo "   LEAK ❌" || echo "   internet BLOCKED ✅"'
 	@echo "2) brain reaches the local model fine (proves it is up, just walled):"

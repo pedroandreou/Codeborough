@@ -16,7 +16,7 @@ sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 
 make gate-test       # confirm the Nemotron NVFP4 brain serves on the GB10 (downloads ~16GB once)
 make demo            # stage weights, build, start the stack, pre-warm
-make prove-boundary  # show only ElevenLabs egresses (judge-facing)
+make prove-boundary  # verify the privacy boundary: core blocked, only ElevenLabs egresses
 ```
 
 UI: `http://<box>:8091`.
@@ -45,8 +45,8 @@ docker compose exec gateway openclaw agent --agent main --message "nearest libra
 # NOTE: --agent main routes to the gateway → civic-geo tools + memory. Never --local (no plugins).
 ```
 
-For the **ElevenLabs persistence bounty**: keep one session running ≥ 1 h 11 m (config disables idle
-reset). The transcript at `~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl` is the submission artifact.
+Session memory persists across turns — idle reset is disabled by default. The session transcript
+lives at `~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl`.
 
 ## Notes / gotchas
 
@@ -57,5 +57,4 @@ reset). The transcript at `~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl` i
   memory on GB10, so gauge with `free -h` (`available` column).
 - **Plugin SDK:** `plugins/civic-geo/src/index.ts` targets `openclaw >= 2026.5.17`; if the installed
   version differs, only that file needs tweaking - `geo.mjs` is stable.
-- **The org's RAG stack** (containers on :3000/:8000/Milvus/Postgres) is unrelated - leave it; we use
-  our own ports.
+- **Port conflicts:** vLLM binds to host `:8001` (not `:8000`) to avoid collisions with other services on the box.
