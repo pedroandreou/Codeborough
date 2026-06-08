@@ -2,7 +2,7 @@
 
 `[developer]`
 
-There are two distinct starting points: **validating the data engine** (zero install, zero hardware) and **running the full voice stack** (requires an NVIDIA GB10 + ElevenLabs key). Start with the engine smoke test — if it passes, every higher-level component has a sound foundation.
+There are two distinct starting points: **validating the data engine** (zero install, zero hardware) and **running the full voice stack** (requires an NVIDIA GB10 + ElevenLabs key). Start with the engine smoke test - if it passes, every higher-level component has a sound foundation.
 
 ---
 
@@ -20,7 +20,7 @@ There are two distinct starting points: **validating the data engine** (zero ins
 
 ---
 
-## Step 0 — Validate the data engine (no install, no GPU)
+## Step 0 - Validate the data engine (no install, no GPU)
 
 Run this from anywhere in the repository:
 
@@ -44,7 +44,7 @@ CIVIC_DATA_DIR=/abs/path/to/Codeborough/datasets node plugins/civic-geo/scripts/
 
 ---
 
-## Step 1 — Configure secrets
+## Step 1 - Configure secrets
 
 ```bash
 cp .env.example .env
@@ -57,7 +57,7 @@ The only required field is `ELEVENLABS_API_KEY`. Everything else has a working d
 # Required
 ELEVENLABS_API_KEY=sk_...        # from the ElevenLabs dashboard
 
-# Optional — defaults are fine for first run
+# Optional - defaults are fine for first run
 ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM   # Rachel voice; change to any ElevenLabs voice id
 ELEVENLABS_MODEL=eleven_v3
 BRAIN_MODEL=nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4
@@ -71,7 +71,7 @@ UI_PORT=8091
 
 ---
 
-## Step 2 — Free the GB10 memory pool
+## Step 2 - Free the GB10 memory pool
 
 The GB10 shares one 128 GB pool between CPU and GPU. Other processes competing for this pool will prevent vLLM from loading the model. `nvidia-smi` reports "Not Supported" for memory on the GB10; use `free -h` instead.
 
@@ -82,7 +82,7 @@ free -h    # want `available` comfortably above ~45 GiB
 
 ---
 
-## Step 3 — Gate test: confirm the brain serves
+## Step 3 - Gate test: confirm the brain serves
 
 This downloads the model weights (~16–18 GB) once into the `cb_models` Docker volume and confirms Nemotron can serve structured tool calls. Run it before the full compose stack.
 
@@ -111,7 +111,7 @@ Press Ctrl-C to stop the gate test container.
 
 ---
 
-## Step 4 — Bring the full stack up
+## Step 4 - Bring the full stack up
 
 `make demo` stages the weights (if not already pulled), builds the images, starts all four containers, waits for health checks, and pre-warms the brain and civic path.
 
@@ -136,7 +136,7 @@ ssh -N -L 8091:127.0.0.1:8091 <user>@<box>
 
 ---
 
-## Step 5 — Verify the privacy boundary
+## Step 5 - Verify the privacy boundary
 
 ```bash
 make prove-boundary
@@ -155,7 +155,7 @@ Expected output:
 
 ---
 
-## Step 6 — Quick text test without the UI
+## Step 6 - Quick text test without the UI
 
 ```bash
 docker compose exec gateway openclaw agent --agent main --message "nearest library to 1 Triton Square"
@@ -167,7 +167,7 @@ Expected: Nemotron calls `geocode`, then `find_nearest`, and returns the library
 
 ---
 
-## Step 7 — Confirm plugin tools registered
+## Step 7 - Confirm plugin tools registered
 
 ```bash
 openclaw plugins inspect civic-geo --runtime --json
@@ -175,7 +175,7 @@ openclaw plugins inspect civic-geo --runtime --json
 
 Expected: a JSON object showing 5 registered tools: `geocode`, `find_nearest`, `get_details`, `safety_count`, `list_coverage`.
 
-> **Known gap**: the plugin README states six tools (including `route_safety`), but the deployed `index.js` only registers five. `setup-runbook.md` correctly says "expect 5 tools". See [Architecture — known gaps](03-architecture.md#known-gaps-architecture-developer) for context.
+> **Known gap**: the plugin README states six tools (including `route_safety`), but the deployed `index.js` only registers five. `setup-runbook.md` correctly says "expect 5 tools". See [Architecture - known gaps](03-architecture.md#known-gaps-architecture-developer) for context.
 
 ---
 
@@ -216,7 +216,7 @@ openclaw gateway stop && openclaw gateway --port 18789 --verbose
 openclaw plugins inspect civic-geo --runtime --json
 ```
 
-> **No build step needed.** `package.json` points to `index.js` (plain ESM, no TypeScript compilation). The `src/index.ts` TypeScript adapter is an alternative entry for future use; the deployed entry is `index.js`. See [Extending — Add a tool](06-extending.md#2-add-a-new-tool) if you need to use the TypeScript path.
+> **No build step needed.** `package.json` points to `index.js` (plain ESM, no TypeScript compilation). The `src/index.ts` TypeScript adapter is an alternative entry for future use; the deployed entry is `index.js`. See [Extending - Add a tool](06-extending.md#2-add-a-new-tool) if you need to use the TypeScript path.
 
 > **`openclaw >= 2026.5` is required** (peer dependency). The gateway token auth (`OPENCLAW_GATEWAY_TOKEN`) was introduced in 2026.6.1.
 
@@ -239,6 +239,6 @@ openclaw plugins inspect civic-geo --runtime --json
 
 ## Assumptions register
 
-- `[ASSUMPTION — verify]` `openclaw plugins install ./` from the `plugins/civic-geo` directory is the correct install command. Source: `plugins/civic-geo/README.md` and `docs/setup-runbook.md`. Verify against installed OpenClaw version.
-- `[ASSUMPTION — verify]` The bare-metal path `openclaw plugins install ./` (no explicit `--entry`) uses `package.json` `openclaw.extensions` to find `index.js`. Confirm this works with `openclaw >= 2026.6`.
-- `[ASSUMPTION — verify]` Gate test host port is 8001 (not 8000) as stated in Makefile comment: "host port 8001 → container 8000; change if :8001 is already in use on your box". The curl tool-calling test targets `localhost:8001` accordingly.
+- `[ASSUMPTION - verify]` `openclaw plugins install ./` from the `plugins/civic-geo` directory is the correct install command. Source: `plugins/civic-geo/README.md` and `docs/setup-runbook.md`. Verify against installed OpenClaw version.
+- `[ASSUMPTION - verify]` The bare-metal path `openclaw plugins install ./` (no explicit `--entry`) uses `package.json` `openclaw.extensions` to find `index.js`. Confirm this works with `openclaw >= 2026.6`.
+- `[ASSUMPTION - verify]` Gate test host port is 8001 (not 8000) as stated in Makefile comment: "host port 8001 → container 8000; change if :8001 is already in use on your box". The curl tool-calling test targets `localhost:8001` accordingly.

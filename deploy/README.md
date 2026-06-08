@@ -45,7 +45,7 @@ docker compose exec gateway openclaw agent --agent main --message "nearest libra
 # NOTE: --agent main routes to the gateway → civic-geo tools + memory. Never --local (no plugins).
 ```
 
-Session memory persists across turns — idle reset is disabled by default. The session transcript
+Session memory persists across turns - idle reset is disabled by default. The session transcript
 lives at `~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl`.
 
 ## Notes / gotchas

@@ -22,7 +22,7 @@ boundary: the reasoning core has no internet route; only the voice bridge egress
   *cannot* reach the internet. That's the privacy claim, enforced by Docker, not asserted.
 - **bridge** is the only reasoning-adjacent service on `edge_net`, and its egress is clamped
   to ElevenLabs by `egress-proxy` (default-deny allowlist).
-- GPU via **`gpus: all`** (CDI) — requires Docker with NVIDIA GPU support (`docker run --gpus all` must work on the host).
+- GPU via **`gpus: all`** (CDI) - requires Docker with NVIDIA GPU support (`docker run --gpus all` must work on the host).
 
 ## Run order
 
@@ -70,7 +70,7 @@ These are the only spots I couldn't confirm without the box; the Docker layer is
 
 ## Notes & known trade-offs
 
-- **Embed + rerank + safety models**: not included — civic-geo does exact GeoJSON lookups so
+- **Embed + rerank + safety models**: not included - civic-geo does exact GeoJSON lookups so
   semantic retrieval adds nothing here. To add later: extra vllm services + a LiteLLM router in
   front; point the gateway at the router instead of vllm directly.
 - **Weights**: `HF_HUB_OFFLINE=1` at runtime so the brain can't fetch even if it had a route;

@@ -4,7 +4,7 @@
 
 Codeborough is designed so each layer can evolve independently:
 
-- **`civic-geo`** owns data logic — pure Node, zero dependencies, independently testable.
+- **`civic-geo`** owns data logic - pure Node, zero dependencies, independently testable.
 - **OpenClaw** owns agent runtime, voice, and memory.
 - **bridge** owns the web surface.
 
@@ -31,7 +31,7 @@ curl -s "https://<portal>/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326
 
 Requirements:
 - All geometries must be `Point` type
-- Coordinates must be WGS84 (longitude, latitude) — NOT British National Grid
+- Coordinates must be WGS84 (longitude, latitude) - NOT British National Grid
 - If source is OSGB36 (eastings/northings), reproject to WGS84 before committing
 - If source is address-only (no coordinates), geocode to postcode centroid via [postcodes.io](https://postcodes.io)
 
@@ -173,7 +173,7 @@ Add the new category to `deploy/skills/civic-assistant/SKILL.md` so the model kn
 ```
 
 **What could break:**
-- If `CATEGORY_ALIASES` doesn't include the user's phrasing, the model may pass a category string the engine doesn't recognise. The engine will search all categories as a fallback — always test the exact query string.
+- If `CATEGORY_ALIASES` doesn't include the user's phrasing, the model may pass a category string the engine doesn't recognise. The engine will search all categories as a fallback - always test the exact query string.
 - If the merged file isn't regenerated, `find_nearest` returns 0 results.
 
 ---
@@ -197,7 +197,7 @@ Expected: the `routeSafety` function is defined and exported.
 **3b. Add the import to `index.js`**
 
 ```javascript
-// plugins/civic-geo/index.js  — add routeSafety to the existing import
+// plugins/civic-geo/index.js  - add routeSafety to the existing import
 import {
   findNearest,
   getDetails,
@@ -258,7 +258,7 @@ Or add the tool name manually to `contracts.tools`:
 }
 ```
 
-> **Prefer `openclaw plugins build`** — don't hand-write the contracts or tool calls won't be permitted. Source: `plugins/civic-geo/README.md`.
+> **Prefer `openclaw plugins build`** - don't hand-write the contracts or tool calls won't be permitted. Source: `plugins/civic-geo/README.md`.
 
 **3e. Validate**
 
@@ -289,7 +289,7 @@ import('./plugins/civic-geo/src/geo.mjs').then(m => {
 **3f. Write the function in geo.mjs**
 
 ```javascript
-// plugins/civic-geo/src/geo.mjs  — add at the bottom (keep pure, no imports)
+// plugins/civic-geo/src/geo.mjs  - add at the bottom (keep pure, no imports)
 /**
  * Find facilities of a given type that have a specific property value.
  * e.g. filterByProperty("public-toilets", "BabyChange", "Yes")
@@ -303,7 +303,7 @@ export function filterByProperty(facility, field, value) {
 }
 ```
 
-**3g. Export, import, and register** — follow steps 3b–3d above.
+**3g. Export, import, and register** - follow steps 3b–3d above.
 
 **3h. Write a test in smoke.mjs or a standalone script before registering**
 
@@ -325,7 +325,7 @@ import('./plugins/civic-geo/src/geo.mjs').then(m => {
 
 ### Pattern A: agent-level composition (ReAct loop)
 
-The model can call tools in sequence — geocode → find_nearest → get_details — within a single conversation turn. This is the normal pattern for multi-step queries. You do not need to write any code; just describe the pattern in `SKILL.md`:
+The model can call tools in sequence - geocode → find_nearest → get_details - within a single conversation turn. This is the normal pattern for multi-step queries. You do not need to write any code; just describe the pattern in `SKILL.md`:
 
 ```markdown
 # Example: accessibility-aware nearest toilet
@@ -390,7 +390,7 @@ Edit `deploy/skills/civic-assistant/SKILL.md`. The SKILL.md file is the agent's 
 
 **Extension point:** `datasets/`. Replace the contents with any city's civic GeoJSON in WGS84 point format and update `CATEGORY_ALIASES` and `LANDMARKS` in `geo.mjs` for the new geography.
 
-The agent playbook and all tools remain unchanged. The model's knowledge of London landmarks is in `LANDMARKS` — update this for the new city.
+The agent playbook and all tools remain unchanged. The model's knowledge of London landmarks is in `LANDMARKS` - update this for the new city.
 
 **Change-risk note:** postcode geocoding is built from the dataset itself, so it will only work if the new city's records carry recognisable postcode-format strings. If the new city uses a different geographic identifier, replace the postcode-centroid logic in `geo.mjs`.
 
@@ -413,6 +413,6 @@ The agent playbook and all tools remain unchanged. The model's knowledge of Lond
 
 ## Assumptions register
 
-- `[ASSUMPTION — verify]` `openclaw plugins build --entry ./plugins/civic-geo/index.js` is the correct command to regenerate `openclaw.plugin.json` from the root. Alternatively it may need to be run from `plugins/civic-geo/` with `--entry ./index.js`. Verify against installed OpenClaw docs.
-- `[ASSUMPTION — verify]` `routeSafety` is exported from `geo.mjs` (smoke.mjs imports it — this is a strong signal, but verify with `grep "export function routeSafety" plugins/civic-geo/src/geo.mjs`).
-- `[ASSUMPTION — verify]` The merge script in step 1c correctly handles nested borough directories. If borough data is stored differently (e.g. multiple files per borough), adjust accordingly.
+- `[ASSUMPTION - verify]` `openclaw plugins build --entry ./plugins/civic-geo/index.js` is the correct command to regenerate `openclaw.plugin.json` from the root. Alternatively it may need to be run from `plugins/civic-geo/` with `--entry ./index.js`. Verify against installed OpenClaw docs.
+- `[ASSUMPTION - verify]` `routeSafety` is exported from `geo.mjs` (smoke.mjs imports it - this is a strong signal, but verify with `grep "export function routeSafety" plugins/civic-geo/src/geo.mjs`).
+- `[ASSUMPTION - verify]` The merge script in step 1c correctly handles nested borough directories. If borough data is stored differently (e.g. multiple files per borough), adjust accordingly.

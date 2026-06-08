@@ -1,4 +1,4 @@
-# Codeborough — single-box stack for the DGX Spark (GB10, arm64).
+# Codeborough - single-box stack for the DGX Spark (GB10, arm64).
 #
 #   PRIVACY BOUNDARY (provable):
 #     core_net  is `internal: true`  -> vllm + gateway have NO route to the internet.
@@ -6,7 +6,7 @@
 #   The reasoning core (brain + civic-geo + memory) physically cannot phone home;
 #   only the voice bridge reaches ElevenLabs, through an allowlisted proxy.
 #
-#   GPU: uses `gpus: all` (CDI) — NOT `runtime: nvidia` — requires Docker with NVIDIA GPU
+#   GPU: uses `gpus: all` (CDI) - NOT `runtime: nvidia` - requires Docker with NVIDIA GPU
 #   support; verify with `docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi`.
 #
 #   Brain weights are provisioned at SETUP time (make pull-model) into cb_models,
@@ -89,7 +89,7 @@ services:
     networks: [core_net, edge_net]             # the ONLY dual-homed infra service
     restart: unless-stopped
 
-  # ---------- BRIDGE: bridge.mjs — browser-facing voice + map (CPU, edge) ----------
+  # ---------- BRIDGE: bridge.mjs - browser-facing voice + map (CPU, edge) ----------
   bridge:
     build:
       context: .
@@ -135,7 +135,7 @@ networks:
     driver: bridge        # egress allowed; only egress-proxy + bridge are attached
 
 volumes:
-  cb_models:              # vLLM NVFP4 weights (HF cache) — provisioned by `make pull-model`
+  cb_models:              # vLLM NVFP4 weights (HF cache) - provisioned by `make pull-model`
     name: cb_models       # pin the EXACT name (no `codeborough_` project prefix). `make pull-model`
                           # stages ~18GB into a bare `cb_models` volume; without this pin, compose
                           # mounted an empty `codeborough_cb_models` instead -> vLLM LocalEntryNotFound.

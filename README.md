@@ -1,7 +1,7 @@
 # Codeborough
 
 **Private, on-device, voice-first civic concierge for London.**  
-Ask in plain language — *"where do I vote and is it step-free?"*, *"nearest accessible toilet to Brixton station?"* — and get a spoken answer grounded in real council open data, on a device that keeps your questions and location to itself.
+Ask in plain language - *"where do I vote and is it step-free?"*, *"nearest accessible toilet to Brixton station?"* - and get a spoken answer grounded in real council open data, on a device that keeps your questions and location to itself.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Platform: NVIDIA GB10](https://img.shields.io/badge/platform-NVIDIA%20GB10%20arm64-76b900?style=flat-square)](https://www.nvidia.com/en-us/products/workstations/dgx-spark/)
@@ -12,12 +12,12 @@ Ask in plain language — *"where do I vote and is it step-free?"*, *"nearest ac
 
 ## What it does
 
-- **Surfaces civic data commercial maps don't carry** — polling stations, emergency rest centres,
-  grit bins, council CCTV coverage, accessible-toilet detail — across 8 London authorities, by asking
+- **Surfaces civic data commercial maps don't carry** - polling stations, emergency rest centres,
+  grit bins, council CCTV coverage, accessible-toilet detail - across 8 London authorities, by asking
   in plain language via voice or text.
-- **Routes safely** — walking routes prefer monitored, well-served streets; CCTV and grit-bin
+- **Routes safely** - walking routes prefer monitored, well-served streets; CCTV and grit-bin
   density are scored on-device from the same GeoJSON, not from a remote service.
-- **Stays on the box** — reasoning, civic lookups, postcode geocoding, route-safety scoring and
+- **Stays on the box** - reasoning, civic lookups, postcode geocoding, route-safety scoring and
   conversation memory never leave the device. Voice (ElevenLabs) is the only network call, and
   it can be replaced with on-device Whisper.
 
@@ -28,7 +28,7 @@ and anyone who needs civic access rather than the nearest café.
 
 ## Quick start
 
-**Validate the data engine** — no install, no GPU, no API key:
+**Validate the data engine** - no install, no GPU, no API key:
 
 ```bash
 node plugins/civic-geo/scripts/smoke.mjs
@@ -40,7 +40,7 @@ If it looks right, the civic data logic is proven independently of the LLM or th
 **Deploy the full stack** (requires an NVIDIA GB10 box and an ElevenLabs API key):
 
 ```bash
-cp .env.example .env && $EDITOR .env   # set ELEVENLABS_API_KEY — the only required secret
+cp .env.example .env && $EDITOR .env   # set ELEVENLABS_API_KEY - the only required secret
 
 # GB10 shares one 128 GB unified pool between CPU and GPU; free it before loading the model:
 sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
@@ -78,7 +78,7 @@ boundary at the infrastructure level.
 
 **Full-resolution interactive diagram → [`docs/architecture.html`](docs/architecture.html)**
 ([htmlpreview link](https://htmlpreview.github.io/?https://github.com/pedroandreou/Codeborough/blob/main/docs/architecture.html)
-when the repo is public — GitHub can't render HTML directly.)
+when the repo is public - GitHub can't render HTML directly.)
 
 **Spine (never leaves the box):** browser → `bridge :8091` → `gateway` (OpenClaw + `civic-geo`
 plugin) → `vllm` (Nemotron reasons, calls tools) → answer back through the same path.
@@ -89,7 +89,7 @@ plugin) → `vllm` (Nemotron reasons, calls tools) → answer back through the s
 ElevenLabs or any network.
 
 The `egress-proxy` is a default-deny allowlist: `*.elevenlabs.io` only, everything else 403. The
-`vllm` and `gateway` containers sit on an `internal: true` Docker network with no gateway/NAT —
+`vllm` and `gateway` containers sit on an `internal: true` Docker network with no gateway/NAT -
 they *cannot* initiate outbound connections. The privacy boundary is enforced by Docker, not just
 asserted.
 
@@ -105,8 +105,8 @@ Three optional network calls, each independently disableable:
 | Call | Purpose | How to disable |
 |---|---|---|
 | **ElevenLabs** voice in/out | STT (Scribe) + TTS (v3) | Set `LOCAL_STT_CMD` for on-device Whisper STT; mute TTS to go fully offline |
-| **Walking-route geometry** (OSRM) | Turn-by-turn step directions | `ROUTING_DISABLE=1` — route-safety scoring stays on-device either way |
-| **Assigned polling station** (gov API) | Your *assigned* station, not just nearest | Unset `POLLING_LOOKUP_URL` — falls back to nearest facility, honestly labelled |
+| **Walking-route geometry** (OSRM) | Turn-by-turn step directions | `ROUTING_DISABLE=1` - route-safety scoring stays on-device either way |
+| **Assigned polling station** (gov API) | Your *assigned* station, not just nearest | Unset `POLLING_LOOKUP_URL` - falls back to nearest facility, honestly labelled |
 
 With all three disabled the system is air-gapped end to end. None sends your identity: OSRM sees
 two coordinates, the polling API sees a postcode, ElevenLabs sees audio or text.
@@ -140,7 +140,7 @@ swapped without touching the others.
   matrix, sources, caveats and refresh URLs → [`datasets/SOURCES.md`](datasets/SOURCES.md).
 - **Nearest ≠ assigned.** Returns the *nearest* polling station or school, not your legally assigned
   one. Assigned lookup requires a postcode-to-district API; see `POLLING_LOOKUP_URL` above.
-- **Geocoding is approximate.** Landmark gazetteer + address/name fallback — accurate enough for
+- **Geocoding is approximate.** Landmark gazetteer + address/name fallback - accurate enough for
   "near Brixton", not OS-grade surveyed points. Add entries to `geo.mjs LANDMARKS` for any place
   the product will name by landmark.
 - **CCTV = traffic cameras.** The CCTV layer is TfL traffic/town cameras (busy, well-served roads),
@@ -154,7 +154,7 @@ swapped without touching the others.
 ## Repository layout
 
 ```
-plugins/civic-geo/     on-device GeoJSON tool plugin — the team's core IP (see its README)
+plugins/civic-geo/     on-device GeoJSON tool plugin - the team's core IP (see its README)
 datasets/              London civic facility GeoJSON, per borough + merged all-london files (OGL)
 ui/                    accessible, answer-first web UI + zero-dep Node bridge (bridge.mjs)
 deploy/                containerized stack: Dockerfiles, OpenClaw configs, egress allowlist
@@ -171,12 +171,12 @@ docs/london-structure.md   why facility data is split across 33 separate council
 
 The highest-impact contribution is **additional borough datasets**: if your council publishes any of
 these facilities as open location data, open a PR adding a GeoJSON file under
-`datasets/<facility>/<borough>/` — the engine picks it up with no code changes. See
+`datasets/<facility>/<borough>/` - the engine picks it up with no code changes. See
 [`datasets/SOURCES.md`](datasets/SOURCES.md) for the format, coverage gaps, and which 25 boroughs
 are still missing.
 
 For code contributions, [`plugins/civic-geo/README.md`](plugins/civic-geo/README.md) is the right
-starting point — that's where the data logic lives and it has a zero-install test harness.
+starting point - that's where the data logic lives and it has a zero-install test harness.
 
 ---
 

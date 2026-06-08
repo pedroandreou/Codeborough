@@ -4,7 +4,7 @@
 
 The `civic-geo` OpenClaw plugin exposes **five tools** to the agent. These are the functions the language model calls during a conversation. All computation is on-device; none of these tools makes a network request.
 
-> **Tool count note:** `src/index.ts` (the TypeScript adapter) defines six tools including `route_safety`. The **deployed entry** `index.js` registers five tools. `openclaw.plugin.json` confirms five. `SKILL.md` references `route_safety` as a callable tool — this is currently a gap. See [Known gaps](#known-gaps) at the end of this document.
+> **Tool count note:** `src/index.ts` (the TypeScript adapter) defines six tools including `route_safety`. The **deployed entry** `index.js` registers five tools. `openclaw.plugin.json` confirms five. `SKILL.md` references `route_safety` as a callable tool - this is currently a gap. See [Known gaps](#known-gaps) at the end of this document.
 
 Source: [`plugins/civic-geo/index.js`](../plugins/civic-geo/index.js), [`plugins/civic-geo/src/geo.mjs`](../plugins/civic-geo/src/geo.mjs).
 
@@ -15,10 +15,10 @@ Source: [`plugins/civic-geo/index.js`](../plugins/civic-geo/index.js), [`plugins
 **Purpose:** Resolve any place description to WGS84 coordinates, fully offline. This is almost always the first tool called in a conversation.
 
 **Strategy (four layers, tried in order):**
-1. Literal coordinates — if `query` matches `"lat,lon"`, parse and return directly.
-2. Postcode centroid — built at runtime from the dataset records. A full postcode resolves to its centroid; an outward code (`SW2`) resolves to the district centroid.
-3. Landmark gazetteer — ~20 curated places (Brixton, Euston, King's Cross, Camden Town, Wandsworth, Kingston, Kensington, Hammersmith, City of London, etc.).
-4. Substring match — scans every dataset record's name and address fields for the query string.
+1. Literal coordinates - if `query` matches `"lat,lon"`, parse and return directly.
+2. Postcode centroid - built at runtime from the dataset records. A full postcode resolves to its centroid; an outward code (`SW2`) resolves to the district centroid.
+3. Landmark gazetteer - ~20 curated places (Brixton, Euston, King's Cross, Camden Town, Wandsworth, Kingston, Kensington, Hammersmith, City of London, etc.).
+4. Substring match - scans every dataset record's name and address fields for the query string.
 
 ### Input
 
@@ -75,11 +75,11 @@ Output:  {"lat": 51.52, "lon": -0.13, "source": "literal"}
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `lat` | number | ✅ | — | Latitude (WGS84) |
-| `lon` | number | ✅ | — | Longitude (WGS84) |
-| `category` | string | — | all categories | Facility type. Accepted values and synonyms below. |
-| `limit` | integer | — | 3 | Maximum results to return |
-| `radiusKm` | number | — | no limit | Only return results within this radius (km) |
+| `lat` | number | ✅ | - | Latitude (WGS84) |
+| `lon` | number | ✅ | - | Longitude (WGS84) |
+| `category` | string | - | all categories | Facility type. Accepted values and synonyms below. |
+| `limit` | integer | - | 3 | Maximum results to return |
+| `radiusKm` | number | - | no limit | Only return results within this radius (km) |
 
 **Accepted category values** (case-insensitive, with synonyms):
 
@@ -107,7 +107,7 @@ Output:  {"lat": 51.52, "lon": -0.13, "source": "literal"}
       "lat": 51.5262,
       "lon": -0.1429,
       "distanceM": 415,
-      "formatted": "Regent's Park Library — 415 m (about a 5-minute walk)"
+      "formatted": "Regent's Park Library - 415 m (about a 5-minute walk)"
     }
   ],
   "category": "libraries",
@@ -173,17 +173,17 @@ Output: {"results": [ ... toilets within 2 km of Brixton ... ]}
 
 ## `safety_count`
 
-**Purpose:** Count CCTV cameras (and grit bins) within a radius of a point — the "monitored / busy streets" density signal for a single location.
+**Purpose:** Count CCTV cameras (and grit bins) within a radius of a point - the "monitored / busy streets" density signal for a single location.
 
-**Framing note (required):** CCTV in this dataset is predominantly TfL traffic cameras and town-centre cameras on busy, well-served roads — **not** community-safety surveillance. The agent must always describe this as "busy, monitored main roads", never imply crime levels or surveillance. Source: `index.js` tool description; `SKILL.md` step 4.
+**Framing note (required):** CCTV in this dataset is predominantly TfL traffic cameras and town-centre cameras on busy, well-served roads - **not** community-safety surveillance. The agent must always describe this as "busy, monitored main roads", never imply crime levels or surveillance. Source: `index.js` tool description; `SKILL.md` step 4.
 
 ### Input
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `lat` | number | ✅ | — | Latitude |
-| `lon` | number | ✅ | — | Longitude |
-| `radiusM` | number | — | 400 | Radius in metres |
+| `lat` | number | ✅ | - | Latitude |
+| `lon` | number | ✅ | - | Longitude |
+| `radiusM` | number | - | 400 | Radius in metres |
 
 ### Output
 
@@ -254,7 +254,7 @@ Call `list_coverage` before committing to an answer about a borough or facility 
 
 ## Known gaps
 
-### `route_safety` — defined but not registered
+### `route_safety` - defined but not registered
 
 `route_safety` computes the fraction of a walking route that falls within a corridor of CCTV cameras. The function exists in `geo.mjs` as `routeSafety` and is defined in `src/index.ts`. It is **not registered** in the deployed `index.js` and is **not listed** in `openclaw.plugin.json` `contracts.tools`.
 
@@ -318,6 +318,6 @@ Then regenerate `openclaw.plugin.json` with `openclaw plugins build` and restart
 
 ## Assumptions register
 
-- `[ASSUMPTION — verify]` Output shapes shown are inferred from `geo.mjs` function implementations. Verify against a live smoke test (`node plugins/civic-geo/scripts/smoke.mjs`) for exact field names and values.
-- `[ASSUMPTION — verify]` `safety_count` output includes a `note` field about CCTV framing. Verify this is emitted by the `safetyCount` function in geo.mjs (the README and index.js description both require this framing, but the exact output shape should be confirmed by running the smoke test).
-- `[ASSUMPTION — verify]` `list_coverage` output shape. The smoke test calls `listCoverage()` — run it to confirm the exact JSON structure.
+- `[ASSUMPTION - verify]` Output shapes shown are inferred from `geo.mjs` function implementations. Verify against a live smoke test (`node plugins/civic-geo/scripts/smoke.mjs`) for exact field names and values.
+- `[ASSUMPTION - verify]` `safety_count` output includes a `note` field about CCTV framing. Verify this is emitted by the `safetyCount` function in geo.mjs (the README and index.js description both require this framing, but the exact output shape should be confirmed by running the smoke test).
+- `[ASSUMPTION - verify]` `list_coverage` output shape. The smoke test calls `listCoverage()` - run it to confirm the exact JSON structure.

@@ -21,10 +21,10 @@ Private, on-device, voice-first civic concierge for London.
 
 ## Quick orientation
 
-- **No hardware?** Run the engine smoke test first — zero install, zero GPU: `node plugins/civic-geo/scripts/smoke.mjs`
+- **No hardware?** Run the engine smoke test first - zero install, zero GPU: `node plugins/civic-geo/scripts/smoke.mjs`
 - **Full stack?** Needs an NVIDIA GB10 box + ElevenLabs API key. Start at [Getting Started](04-getting-started.md).
-- **Adding data?** Go straight to [Extending — Add a dataset](06-extending.md#1-add-a-new-borough-dataset).
-- **Adding a tool?** See [Extending — Add a tool](06-extending.md#2-add-a-new-tool).
+- **Adding data?** Go straight to [Extending - Add a dataset](06-extending.md#1-add-a-new-borough-dataset).
+- **Adding a tool?** See [Extending - Add a tool](06-extending.md#2-add-a-new-tool).
 - **Procurement / partnership?** [Overview](01-overview.md) and [Use Cases & Limits](02-use-cases.md) are written for you.
 - **Privacy claim?** [Operations & Privacy](08-operations.md) states exactly what stays on-device and what the three optional network calls are.
 

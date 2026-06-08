@@ -31,7 +31,7 @@ The single published port is `:8091` (configurable as `UI_PORT`). All other serv
 - Build a user profile
 - Send any data to Anthropic, NVIDIA, or any analytics service
 
-The privacy boundary is enforced by Docker, not just asserted. The reasoning containers (`vllm` and `gateway`) run on an `internal: true` Docker network. Docker attaches no gateway or NAT to this network — these containers *cannot* initiate any outbound connections, period. Run `make prove-boundary` at any time to verify this live.
+The privacy boundary is enforced by Docker, not just asserted. The reasoning containers (`vllm` and `gateway`) run on an `internal: true` Docker network. Docker attaches no gateway or NAT to this network - these containers *cannot* initiate any outbound connections, period. Run `make prove-boundary` at any time to verify this live.
 
 ### Optional network calls
 
@@ -43,7 +43,7 @@ There are exactly three optional network calls. Each is independently disableabl
 | **ElevenLabs v3** (TTS) | Converts the agent's text answer to spoken audio | Enabled | Mute TTS in the UI settings; or disable ElevenLabs entirely |
 | **OSRM** (walking route geometry) | Turn-by-turn step directions | Enabled | Set `ROUTING_DISABLE=1`; route-safety scoring remains on-device |
 
-A fourth optional call — the assigned polling station API — is disabled by default:
+A fourth optional call - the assigned polling station API - is disabled by default:
 
 | Call | Purpose | Default | How to enable |
 |---|---|---|---|
@@ -152,7 +152,7 @@ This means the model version is frozen at the pulled snapshot. To upgrade the mo
 
 ## Updating datasets `[developer]`
 
-1. Download fresh source data (see [Data Guide — Refresh](07-data-guide.md#refresh)).
+1. Download fresh source data (see [Data Guide - Refresh](07-data-guide.md#refresh)).
 2. Re-apply the preparation pipeline (reproject, tag, merge).
 3. Replace the files in `datasets/`.
 4. Restart the gateway to reload: `docker compose restart gateway`.
@@ -223,6 +223,6 @@ On the GB10, `nvidia-smi` reports "Not Supported" for memory. Use `free -h`; the
 
 ## Assumptions register
 
-- `[ASSUMPTION — verify]` The `OPENCLAW_HTTP_URL` bridge knob (`http://127.0.0.1:18789/agent`) — verify the exact path against the installed OpenClaw version. Source: `ui/README.md` documents `OPENCLAW_HTTP_URL`.
-- `[ASSUMPTION — verify]` The `cb_memory` volume stores sessions at `sessions/*.jsonl`. Source: `deploy/README.md` says "The session transcript lives at `~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl`"; confirm the container path matches the volume mount at `/root/.openclaw/agents`.
-- `[ASSUMPTION — verify]` `docker compose restart gateway` is sufficient to reload the datasets. The engine calls `readFileSync` at startup; confirm there is no process-level caching that would require a full `docker compose up --build` after a dataset change.
+- `[ASSUMPTION - verify]` The `OPENCLAW_HTTP_URL` bridge knob (`http://127.0.0.1:18789/agent`) - verify the exact path against the installed OpenClaw version. Source: `ui/README.md` documents `OPENCLAW_HTTP_URL`.
+- `[ASSUMPTION - verify]` The `cb_memory` volume stores sessions at `sessions/*.jsonl`. Source: `deploy/README.md` says "The session transcript lives at `~/.openclaw/agents/<id>/sessions/<sessionId>.jsonl`"; confirm the container path matches the volume mount at `/root/.openclaw/agents`.
+- `[ASSUMPTION - verify]` `docker compose restart gateway` is sufficient to reload the datasets. The engine calls `readFileSync` at startup; confirm there is no process-level caching that would require a full `docker compose up --build` after a dataset change.

@@ -6,7 +6,7 @@ help:            ## show targets
 
 gate-test:       ## does the brain serve Nemotron NVFP4 on the GB10? (run this FIRST)
 	docker volume create cb_models >/dev/null
-	@echo "Bringing vLLM up — first run downloads ~16GB. Ctrl-C after you've confirmed it serves."
+	@echo "Bringing vLLM up - first run downloads ~16GB. Ctrl-C after you've confirmed it serves."
 	@echo "(host port 8001 -> container 8000; change if :8001 is already in use on your box)"
 	docker run --rm --gpus all -p 8001:8000 -v cb_models:/models -e HF_HOME=/models \
 	  vllm/vllm-openai:v0.22.1 \

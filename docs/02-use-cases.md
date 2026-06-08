@@ -6,17 +6,17 @@
 
 ## Concrete scenarios (what Codeborough does today)
 
-### 1. "Where do I vote?" — polling station finder
+### 1. "Where do I vote?" - polling station finder
 
 > *"Where's my polling station and is it step-free?"*
 
 Codeborough geocodes the user's location, finds the nearest polling station in the dataset, and returns the name, address, ward, walking distance, and accessibility information where the source data carries it.
 
-**Honest caveat:** Codeborough returns the *nearest* polling station, not the one you are legally assigned to. Your assigned station depends on your electoral registration and district — that mapping requires a postcode-to-district API (see `POLLING_LOOKUP_URL` in [Operations](08-operations.md)). When the API is not configured, Codeborough says *"nearest"*, not *"your"*.
+**Honest caveat:** Codeborough returns the *nearest* polling station, not the one you are legally assigned to. Your assigned station depends on your electoral registration and district - that mapping requires a postcode-to-district API (see `POLLING_LOOKUP_URL` in [Operations](08-operations.md)). When the API is not configured, Codeborough says *"nearest"*, not *"your"*.
 
 ---
 
-### 2. "Nearest accessible toilet" — public toilets with accessibility detail
+### 2. "Nearest accessible toilet" - public toilets with accessibility detail
 
 > *"Nearest accessible toilet to Brixton station?"*  
 > *"Is there one with baby-change nearby?"*
@@ -25,17 +25,17 @@ Codeborough finds public toilets within a given radius, filtered by category. Wh
 
 ---
 
-### 3. "How do I get to the library?" — route-safety guidance
+### 3. "How do I get to the library?" - route-safety guidance
 
 > *"Is the walk to Regent's Park Library on busy, well-lit roads?"*
 
 The bridge's `/route` endpoint calls the on-device route-safety engine: it computes the fraction of the walking route that passes within ~150 m of a CCTV camera. The spoken answer frames this as *"about 80% of your walk is on busy, monitored roads"*.
 
-**Important framing:** the CCTV layer is TfL traffic and town-centre cameras — busy, well-served roads, not crime surveillance. Codeborough never uses language that implies crime levels or surveillance. See [Data Guide — CCTV caveat](07-data-guide.md#caveats).
+**Important framing:** the CCTV layer is TfL traffic and town-centre cameras - busy, well-served roads, not crime surveillance. Codeborough never uses language that implies crime levels or surveillance. See [Data Guide - CCTV caveat](07-data-guide.md#caveats).
 
 ---
 
-### 4. Emergency preparedness — reception / rest centres
+### 4. Emergency preparedness - reception / rest centres
 
 > *"If there's a flood, where's the nearest emergency rest centre?"*
 
@@ -45,7 +45,7 @@ Codeborough finds the nearest reception or emergency rest centre and provides th
 
 ---
 
-### 5. Winter safety — grit bin location
+### 5. Winter safety - grit bin location
 
 > *"Is there a grit bin near the top of my road?"*
 
@@ -53,7 +53,7 @@ Finds the nearest grit bin(s) by location, with the road name and description wh
 
 ---
 
-### 6. Safe neighbourhood signal — CCTV density
+### 6. Safe neighbourhood signal - CCTV density
 
 > *"How monitored is this area?"*
 
@@ -87,7 +87,7 @@ These are genuine current limits, not future features.
 | **No real-time data** | Datasets are static snapshots from council portals. Opening hours, temporary closures, and polling-station changes (e.g. between elections) are not reflected until a refresh. |
 | **Hardware-specific at full stack** | The GPU-served full stack is built and tested on the NVIDIA GB10 (arm64, 128 GB unified memory). Other hardware needs tuning (`VLLM_GPU_FRAC`, `--max-model-len`); x86 needs a different vLLM image tag. The data engine has no hardware requirement. |
 | **Camden schools are London-wide** | The Camden schools file is a London-wide DfE extract (658 rows), all tagged `_borough: camden`. Individual rows carry their true `local_authority_name`. Treat Camden school coverage as London-wide until this file is re-split. |
-| **No national school/polling lookups** | Codeborough uses borough-level GeoJSON. Single national datasets exist for schools (DfE GIAS) and polling stations (Democracy Club) — integrating these would improve coverage immediately. See [Data Guide](07-data-guide.md#a-simpler-route-for-three-facilities). |
+| **No national school/polling lookups** | Codeborough uses borough-level GeoJSON. Single national datasets exist for schools (DfE GIAS) and polling stations (Democracy Club) - integrating these would improve coverage immediately. See [Data Guide](07-data-guide.md#a-simpler-route-for-three-facilities). |
 
 ---
 
@@ -108,4 +108,4 @@ These are genuine current limits, not future features.
 
 ## Assumptions register
 
-- `[ASSUMPTION — verify]` Multilingual reply confirmed for Nemotron (a 30B instruction-tuned model); verify that `eleven_multilingual_v2` is the TTS model used in practice — `.env.example` shows `ELEVENLABS_MODEL=eleven_v3` (monolingual default). The UI README mentions `eleven_multilingual_v2` for multilingual scenarios; confirm the bridge switches models on language change.
+- `[ASSUMPTION - verify]` Multilingual reply confirmed for Nemotron (a 30B instruction-tuned model); verify that `eleven_multilingual_v2` is the TTS model used in practice - `.env.example` shows `ELEVENLABS_MODEL=eleven_v3` (monolingual default). The UI README mentions `eleven_multilingual_v2` for multilingual scenarios; confirm the bridge switches models on language change.

@@ -2,14 +2,14 @@
 
 On-device geospatial computation over the London civic-facility GeoJSON datasets,
 exposed to an OpenClaw agent as tools. Pure-Node engine with zero runtime
-dependencies — testable against the real datasets with no GPU, no API key, and no
+dependencies - testable against the real datasets with no GPU, no API key, and no
 install step.
 
 ## Layout
 
 ```
 plugins/civic-geo/
-├── src/geo.mjs        engine — all geospatial logic, zero dependencies
+├── src/geo.mjs        engine - all geospatial logic, zero dependencies
 ├── src/index.ts       thin OpenClaw adapter exposing the engine as tools
 ├── scripts/smoke.mjs  zero-install validator against the real datasets
 ├── package.json
@@ -23,19 +23,19 @@ Six tools are registered by `src/index.ts`:
 
 | Tool | What it computes |
 |---|---|
-| `geocode(query)` | Resolves a place name, landmark, postcode, or `"lat,lon"` to coordinates — offline. Four-layer strategy: literal coords → postcode centroid (built at runtime from dataset records) → landmark gazetteer → substring match against dataset names/addresses. |
+| `geocode(query)` | Resolves a place name, landmark, postcode, or `"lat,lon"` to coordinates - offline. Four-layer strategy: literal coords → postcode centroid (built at runtime from dataset records) → landmark gazetteer → substring match against dataset names/addresses. |
 | `find_nearest(lat, lon, category?, limit?, radiusKm?)` | Brute-force nearest-neighbour search: computes haversine distance from the query point to every record in the relevant dataset(s), filters by optional radius, sorts ascending, returns top N with formatted results. |
 | `get_details(id)` | Returns the full record for one facility by synthetic id. Runs the field-normalisation layer to resolve accessibility, hours, and contact fields across different borough schemas. |
-| `safety_count(lat, lon, radiusM?)` | Counts CCTV cameras and grit bins within a radius — a "monitored/busy streets" density signal. |
+| `safety_count(lat, lon, radiusM?)` | Counts CCTV cameras and grit bins within a radius - a "monitored/busy streets" density signal. |
 | `route_safety(fromLat, fromLon, toLat, toLon, corridorM?)` | Spatial geometry: projects lat/lon to planar XY, computes point-to-segment distance from each camera to the route, samples the path every ~120 m, and returns the percentage of the journey within a corridor of a camera. Accepts a full polyline (e.g. from OSRM) for accuracy, or falls back to a straight origin→destination line. |
-| `list_coverage()` | Aggregates loaded records by facility and borough — lets the agent state coverage honestly rather than over-promising. |
+| `list_coverage()` | Aggregates loaded records by facility and borough - lets the agent state coverage honestly rather than over-promising. |
 
 Categories accepted by `find_nearest` (with synonyms): library, school, toilet,
 polling station, grit bin, cctv/camera, reception centre.
 
 ## What the engine actually does (not "just lookups")
 
-`geo.mjs` is deterministic code, not a retrieval model — but it's also not
+`geo.mjs` is deterministic code, not a retrieval model - but it's also not
 key-value lookups. The meaningful computation:
 
 - **Field normalisation across 8 borough schemas.** Each council's portal uses
@@ -56,7 +56,7 @@ key-value lookups. The meaningful computation:
   to convert lat/lon to metres, then computes the perpendicular distance from
   each camera to each route segment. It samples the route at ~120 m intervals
   and counts what fraction of sample points fall within `corridorM` of a camera.
-  This monitored percentage is derived spatial math — nothing about it is a lookup.
+  This monitored percentage is derived spatial math - nothing about it is a lookup.
 
 The separation of labour: Nemotron decides which tool to call and with what
 arguments; the engine computes the actual geospatial answer deterministically.
@@ -103,7 +103,7 @@ openclaw agent --agent main --message "nearest library to 1 Triton Square"   # t
 - **SDK version:** `src/index.ts` targets the documented SDK (`openclaw >= 2026.5.17`):
   `defineToolPlugin` from `openclaw/plugin-sdk/tool-plugin`, schemas via TypeBox.
   Verify against the version actually installed on the box; only `index.ts` needs
-  changing if the API differs — `geo.mjs` is pure and stable.
+  changing if the API differs - `geo.mjs` is pure and stable.
 - **TypeBox import:** if `typebox` doesn't resolve, switch the import to
   `@sinclair/typebox` (the `Type` API is identical) and update `package.json`.
 - **`contracts.tools`:** don't hand-write `openclaw.plugin.json`; let
@@ -112,7 +112,7 @@ openclaw agent --agent main --message "nearest library to 1 Triton Square"   # t
   from our datasets, so it covers only the postcodes present in the 8 boroughs we
   have. Add entries to `LANDMARKS` in `geo.mjs` for any place name the product
   will call by landmark.
-- **Coverage is partial** (8 of 33 authorities) — see `datasets/SOURCES.md`. The
+- **Coverage is partial** (8 of 33 authorities) - see `datasets/SOURCES.md`. The
   agent should call `list_coverage` and honour `find_nearest`'s radius so it
   never invents facilities in uncovered boroughs.
 - **CCTV framing:** `safety_count` and `route_safety` both carry an explicit note

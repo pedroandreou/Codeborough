@@ -1,6 +1,6 @@
 # Data Guide
 
-`[both]` — coverage matrix and licensing for decision-makers; preparation pipeline and caveats for developers.
+`[both]` - coverage matrix and licensing for decision-makers; preparation pipeline and caveats for developers.
 
 ---
 
@@ -18,20 +18,20 @@ Numbers are record counts. A dash means that borough does not publish that facil
 
 | Borough | Libraries | Reception | CCTV | Schools | Toilets | Polling | Grit bins |
 |---|--:|--:|--:|--:|--:|--:|--:|
-| Camden | 13 | 19 | — | 658 | 39 | 61 | 177 |
-| Lambeth | 11 | — | 470 | 100 | 32 | 101 | — |
-| Wandsworth | 11 | — | — | 81 | — | 83 | 55 |
-| Kingston | 7 | — | — | — | — | 53 | 110 |
-| Kensington & Chelsea | — | 28 | 79 | — | 48 | — | — |
-| Barnet | — | — | — | 161 | 26 | 91 | — |
-| City of London | — | — | — | — | 71 | 4 | 34 |
-| Hammersmith & Fulham | — | — | — | — | — | 71 | — |
+| Camden | 13 | 19 | - | 658 | 39 | 61 | 177 |
+| Lambeth | 11 | - | 470 | 100 | 32 | 101 | - |
+| Wandsworth | 11 | - | - | 81 | - | 83 | 55 |
+| Kingston | 7 | - | - | - | - | 53 | 110 |
+| Kensington & Chelsea | - | 28 | 79 | - | 48 | - | - |
+| Barnet | - | - | - | 161 | 26 | 91 | - |
+| City of London | - | - | - | - | 71 | 4 | 34 |
+| Hammersmith & Fulham | - | - | - | - | - | 71 | - |
 | **Total** | **42** | **47** | **549** | **1,000** | **216** | **464** | **376** |
 | **Boroughs with data** | 4 | 2 | 2 | 4 | 5 | 7 | 4 |
 
 All 33 London authorities were checked. The other 25 authorities publish none of these facility types as open location data (statistics dashboards, or no portal).
 
-Source: [`datasets/SOURCES.md`](../datasets/SOURCES.md) — verified against the actual GeoJSON files.
+Source: [`datasets/SOURCES.md`](../datasets/SOURCES.md) - verified against the actual GeoJSON files.
 
 ---
 
@@ -48,7 +48,7 @@ Source: [`datasets/SOURCES.md`](../datasets/SOURCES.md) — verified against the
 | City of London | mapping.cityoflondon.gov.uk (INSPIRE WFS) | ArcGIS WFS |
 | Hammersmith & Fulham | LBHF ArcGIS services (rbkc-lbhf) | ArcGIS |
 
-Camden libraries come from the **Arts Council England** national dataset (filtered to Camden), not Camden's own portal — the Arts Council data is richer and already geocoded.
+Camden libraries come from the **Arts Council England** national dataset (filtered to Camden), not Camden's own portal - the Arts Council data is richer and already geocoded.
 
 ---
 
@@ -62,7 +62,7 @@ For three facility types, a single national dataset covers all of London:
 | **Libraries** | Arts Council England | Already used for Camden; covers all English libraries |
 | **Polling stations** | Democracy Club | UK-wide; changes per election |
 
-Integrating these would immediately extend coverage for these three facilities to all 33 authorities. The borough-by-borough approach is unavoidable for **public toilets, grit bins, CCTV, and reception centres** — no national source exists.
+Integrating these would immediately extend coverage for these three facilities to all 33 authorities. The borough-by-borough approach is unavoidable for **public toilets, grit bins, CCTV, and reception centres** - no national source exists.
 
 ---
 
@@ -117,7 +117,7 @@ The prep scripts are not committed. To refresh a dataset:
 | **Camden schools = London-wide GIAS extract** | 658 rows all tagged `_borough: camden`, but individual rows carry their true `local_authority_name` (often another borough). Treat Camden schools as London-wide coverage until the file is re-split by authority. |
 | **Kensington & Chelsea reception centres = emergency rest centres** | The nearest match to "reception centres" in K&C's data. Not routine customer-service desks. |
 | **City of London polling = 4 places** | The City has a tiny resident population; 4 polling places is correct. City schools are catchment boundaries (polygons), not points, so they are not included. |
-| **Schema heterogeneity preserved on disk** | Each borough's property field names are kept verbatim. The engine normalises them at read time — see [`plugins/civic-geo/src/geo.mjs`](../plugins/civic-geo/src/geo.mjs) `FIELDS` map for the mapping per facility. |
+| **Schema heterogeneity preserved on disk** | Each borough's property field names are kept verbatim. The engine normalises them at read time - see [`plugins/civic-geo/src/geo.mjs`](../plugins/civic-geo/src/geo.mjs) `FIELDS` map for the mapping per facility. |
 | **CCTV beyond Lambeth + K&C unavailable** | Most councils withhold camera locations. Barnet lists cameras but without coordinates. |
 | **Reception centres beyond Camden + K&C unavailable** | Rare as open data. |
 
@@ -146,7 +146,7 @@ The engine loads GeoJSON at startup via `readFileSync`. Changes to files are not
 
 ## Why London's facility data is split across 33 portals `[commercial]`
 
-London is governed at two levels: the GLA (Mayor, Transport for London, strategic policy) and 33 local authorities (councils, day-to-day services). Every facility in Codeborough is a **borough responsibility** — delivered and published independently by each council on its own data portal, in its own format.
+London is governed at two levels: the GLA (Mayor, Transport for London, strategic policy) and 33 local authorities (councils, day-to-day services). Every facility in Codeborough is a **borough responsibility** - delivered and published independently by each council on its own data portal, in its own format.
 
 There is no single "London facilities" database. The only exceptions are the three national datasets noted above (schools, libraries, polling stations). For all other facility types, data must be gathered borough by borough.
 
@@ -188,6 +188,6 @@ Per-source attribution (portal URLs and dataset identifiers) is in [`datasets/SO
 
 ## Assumptions register
 
-- `[ASSUMPTION — verify]` Exact dataset IDs for Socrata refresh URLs are not listed — they are in `datasets/SOURCES.md` (verify section exists and contains them).
-- `[ASSUMPTION — verify]` Arts Council England library data and Democracy Club polling data are OGL-licensed. Both are standard UK public-sector datasets but licence should be verified on their respective portals before redistribution.
-- `[ASSUMPTION — verify]` The Camden schools 658-row count represents the full GIAS extract (London-wide). The coverage matrix shows 658 under Camden; SOURCES.md confirms the Camden schools caveat. Verify the row count against the actual GeoJSON file: `node -e "console.log(JSON.parse(require('fs').readFileSync('datasets/schools/schools-all-london.geojson','utf8')).features.length)"`.
+- `[ASSUMPTION - verify]` Exact dataset IDs for Socrata refresh URLs are not listed - they are in `datasets/SOURCES.md` (verify section exists and contains them).
+- `[ASSUMPTION - verify]` Arts Council England library data and Democracy Club polling data are OGL-licensed. Both are standard UK public-sector datasets but licence should be verified on their respective portals before redistribution.
+- `[ASSUMPTION - verify]` The Camden schools 658-row count represents the full GIAS extract (London-wide). The coverage matrix shows 658 under Camden; SOURCES.md confirms the Camden schools caveat. Verify the row count against the actual GeoJSON file: `node -e "console.log(JSON.parse(require('fs').readFileSync('datasets/schools/schools-all-london.geojson','utf8')).features.length)"`.
